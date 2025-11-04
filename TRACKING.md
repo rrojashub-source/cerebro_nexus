@@ -500,7 +500,7 @@
   - Line 2095: Added schema prefix `nexus_memory.`
   - Lines 2094-2096: Fixed column names `uuid` → `episode_id`
 
-**Git Commit:** [Pending]
+**Git Commit:** `26ecccc` - fix(api): Repair 7 dormant capabilities discovered in autodiscovery
 
 **Next Steps:**
 - Continue monitoring dormant capabilities for edge cases
