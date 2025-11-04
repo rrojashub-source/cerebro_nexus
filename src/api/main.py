@@ -1761,6 +1761,21 @@ async def query_facts(request: FactQueryRequest):
     Query extracted facts directly from episode metadata
 
     Fast fact retrieval without semantic search (< 5ms)
+
+    **Valid fact_type values (from EpisodeFacts model):**
+    - Versioning: nexus_version, api_version
+    - Metrics: accuracy_percent, latency_ms, episode_count, query_count, test_count, success_rate
+    - Status: status, phase_number, session_number, completion_percent
+    - Features: feature_name, implementation_time_hours, lines_of_code, files_created, files_modified
+    - Decay: decay_score, importance_override
+    - Benchmarks: benchmark_name, benchmark_score, baseline_score
+    - Errors: bug_count, error_count
+    - Temporal: duration_hours, start_date, end_date
+    - GitHub: commit_hash, pull_request_number
+    - Custom: custom (extensible dict)
+    - Metadata: extraction_method, extraction_confidence, last_updated
+
+    **Example:** fact_type="nexus_version"
     """
     start_time = time.time()
 
@@ -1858,6 +1873,7 @@ async def hybrid_query(request: HybridQueryRequest):
 
     Best-of-both-worlds memory retrieval
     """
+    global embeddings_model
     start_time = time.time()
 
     # Detect if query is fact-seekable
@@ -1909,7 +1925,7 @@ async def hybrid_query(request: HybridQueryRequest):
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 # Generate embedding
-                embedding = model.encode(request.query).tolist()
+                embedding = embeddings_model.encode(request.query).tolist()
 
                 # Build query
                 query_parts = [
@@ -2075,9 +2091,9 @@ async def prime_episode(episode_uuid: str):
         with psycopg.connect(DB_CONN_STRING) as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    SELECT uuid, content, embedding
-                    FROM zep_episodic_memory
-                    WHERE uuid = %s
+                    SELECT episode_id, content, embedding
+                    FROM nexus_memory.zep_episodic_memory
+                    WHERE episode_id = %s
                     LIMIT 1
                 """, (episode_uuid,))
 
