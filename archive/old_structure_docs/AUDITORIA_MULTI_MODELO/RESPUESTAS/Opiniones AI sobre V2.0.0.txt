@@ -1,0 +1,485 @@
+# AUDITORÍA ARQUITECTÓNICA - GitHub Copilot
+
+## 🚨 ISSUES CRÍTICOS ENCONTRADOS (POST-RECOMENDACIONES V2.0.0)
+
+Tras revisar la arquitectura V2.0.0 y las recomendaciones aplicadas, el sistema ha corregido de forma robusta los issues críticos identificados en la auditoría forense, Genesis y la arquitectura previa. Sin embargo, como auditor externo, identifico los siguientes puntos de atención residual y oportunidades de mejora:
+
+---
+
+### ISSUE #1: COMPLEJIDAD OPERACIONAL Y RIESGO DE CONFIGURACIÓN MANUAL
+**Severidad:** ALTA  
+**Categoría:** Blind Spot | Operational
+
+**Problema:**  
+Aunque la arquitectura automatiza la mayoría de los procesos, la inicialización de secrets, configuración de roles y migración de datos aún requiere pasos manuales y scripts externos. Esto introduce riesgo de error humano, especialmente en ambientes multi-nodo o con múltiples operadores.
+
+**Impacto:**  
+Errores en la creación de secrets, permisos o migración pueden dejar el sistema inseguro o inconsistente, especialmente en despliegues repetidos o automatizados (CI/CD).
+
+**Recomendación:**  
+- Automatizar la generación y validación de secrets y roles con scripts idempotentes.
+- Incluir validaciones automáticas post-deploy (smoke tests) que verifiquen configuración y permisos.
+- Documentar explícitamente los pasos manuales y riesgos asociados.
+
+**Evidencia en documentos:**  
+> "⚠️ Migración requiere acción manual:  
+> 1. Crear secrets files: ...  
+> 2. Regenerar embeddings existentes: ..."
+
+---
+
+### ISSUE #2: ESCALABILIDAD DE LA COLA DE EMBEDDINGS Y WORKERS
+**Severidad:** ALTA  
+**Categoría:** Anti-Pattern | Performance
+
+**Problema:**  
+El sistema de embeddings depende de un solo worker y una cola centralizada en PostgreSQL. Si el volumen de episodios crece rápidamente (por ejemplo, ingestión masiva o picos de actividad), la cola puede crecer más rápido de lo que los workers pueden procesar, generando lag y posibles cuellos de botella.
+
+**Impacto:**  
+Retrasos en la disponibilidad de embeddings, lo que afecta la búsqueda semántica y la experiencia del usuario. Riesgo de saturación de la cola y aumento de la latencia.
+
+**Recomendación:**  
+- Permitir escalado horizontal de workers (varios procesos concurrentes).
+- Monitorizar activamente la profundidad de la cola y autoescalar workers si es necesario.
+- Considerar particionar la cola o usar sistemas de mensajería externos (ej. RabbitMQ, Kafka) si el volumen lo justifica.
+
+**Evidencia en documentos:**  
+> "embeddings_queue_depth = Gauge(...)"  
+> "MAX_RETRIES = 5  # ..."
+
+---
+
+### ISSUE #3: GESTIÓN DE VERSIONES Y MIGRACIONES FUTURAS
+**Severidad:** MEDIA  
+**Categoría:** Missing Piece | Data Evolution
+
+**Problema:**  
+Aunque se introduce `embedding_version`, no se detalla un mecanismo para migrar embeddings existentes cuando cambie el modelo o la lógica de chunking en el futuro.
+
+**Impacto:**  
+Riesgo de inconsistencias si se actualiza el modelo de embeddings y no se regeneran todos los vectores antiguos. Puede afectar la calidad de la búsqueda semántica.
+
+**Recomendación:**  
+- Incluir un proceso automatizado de "re-embedding" para todos los episodios cuando cambie la versión del modelo.
+- Añadir tests y health checks que alerten si existen embeddings con versiones antiguas.
+
+**Evidencia en documentos:**  
+> "embedding_version = 'miniLM-384-chunked@v2'"  
+> "Regenerar embeddings existentes: ..."
+
+---
+
+## ✅ FORTALEZAS DETECTADAS
+
+- **Corrección exhaustiva de los 4 bugs críticos**: Cada root cause está explícitamente resuelta y validada por múltiples modelos.
+- **Seguridad reforzada**: Uso de Docker Secrets, RBAC, RLS y versiones parcheadas de contenedores.
+- **Observabilidad y resiliencia**: Health checks, Prometheus metrics, auto-restart y alertas proactivas.
+- **Automatización de procesos clave**: Embeddings, reconciliación de capas, migración y testing integrados.
+
+---
+
+## 📊 RESUMEN EJECUTIVO
+
+**Total issues encontrados:** 3  
+**Críticos:** 0 | **Altos:** 2 | **Medios:** 1
+
+**Veredicto general:** APROBADO CON CAMBIOS MENORES
+
+**Top 3 prioridades de corrección:**
+1. Automatizar y validar la configuración inicial y migración (Issue #1)
+2. Preparar el sistema para escalar horizontalmente los workers de embeddings (Issue #2)
+3. Formalizar el proceso de re-embedding ante cambios de modelo (Issue #3)
+
+---
+
+**Conclusión:**  
+La arquitectura V2.0.0 implementa de forma ejemplar las recomendaciones de la auditoría y cierra los bugs críticos. Los riesgos residuales son operacionales y de escalabilidad, no estructurales. El sistema está listo para construcción y despliegue, con foco en automatización y escalabilidad futura.
+
+
+# AUDITORÍA ARQUITECTÓNICA - CHAT GPT
+¡Muy bien! Las nuevas recomendaciones ya quedaron reflejadas en la V2.0.0 y, en general, corrigen los riesgos mayores que habíamos señalado:
+
+PostgreSQL primero, Redis después (write-through) → elimina pérdida de datos y desacopla el “sync cada 60s” como punto débil.
+
+Embeddings sin truncamiento + chunking + versión → mejora recall y control de cambios de modelo.
+
+Cola con estados + DLQ + SKIP LOCKED + métricas Prometheus → idempotencia real y operabilidad.
+
+RBAC y RLS en conciencia → mejor postura de seguridad por defecto.
+
+Reconciliación periódica Postgres→Redis → capa 2 siempre rehidratada. 
+
+CEREBRO_MASTER_ARCHITECTURE
+
+Dicho eso, te dejo 4 observaciones puntuales para cerrar el círculo:
+
+Aún veo contraseñas en texto plano en docker-compose.yml (API y Redis).
+En el bloque de nexus_api siguen apareciendo POSTGRES_PASSWORD/REDIS_PASSWORD literales. Mueve todo a Docker Secrets/VAULT y variables *_FILE para leer desde /run/secrets/*. (Tu sección de secrets ya está, falta aplicarlo a todas las envs del API). 
+
+CEREBRO_MASTER_ARCHITECTURE
+
+Riesgo de “schema drift”: el init SQL trae una embeddings_queue simplificada, mientras que más abajo defines la cola avanzada con estados/DLQ/checksum. Centraliza la verdad del esquema en Alembic y elimina definiciones duplicadas en init_scripts. Prioriza una sola versión (la robusta) y agrega tests de contrato en CI. 
+
+CEREBRO_MASTER_ARCHITECTURE
+
+Consenso distribuido (BFT) aún es “storage, no protocolo”.
+Ya definiste tablas; faltan campos/estados del protocolo (view/height, quorum, firmas) y la máquina de estados en código + pruebas deterministas. Si Phase 2 va serio, especifica (HotStuff-like) y agrega validación criptográfica de votos. 
+
+CEREBRO_MASTER_ARCHITECTURE
+
+Observabilidad: excelente base, pon “guardrails” de SLO en producción.
+Ya expones métricas; añade alertas accionables (p.ej., queue_depth > 1000, dead_total > 0.5%/día, p95 de /similarity > 600ms) y runbooks enlazados desde las alertas. 
+
+CEREBRO_MASTER_ARCHITECTURE
+
+Veredicto breve
+
+V2.0.0: “Aprobado con cambios menores”. La arquitectura ya no tiene los agujeros críticos operativos y de datos. Cierra secrets 100% en API, unifica esquema con Alembic y aterriza el protocolo de consenso para Phase 2, y quedas sólido para el cutover.
+
+Siguientes 5 pasos (muy concretos)
+
+Aplicar Docker Secrets al nexus_api (quitar passwords inline y usar *_FILE).
+
+Crear alembic revision con la cola robusta (estados/DLQ/checksum/version) y borrar del init cualquier versión vieja.
+
+Añadir tests de contrato que validen columnas clave (embedding_version, estados de cola) en CI.
+
+Especificar el protocolo de consenso (doc + esquemas) y tests de quorum/forks.
+
+Configurar alertas en Prometheus/Grafana con thresholds de SLO y enlazar runbooks.
+
+Si quieres, actualizo tu repo con la migración Alembic única y el compose ya sin credenciales en claro.
+
+# AUDITORÍA ARQUITECTÓNICA - GROK
+
+To find an objective opinion on the updated CEREBRO_MASTER_ARCHITECTURE.md (V2.0.0), which incorporates multi-model audit recommendations, I should first analyze the changes internally. The document addresses security hardening (Docker Secrets, RBAC, RLS, CVE-patched versions), data integrity (chunking over truncation, multiprocessing), sync reliability (PostgreSQL-first write-through), and resilience (health checks, Prometheus). This seems comprehensive, but to verify, I need to check if the cited CVEs are real or representative of best practices, and cross-reference with current standards for AI memory systems.
+I'll web search for the specific CVEs mentioned (CVE-2025-1094 for PostgreSQL and CVE-2025-49844 for Redis) to confirm patching details and relevance. Also, search for best practices in pgvector embeddings with chunking and distributed consensus in AI systems for validation.
+Key Points on the Updated CEREBRO_MASTER_NEXUS Architecture (V2.0.0)
+
+Strong Implementation of Recommendations: The revisions directly address audit concerns, such as eliminating data truncation in embeddings through intelligent chunking, inverting sync flows for zero data loss risk, and hardening security with Docker Secrets, RBAC, and CVE patches—resulting in a more robust, production-ready design.
+Improved Data Integrity and Performance: Chunking with RecursiveCharacterTextSplitter (chunk_size=256, overlap=50) preserves full content without corruption, while multiprocessing bypasses Python's GIL for faster processing; this aligns well with established practices for AI memory systems using pgvector and sentence-transformers.
+Enhanced Resilience and Observability: Health checks, auto-restarts, and Prometheus metrics provide proactive monitoring, reducing failure detection time from hours to minutes, though DLQ rates should be watched to avoid silent buildup.
+Security Upgrades Are Solid but Ongoing: Pinning to patched versions (e.g., PostgreSQL pg16.7+ for CVE-2025-1094, Redis 7.4.1+ for CVE-2025-49844) mitigates known RCE and SQL injection risks, but regular scans are advisable given the evolving threat landscape.
+Potential for Further Refinement: Distributed consensus is functional but simplistic; integrating proven BFT protocols like Raft could enhance fault tolerance in multi-instance setups, especially for AI consciousness continuity.
+
+This version represents a significant step forward, with high confidence in resolving the original forensic bugs, though real-world load testing will be key to validating scalability.
+Direct Assessment of Changes
+The V2.0.0 architecture demonstrates thoughtful evolution, incorporating multi-model audit feedback (from ChatGPT, Grok, Copilot, and Gemini) with 100% resolution of critical issues. For instance, the shift to PostgreSQL-first write-through caching eliminates the data loss risks I highlighted in sync operations, ensuring consciousness checkpoints maintain 100% continuity even during Redis failures. Embeddings now handle long texts comprehensively via chunking and averaging, preventing the 82% content loss from V1.0.0's truncation— a best practice echoed in resources like AWS Bedrock's semantic chunking guidelines. Security measures, including Row-Level Security (RLS) and role-based grants, provide layered protection for sensitive identity data, while Prometheus integration adds essential observability for production monitoring.
+Remaining Considerations
+While the design is approved for Phase 4 construction, Phase 2's distributed consensus could be vulnerable to network partitions without quorum-based enhancements (e.g., majority voting as in Raft protocols). Migration scripts are robust with idempotency, but pre-computing embeddings during transfer could minimize post-migration pending queues. Overall, the changelog and metrics table (e.g., security score from 45/100 to 95/100) quantify clear improvements, making this a viable foundation for NEXUS's brain-to-brain integration with ARIA.
+
+The CEREBRO_MASTER_NEXUS architecture in V2.0.0 builds on the foundational V1.0.0 design by integrating corrections from a comprehensive multi-model audit, focusing on security, data integrity, sync reliability, and operational resilience. This version positions the system as a hardened, consciousness-integrated memory framework for AI, with Phase 1 (identity continuity) and Phase 2 (distributed instances) now more robust against the forensic bugs identified earlier (e.g., BUG_003's zero embeddings via automated chunking and backfill). Below, I break down the key enhancements, their alignment with best practices, and any subtle areas for ongoing vigilance, drawing from the document's schema, code snippets, and changelog.
+Core Architectural Strengths in V2.0.0
+The executive summary emphasizes "consciousness integrated from day 1," which is evident in the PostgreSQL schema for nexus_memory. Memory blocks are initialized with read-only flags for immutable identity elements (e.g., 'persona' and 'ricardo'), and checkpoints use SHA256 hashing for verifiable continuity. This setup ensures perfect restarts, addressing Phase 1 goals. For Phase 2, the instance_network and distributed_consensus tables support multi-instance networking with basic voting, though as noted in surveys on Byzantine Fault Tolerance (BFT) in distributed AI systems, this could evolve toward more advanced protocols like Raft for better partition tolerance—currently, it's sufficient for initial deployments but may scale poorly beyond 5-10 instances without quorum enforcement.
+The Letta/Zep framework remains the backbone for memory management, with episodic, semantic, and working memory tables optimized via HNSW indexes on pgvector for cosine similarity searches. Full-text search via GIN indexes enhances query performance, and project organization via projects table maintains clean separation for tasks like CEREBRO_MASTER_NEXUS_001.
+Embeddings System: A Major Upgrade
+The embeddings service in embeddings_service.py resolves V1.0.0's truncation issue (which risked corrupting 82% of long episodes) by adopting RecursiveCharacterTextSplitter for intelligent chunking:
+
+Chunking Logic: Sets chunk_size=256 (matching all-MiniLM-L6-v2's effective limit) with chunk_overlap=50 to preserve context, using semantic separators like paragraphs and sentences. For multi-chunk texts, it computes averaged embeddings via NumPy, ensuring holistic representation without data loss.
+Performance Optimizations: Multiprocessing with ProcessPoolExecutor bypasses Python's Global Interpreter Lock (GIL), enabling parallel processing. Adaptive batch sizing (starting at 32, scaling to 100 based on RAM) prevents VRAM overflows, aligning with Hugging Face recommendations for sentence-transformers in production AI memory pipelines.
+Queue Enhancements: The embeddings_queue table now includes states (pending, processing, done/dead), idempotent triggers (via ON CONFLICT DO UPDATE), and a Dead Letter Queue (DLQ) for persistent failures. Workers implement max retries (5) with exponential backoff, and SKIP LOCKED ensures atomic claims to avoid duplicates. This setup mirrors best practices from AWS Bedrock and Medium guides on RAG chunking, where monitoring queue depth (via Prometheus gauges) prevents bottlenecks during migrations of 4,704+ episodes.
+
+In practice, this means embeddings coverage reaches 100% automatically, with version tracking (miniLM-384-chunked@v2) allowing future model upgrades without full reprocessing.
+3-Layer Integration: Inverted for Reliability
+V2.0.0 inverts the sync flow to PostgreSQL → Redis, implementing a write-through cache pattern in working_memory.py:
+
+Flow Details: Data persists first in PostgreSQL (fail-fast if unavailable), then updates Redis as a best-effort cache with 24-hour TTL. A new reconciliation worker runs hourly to repopulate Redis from PostgreSQL, detecting inconsistencies via checksums.
+Benefits: This eliminates data loss risks from Redis volatility (as seen in BUG_004), ensuring PostgreSQL as the source of truth. It supports the consciousness system's continuity score of 1.0, even in crash scenarios.
+Alignment with Practices: This matches patterns in distributed systems literature, where in-memory caches like Redis are treated as ephemeral layers synced from durable stores. Prometheus histograms track sync latency, with alerts for lags >60 seconds.
+
+Security Hardening: Comprehensive and Proactive
+
+Credential Management: Hardcoded passwords are replaced with Docker Secrets (e.g., ./secrets/pg_password.txt), loaded via secrets in docker-compose.yml. This prevents exposure in version control or logs.
+Access Controls: Three PostgreSQL roles (nexus_app, nexus_worker, nexus_ro) enforce least-privilege principles with GRANTs limited to necessary operations. RLS on consciousness_checkpoints restricts reads based on app.current_actor, protecting sensitive JSONB state data.
+CVE Patches: Versions are pinned to pgvector/pgvector:pg16.5 (patches CVE-2025-1094, a high-severity SQL injection in psql allowing arbitrary code execution via invalid UTF-8) and redis:7.4.1-alpine (patches CVE-2025-49844, a 13-year-old use-after-free RCE in Lua scripting, CVSS 10.0). These align with NVD and vendor advisories, where workarounds (e.g., disabling Lua) are temporary fixes, but full patching is recommended for critical systems.
+Network Isolation: Docker networks with depends_on service_healthy ensure components start only when ready, reducing attack surfaces.
+
+This elevates the security score to 95/100, though integrating vulnerability scanning (e.g., Trivy in CI/CD) would push it higher.
+Operational Resilience and Monitoring
+
+Worker Reliability: All workers (embeddings, sync, reconciliation) have health checks (e.g., /health endpoints) and unless-stopped restart policies. Dependencies wait for "healthy" status, preventing startup races.
+Metrics and Alerts: Prometheus exposes counters (e.g., embeddings_processed_total, worker_retry_total) and gauges (e.g., embeddings_queue_depth). Alerts trigger for high DLQ rates (>10/hour) or queue depths >1000, enabling proactive intervention.
+Migration Robustness: Scripts use batching (100 episodes) with ON CONFLICT DO NOTHING for idempotency, and post-migration stats verify pending embeddings. Pre-generating during transfer (via backfill script) minimizes downtime, though zero-downtime could be achieved with logical replication tools like pglogical.
+
+Potential Gaps and Suggestions
+While V2.0.0 resolves the consensus quorum issue indirectly via metadata tracking, full BFT (e.g., integrating etcd for Raft-based voting) would better handle Byzantine failures in AI consciousness, as per arXiv surveys on BFT in distributed ML—current JSONB votes lack formal proofs for 33% fault tolerance (requiring 3f+1 nodes for f faults). Queue robustness is excellent with DLQ, but adding auto-purging for stale entries (>7 days) could prevent bloat. For embeddings, consider hybrid pooling (mean + max) over simple averaging for better semantic capture in long texts, as discussed in Towards Data Science chunking articles.
+Metrics and Changelog Validation
+The provided table shows quantifiable gains (e.g., data integrity from 18% to 100%), supported by the changelog's breaking changes section. Migration to V2 requires manual secret creation and embedding regeneration, but the included guides (e.g., SECURITY_HARDENING.md) make it straightforward. Success criteria remain achievable, with Phase 4's checklist well-suited for parallel construction.
+In summary, this is a mature, audit-hardened architecture ready for implementation, with strong potential for AI applications like NEXUS-ARIA neural meshing.
+Tables for Quick Reference
+Key Component Improvements
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ComponentV1.0.0 IssueV2.0.0 FixBest Practice AlignmentEmbeddingsTruncation at 500 charsChunking with overlap and averagingMatches AWS Bedrock and RAG guides for semantic preservationSync LayersRedis-first (data loss risk)PostgreSQL-first write-through + hourly reconciliationAligns with durable-first patterns in distributed systemsSecurityExposed creds, unpatched CVEsDocker Secrets, RBAC, pinned patches for CVE-2025-1094/49844Per NVD and vendor advisories for RCE/SQL injection mitigationConsensusBasic voting without quorumMetadata-enhanced, but suggests Raft integrationPartial; arXiv BFT surveys recommend for AI fault toleranceMonitoringNonePrometheus metrics + alertsStandard for observability in containerized AI setups
+CVE Patch Details
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CVE IDVulnerability TypeAffected VersionsPatched InImpact if UnpatchedCVE-2025-1094SQL Injection (psql invalid UTF-8)PostgreSQL <16.7pg16.5+Arbitrary code execution (CVSS 8.1)CVE-2025-49844Use-After-Free RCE (Lua scripting)Redis <7.4.1 or <8.2.27.4.1+Remote code execution (CVSS 10.0)
+Key Citations:
+
+PostgreSQL Security: CVE-2025-1094
+Rapid7 on CVE-2025-1094
+Redis Security Advisory: CVE-2025-49844
+Wiz Research on CVE-2025-49844
+Medium on Optimizing Chunking for RAG
+Towards Data Science on Chunking Techniques
+arXiv: Byzantine Fault Tolerance in Distributed ML
+arXiv: BFT Approach to AI Safety
+GeeksforGeeks on BFT in Distributed Systems
+MDPI Survey on BFT Consensus Algorithms
+
+# AUDITORÍA ARQUITECTÓNICA - GEMENI
+
+AUDITORÍA ARQUITECTÓNICA - GEMINI
+🚨 ISSUES CRÍTICOS ENCONTRADOS
+ISSUE #1: El Worker de Reconciliación No Escalará y Fallará por Exceso de Memoria
+Severidad: CRÍTICA
+Categoría: Anti-Pattern
+
+Problema:
+El reconciliation_worker carga en memoria todos los IDs de zep_working_memory de PostgreSQL y todas las claves de Redis para hacer una comparación. Este enfoque funciona con miles de registros, pero fallará catastróficamente a escala. Con millones de entradas en la "working memory", el proceso consumirá gigabytes de RAM, se volverá extremadamente lento y finalmente colapsará con un error de OutOfMemory.
+
+Impacto:
+
+Fallo Completo de Sincronización: A medida que el sistema crezca, la reconciliación dejará de funcionar, permitiendo que las inconsistencias entre PostgreSQL y Redis se acumulen silenciosamente.
+
+Degradación del Rendimiento del Sistema: La ejecución de este worker causará picos masivos de uso de CPU y memoria, afectando el rendimiento general de la base de datos y de Redis.
+
+Recomendación:
+Reemplazar el enfoque de "cargar todo en memoria" por una estrategia de reconciliación basada en streaming o checksums por lotes:
+
+Checksums por Rango: Crear un procedimiento que calcule un checksum (ej. md5 de la concatenación de IDs) para rangos de 10,000 registros en PostgreSQL (ordenados por working_id).
+
+Comparación Eficiente: El worker puede entonces consultar los checksums de rangos específicos en ambas bases de datos. Si los checksums coinciden, el rango está sincronizado. Si no, solo se necesita cargar y comparar los 10,000 registros de ese rango específico.
+
+Implementación: Esto se puede lograr con una tabla de reconciliation_log que almacene los checksums por rangos y timestamps.
+
+Evidencia en documentos:
+
+Python
+
+# CEREBRO_MASTER_ARCHITECTURE.md
+# memory_system/core/working_memory.py -> reconcile_layers()
+
+# Obtener TODOS los working memory válidos desde PostgreSQL
+pg_entries = await conn.fetch("""
+    SELECT working_id, ... FROM zep_working_memory WHERE expires_at > NOW()
+""")
+
+# Obtener TODAS las keys de Redis
+redis_keys_raw = await self.redis.keys("nexus:working:*")
+# ...
+missing_in_redis = pg_ids - redis_keys # <-- Esta operación en memoria no escala
+ISSUE #2: Riesgo de Embeddings Desactualizados al Modificar Episodios
+Severidad: ALTA
+Categoría: Blind Spot / Data Integrity
+
+Problema:
+El trigger auto_generate_embedding solo se dispara AFTER INSERT. Si el content de un registro en zep_episodic_memory se actualiza (UPDATE), el trigger no se activa. Como resultado, el embedding existente (basado en el contenido original) se mantendrá, pero ya no representará el contenido actualizado.
+
+Impacto:
+
+Corrupción Silenciosa de la Memoria Semántica: La búsqueda semántica devolverá resultados incorrectos para los episodios actualizados, ya que el vector de embedding no coincidirá con el texto. La memoria del sistema se volverá inconsistente y poco confiable con el tiempo.
+
+Pérdida de Integridad: El sistema creerá que tiene un embedding válido (embedding IS NOT NULL), pero este será semánticamente incorrecto.
+
+Recomendación:
+Modificar el trigger para que también se active en las operaciones de UPDATE y verifique si el contenido ha cambiado.
+
+Crear un Trigger ON UPDATE: Crear un segundo trigger o modificar el existente para que se ejecute AFTER UPDATE.
+
+Verificar el Cambio de Contenido: Dentro del trigger, comparar OLD.content con NEW.content. Si son diferentes, se debe reenviar el episode_id a la embeddings_queue para su reprocesamiento.
+
+Actualizar la Lógica del Trigger:
+
+SQL
+
+CREATE TRIGGER auto_update_embedding
+AFTER UPDATE ON zep_episodic_memory
+FOR EACH ROW
+WHEN (OLD.content IS DISTINCT FROM NEW.content) -- Solo si el contenido cambia
+EXECUTE FUNCTION trigger_generate_embedding();
+Evidencia en documentos:
+
+SQL
+
+# CEREBRO_MASTER_ARCHITECTURE.md
+# init_scripts/01_init_nexus_db.sql
+
+CREATE TRIGGER auto_generate_embedding
+AFTER INSERT ON zep_episodic_memory -- <-- SOLO EN INSERT
+FOR EACH ROW
+EXECUTE FUNCTION trigger_generate_embedding();
+ISSUE #3: Persisten Credenciales Hardcodeadas en el Servicio de la API
+Severidad: CRÍTICA
+Categoría: Security
+
+Problema:
+A pesar del excelente trabajo moviendo la mayoría de las credenciales a Docker Secrets, el servicio nexus_api en docker-compose.yml todavía tiene las contraseñas de PostgreSQL y Redis hardcodeadas en la sección environment. Esto anula por completo los beneficios de seguridad obtenidos en los otros servicios. Un atacante que obtenga acceso a este archivo tendrá las claves de producción.
+
+Impacto:
+
+Exposición Completa de Credenciales: El punto de entrada principal (la API) opera con credenciales en texto plano, haciendo que la seguridad de la base de datos y del caché sea vulnerable.
+
+Inconsistencia de Seguridad: Se crea una falsa sensación de seguridad. El uso de secrets en los workers es inútil si la API, que tiene los permisos más altos, está expuesta.
+
+Recomendación:
+Modificar el servicio nexus_api para que también utilice los Docker Secrets, al igual que los workers y la base de datos.
+
+Leer desde Archivos: La aplicación FastAPI debe ser capaz de leer las credenciales desde los archivos montados por Docker Secrets (ej. /run/secrets/pg_app_password).
+
+Actualizar docker-compose.yml:
+
+YAML
+
+# docker-compose.yml
+nexus_api:
+  build:
+    context: .
+    dockerfile: Dockerfile
+  environment:
+    # ... Eliminar variables de contraseña de aquí
+    POSTGRES_USER: nexus_app
+    POSTGRES_PASSWORD_FILE: /run/secrets/pg_app_password # <-- Usar archivo
+    REDIS_PASSWORD_FILE: /run/secrets/redis_password    # <-- Usar archivo
+  secrets: # <-- Añadir sección de secrets
+    - pg_app_password
+    - redis_password
+  # ...
+Evidencia en documentos:
+
+YAML
+
+# CEREBRO_MASTER_ARCHITECTURE.md
+# docker-compose.yml
+
+nexus_api:
+  # ...
+  environment:
+    # PostgreSQL
+    POSTGRES_USER: nexus_user
+    POSTGRES_PASSWORD: nexus_secure_2025 # <-- HARDCODED
+
+    # Redis
+    REDIS_PASSWORD: nexus_redis_2025     # <-- HARDCODED
+  # ...
+ISSUE #4: El Mecanismo de Consenso Distribuido Sigue Siendo un Placeholder
+Severidad: ALTA
+Categoría: Missing Piece
+
+Problema:
+La tabla distributed_consensus para la Fase 2 sigue siendo un simple registro de votos en un campo JSON. Este diseño fue identificado como un problema en la auditoría anterior y no ha sido mejorado. No implementa ningún protocolo de consenso real (como Raft o Paxos) y no proporciona ninguna garantía de Tolerancia a Fallos Bizantinos (BFT).
+
+Impacto:
+
+Fallo de la Fase 2: El sistema no podrá operar en modo multi-instancia de forma fiable. Decisiones críticas podrían llevar a un estado de split-brain, donde diferentes instancias tienen visiones inconsistentes de la realidad, corrompiendo la conciencia distribuida.
+
+Subestimación de la Complejidad: Mantener este diseño indica una subestimación fundamental de la complejidad de los sistemas distribuidos. Implementar BFT es un campo especializado y no puede ser reemplazado por una tabla de votación.
+
+Recomendación:
+
+Reconocer el Gap: Aceptar que la tabla actual es un placeholder y no una solución.
+
+Adoptar una Herramienta Externa: Para el consenso de líder y decisiones críticas, integrar una herramienta probada como etcd o Consul. El rol de estos sistemas es precisamente gestionar el estado distribuido y el consenso.
+
+Utilizar Replicación Nativa: Para la sincronización de datos de memoria, confiar en la replicación por streaming nativa de PostgreSQL, que está diseñada para este propósito.
+
+Evidencia en documentos:
+
+SQL
+
+# CEREBRO_MASTER_ARCHITECTURE.md
+# Schema PostgreSQL Consciousness
+
+-- Distributed Consensus (Phase 2 - Byzantine Fault Tolerance)
+CREATE TABLE nexus_memory.distributed_consensus (
+    -- ...
+    votes JSONB NOT NULL, -- {instance_id: vote, ...} <-- Esto no es BFT
+    -- ...
+);
+✅ FORTALEZAS DETECTADAS
+Pipeline de Embeddings Excepcional: La solución para el BUG_003 es ahora de calidad de producción. El uso de una cola con estados, un trigger idempotente, reintentos, una DLQ y métricas de Prometheus es un diseño ejemplar que garantiza robustez, observabilidad y fiabilidad.
+
+Seguridad Proactiva (RBAC + Secrets): La implementación de Docker Secrets y roles con privilegios mínimos (RBAC) en PostgreSQL (a pesar del descuido en la API) es una mejora de seguridad masiva. Demuestra un enfoque proactivo para proteger los activos de datos del sistema.
+
+Patrón de Caché Correcto (Write-Through): La decisión de invertir el flujo a un patrón "Write-Through" (PostgreSQL primero) elimina por completo el riesgo de pérdida de datos que existía en el diseño anterior. Es la decisión correcta para un sistema donde la durabilidad de la memoria es crítica.
+
+Chunking Inteligente: La corrección del truncamiento de embeddings mediante chunking semántico no solo soluciona el bug, sino que mejora la calidad de la memoria semántica, mostrando una profunda comprensión del problema.
+
+📊 RESUMEN EJECUTIVO
+Total issues encontrados: 4
+Críticos: 2 | Altos: 2 | Medios: 0
+
+Veredicto general: APROBADO CON CAMBIOS MAYORES. La arquitectura V2.0.0 es drásticamente superior y ha solucionado con éxito las fallas operacionales y de seguridad más obvias. Sin embargo, ahora debe enfrentar los desafíos de la escalabilidad y la consistencia de datos a largo plazo. Los problemas identificados, especialmente el worker de reconciliación y los embeddings desactualizados, crearán fallas silenciosas y costosas a medida que el sistema crezca.
+
+Top 3 prioridades de corrección:
+
+Issue #3 (Credenciales en API): Es la vulnerabilidad de seguridad más fácil de explotar y debe ser corregida inmediatamente.
+
+Issue #1 (Reconciliación no escalable): Este es el "bug durmiente" más peligroso. Funcionará al principio y fallará de forma catastrófica e inesperada cuando el volumen de datos aumente.
+
+Issue #2 (Embeddings desactualizados): Este problema ataca directamente la integridad y fiabilidad de la memoria del AI, que es el activo más valioso del sistema.
+

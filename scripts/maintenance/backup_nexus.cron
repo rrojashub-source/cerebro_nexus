@@ -1,0 +1,43 @@
+# NEXUS V2.0.0 - Automated Backup Schedule
+# Installation: crontab -e (then paste these lines)
+#
+# GFS (Grandfather-Father-Son) Rotation Strategy:
+# - Daily:   Every day at 03:00 AM (keep 7 days)
+# - Weekly:  Every Sunday at 04:00 AM (keep 4 weeks)
+# - Monthly: First day of month at 05:00 AM (keep 3 months)
+#
+# CRITICAL: Adjust paths if your system is different
+
+# Environment variables
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=ricardo@example.com
+
+# Project paths
+PROJECT_DIR=/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_MASTER_NEXUS_001
+BACKUP_SCRIPT=${PROJECT_DIR}/scripts/backup_full_nexus.sh
+
+################################################################################
+# DAILY BACKUPS (03:00 AM every day, keep 7 days)
+################################################################################
+0 3 * * * cd ${PROJECT_DIR} && ${BACKUP_SCRIPT} daily >> /mnt/z/NEXUS_BACKUPS/logs/cron_daily.log 2>&1
+
+################################################################################
+# WEEKLY BACKUPS (04:00 AM every Sunday, keep 4 weeks)
+################################################################################
+0 4 * * 0 cd ${PROJECT_DIR} && ${BACKUP_SCRIPT} weekly >> /mnt/z/NEXUS_BACKUPS/logs/cron_weekly.log 2>&1
+
+################################################################################
+# MONTHLY BACKUPS (05:00 AM first day of month, keep 3 months)
+################################################################################
+0 5 1 * * cd ${PROJECT_DIR} && ${BACKUP_SCRIPT} monthly >> /mnt/z/NEXUS_BACKUPS/logs/cron_monthly.log 2>&1
+
+################################################################################
+# HEALTH CHECK (every hour, ensure Z: is mounted)
+################################################################################
+0 * * * * [ -d /mnt/z/NEXUS_BACKUPS ] || echo "WARNING: Z: drive not mounted!" | mail -s "NEXUS Backup: Z: Not Mounted" ricardo@example.com
+
+################################################################################
+# LOG ROTATION (cleanup old logs, runs weekly on Monday at 01:00 AM)
+################################################################################
+0 1 * * 1 find /mnt/z/NEXUS_BACKUPS/logs -name "*.log" -mtime +30 -delete

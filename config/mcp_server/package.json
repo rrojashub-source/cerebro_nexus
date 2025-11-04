@@ -1,0 +1,28 @@
+{
+  "name": "nexus-memory-mcp-server-v2",
+  "version": "2.0.0",
+  "description": "NEXUS V2.0.0 Memory MCP Server - Simple (6 herramientas esenciales) & Completo (92 herramientas)",
+  "main": "nexus-memory-mcp-server-v2-simple.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node nexus-memory-mcp-server-v2-simple.js",
+    "start:simple": "node nexus-memory-mcp-server-v2-simple.js",
+    "start:full": "node nexus-memory-mcp-server.js"
+  },
+  "keywords": [
+    "nexus",
+    "memory",
+    "mcp",
+    "model-context-protocol",
+    "v2.0.0"
+  ],
+  "author": "Ricardo + NEXUS",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

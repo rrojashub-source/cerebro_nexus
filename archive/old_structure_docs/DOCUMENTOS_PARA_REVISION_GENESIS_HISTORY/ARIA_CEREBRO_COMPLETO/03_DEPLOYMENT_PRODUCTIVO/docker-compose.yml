@@ -1,0 +1,386 @@
+# 🧠 ARIA CEREBRO UNIFICADO - DOCKER COMPOSE
+# Sistema completo: Fase 1 (Memoria Base) + Fase 2 (Continuidad Experiencial)
+# Fecha: 9 Agosto 2025
+# Unificado por: NEXUS
+
+version: '3.8'
+
+services:
+  # =====================================================
+  # BASE DE DATOS POSTGRESQL CON PGVECTOR
+  # =====================================================
+  postgresql:
+    image: ankane/pgvector:v0.5.1
+    container_name: aria_postgresql_unified
+    user: "999:999"  # Non-root user
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
+    environment:
+      POSTGRES_DB: aria_memory
+      POSTGRES_USER: aria_user
+      POSTGRES_PASSWORD: aria_secure_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
+    volumes:
+      - postgres_data_unified:/var/lib/postgresql/data
+      # SQL init files will be handled programmatically by the application
+    ports:
+      - "127.0.0.1:5433:5432"  # Bind only to localhost
+    command: >
+      postgres 
+      -c shared_buffers=2GB 
+      -c work_mem=64MB 
+      -c max_connections=500
+      -c effective_cache_size=6GB
+      -c random_page_cost=1.1
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c shared_preload_libraries=vector,pg_stat_statements
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aria_user -d aria_memory"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - aria_db_network
+      - aria_api_network
+
+  # =====================================================
+  # REDIS PARA CACHING Y SESIONES
+  # =====================================================
+  redis:
+    image: redis:7-alpine
+    container_name: aria_redis_unified
+    user: "999:999"  # Non-root user
+    read_only: true
+    tmpfs:
+      - /tmp
+    command: >
+      redis-server 
+      --maxmemory 4gb 
+      --maxmemory-policy allkeys-lru
+      --save 900 1 300 10 60 10000
+      --tcp-backlog 511
+      --timeout 0
+      --tcp-keepalive 300
+      --lazyfree-lazy-eviction yes
+      --lazyfree-lazy-expire yes
+    volumes:
+      - redis_data_unified:/data
+    ports:
+      - "6381:6379"  # Changed to 6381 to avoid conflicts
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - aria_cache_network
+      - aria_api_network
+
+  # =====================================================
+  # CHROMADB PARA EMBEDDINGS VECTORIALES
+  # =====================================================
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: aria_chroma_unified
+    # read_only: true  # Deshabilitado - Chroma necesita escribir en /chroma/chroma
+    tmpfs:
+      - /tmp
+    volumes:
+      - chroma_data_unified:/chroma/chroma
+    ports:
+      - "8001:8000"  # Changed to 8001 to avoid conflicts with NEXUS 8003
+    environment:
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
+    # healthcheck:
+    #   test: ["CMD-SHELL", "test -d /chroma/chroma"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    restart: unless-stopped
+    networks:
+      - aria_vector_network
+      - aria_api_network
+
+  # =====================================================
+  # QDRANT VECTOR DB - FASE 2 OPTIMIZATION (4x RPS)
+  # =====================================================
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: aria_qdrant_elite
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data_elite:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=6333
+      - QDRANT__SERVICE__GRPC_PORT=6334
+      - QDRANT__LOG_LEVEL=INFO
+    # healthcheck:
+    #   test: ["CMD-SHELL", "test -f /qdrant/qdrant"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    restart: unless-stopped
+
+  # =====================================================
+  # NEO4J KNOWLEDGE GRAPH - FASE 2 OPTIMIZATION
+  # =====================================================
+  neo4j:
+    image: neo4j:5.15-community
+    container_name: aria_neo4j_knowledge_graph
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data_elite:/data
+      - neo4j_logs_elite:/logs
+    environment:
+      - NEO4J_AUTH=neo4j/aria_knowledge_2025
+      - NEO4J_PLUGINS=["graph-data-science"]
+      - NEO4J_dbms_memory_heap_initial__size=512m
+      - NEO4J_dbms_memory_heap_max__size=2G
+      - NEO4J_dbms_memory_pagecache_size=1G
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "aria_knowledge_2025", "MATCH () RETURN count(*) as count"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # =====================================================
+  # PROMETHEUS - MONITORING METRICS
+  # =====================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: aria_prometheus_elite
+    user: "65534:65534"  # nobody user
+    read_only: true
+    tmpfs:
+      - /tmp
+    ports:
+      - "127.0.0.1:9090:9090"  # Bind only to localhost
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro  # Read-only config
+      - prometheus_data_elite:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.listen-address=0.0.0.0:9090'
+      - '--web.external-url=http://127.0.0.1:9090'
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - aria_monitoring_network
+
+  # =====================================================
+  # GRAFANA - MONITORING DASHBOARDS
+  # =====================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: aria_grafana_elite
+    user: "472:472"  # grafana user
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/lib/grafana/plugins
+    ports:
+      - "127.0.0.1:3000:3000"  # Bind only to localhost
+    volumes:
+      - grafana_data_elite:/var/lib/grafana
+      - ./config/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ./config/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=aria_grafana_2025
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=redis-datasource
+      - GF_SERVER_HTTP_ADDR=0.0.0.0
+      - GF_SERVER_HTTP_PORT=3000
+      - GF_SECURITY_DISABLE_GRAVATAR=true
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - aria_monitoring_network
+
+  # =====================================================
+  # API UNIFICADA - FASE 1 + FASE 2
+  # =====================================================
+  aria_unified_api:
+    build: .
+    container_name: aria_api_unified
+    user: "1001:1001"  # Non-root user
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/logs
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      chroma:
+        condition: service_started
+      qdrant:
+        condition: service_started
+      neo4j:
+        condition: service_healthy
+    environment:
+      # Base de datos (usando nombres de servicios internos, no puertos externos)
+      - DATABASE_URL=postgresql://aria_user:aria_secure_password@postgresql:5432/aria_memory
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_URL=http://chroma:8000
+      - QDRANT_URL=http://qdrant:6333
+      - NEO4J_URL=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=aria_knowledge_2025
+      
+      # Variables específicas del sistema unificado
+      - PYTHONPATH=/app
+      - UNIFIED_MODE=true
+      - HYBRID_LAYER_ENABLED=true
+      - MEM0_ENABLED=true
+      - QDRANT_ENABLED=true
+      - KNOWLEDGE_GRAPH_ENABLED=true
+      
+      # APIs externas
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    ports:
+      - "127.0.0.1:8001:8001"  # Bind only to localhost
+    volumes:
+      - ./config:/app/config:ro  # Read-only config
+      # Montar archivos híbridos
+      - ./hybrid_layer:/app/hybrid_layer:ro  # Read-only code
+    command: python -m memory_system.api.main
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - aria_api_network
+      - aria_db_network
+      - aria_cache_network 
+      - aria_vector_network
+      - aria_monitoring_network
+
+  # =====================================================
+  # SERVICIO MEM0 INDEPENDIENTE (DESHABILITADO TEMPORALMENTE)
+  # =====================================================
+  # mem0_service:
+  #   build: .
+  #   container_name: aria_mem0_unified
+  #   depends_on:
+  #     - postgresql
+  #     - redis
+  #     - aria_unified_api
+  #   environment:
+  #     - DATABASE_URL=postgresql://aria_user:aria_secure_password@postgresql:5432/aria_memory_unified
+  #     - REDIS_URL=redis://redis:6379/1
+  #     - MEM0_MODE=service
+  #     - PYTHONPATH=/app
+  #   ports:
+  #     - "8002:8002"
+  #   volumes:
+  #     - ./logs:/app/logs
+  #     - ./hybrid_layer:/app/hybrid_layer
+  #   command: python -m hybrid_layer.config.mem0_config
+  #   restart: unless-stopped
+
+  # =====================================================
+  # WATCHER DE MEMORIA (OPCIONAL - PARA SINCRONIZACIÓN)
+  # =====================================================
+  # memory_watcher:
+  #   build: .
+  #   container_name: aria_watcher_unified
+  #   depends_on:
+  #     - aria_unified_api
+  #   volumes:
+  #     - ./logs:/app/logs
+  #     - ./hybrid_layer/aria_memory_watcher.py:/app/aria_memory_watcher.py
+  #   command: python /app/aria_memory_watcher.py
+  #   restart: unless-stopped
+
+# =====================================================
+# VOLÚMENES PERSISTENTES
+# =====================================================
+volumes:
+  postgres_data_unified:
+    external: true
+    name: proyecto_aria_memoria_persistente_postgres_data
+  redis_data_unified:
+    external: false
+    name: aria_cerebro_unificado_redis_data
+  chroma_data_unified:
+    external: false
+    name: aria_cerebro_unificado_chroma_data
+  qdrant_data_elite:
+    external: false
+    name: aria_cerebro_elite_qdrant_data
+  neo4j_data_elite:
+    external: false
+    name: aria_cerebro_elite_neo4j_data
+  neo4j_logs_elite:
+    external: false
+    name: aria_cerebro_elite_neo4j_logs
+  prometheus_data_elite:
+    external: false
+    name: aria_cerebro_elite_prometheus_data
+  grafana_data_elite:
+    external: false
+    name: aria_cerebro_elite_grafana_data
+
+# =====================================================
+# REDES SEGURAS - SECURITY HARDENING
+# =====================================================
+networks:
+  # Red interna para base de datos (sin acceso externo)
+  aria_db_network:
+    driver: bridge
+    internal: true
+    name: aria_db_internal_network
+  
+  # Red interna para caching (sin acceso externo)  
+  aria_cache_network:
+    driver: bridge
+    internal: true
+    name: aria_cache_internal_network
+    
+  # Red interna para vector databases (sin acceso externo)
+  aria_vector_network:
+    driver: bridge
+    internal: true
+    name: aria_vector_internal_network
+  
+  # Red interna para monitoring (sin acceso externo)
+  aria_monitoring_network:
+    driver: bridge
+    internal: true
+    name: aria_monitoring_internal_network
+    
+  # Red externa para API (con acceso limitado)
+  aria_api_network:
+    driver: bridge
+    name: aria_api_external_network

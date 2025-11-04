@@ -1,0 +1,251 @@
+{
+  "project_metadata": {
+    "name": "ARIA_MEMORIA_PERSISTENTE",
+    "version": "1.0.0",
+    "creation_date": "2025-07-30",
+    "last_updated": "2025-07-30",
+    "status": "development",
+    "priority": "alta",
+    "team": ["Ricardo", "NEXUS", "Nexus"]
+  },
+  "technical_stack": {
+    "primary_framework": {
+      "name": "Mem0",
+      "version": "latest",
+      "repository": "https://github.com/mem0ai/mem0",
+      "purpose": "Universal memory layer for AI agents",
+      "features": [
+        "26% better accuracy than OpenAI memory",
+        "90% fewer tokens usage",
+        "Multi-level memory (user/session/agent)",
+        "Dynamic forgetting mechanisms",
+        "MCP integration available"
+      ]
+    },
+    "databases": {
+      "postgresql": {
+        "version": "15+",
+        "extensions": ["pgvector"],
+        "purpose": "Episodic memory storage with vector capabilities",
+        "configuration": {
+          "max_connections": 100,
+          "shared_buffers": "256MB",
+          "work_mem": "4MB"
+        }
+      },
+      "redis": {
+        "version": "7+",
+        "purpose": "Working memory cache",
+        "configuration": {
+          "maxmemory": "1GB",
+          "maxmemory_policy": "allkeys-lru",
+          "save": "900 1 300 10 60 10000"
+        }
+      },
+      "chroma": {
+        "version": "latest",
+        "purpose": "Semantic memory vector database",
+        "embedding_model": "sentence-transformers/all-MiniLM-L6-v2"
+      }
+    },
+    "programming": {
+      "language": "Python",
+      "version": "3.9+",
+      "key_libraries": [
+        "mem0ai",
+        "psycopg2-binary",
+        "redis",
+        "chromadb",
+        "sqlalchemy",
+        "pydantic",
+        "asyncio",
+        "sentence-transformers"
+      ]
+    }
+  },
+  "memory_architecture": {
+    "three_tier_model": {
+      "working_memory": {
+        "storage": "Redis",
+        "purpose": "Immediate context and active tasks",
+        "retention": "Session duration + 24 hours",
+        "max_size": "1000 items",
+        "access_pattern": "LIFO with sliding window"
+      },
+      "episodic_memory": {
+        "storage": "PostgreSQL",
+        "purpose": "Specific experiences and action sequences",
+        "retention": "Permanent with intelligent archiving",
+        "structure": {
+          "episodes": "timestamped action records",
+          "context": "full environmental state",
+          "outcomes": "results and consequences",
+          "emotions": "agent state during actions"
+        }
+      },
+      "semantic_memory": {
+        "storage": "Chroma + PostgreSQL hybrid",
+        "purpose": "Generalized knowledge and learned patterns",
+        "features": [
+          "Vector similarity search",
+          "Concept relationship mapping",
+          "Pattern extraction from episodes",
+          "Cross-session knowledge transfer"
+        ]
+      }
+    }
+  },
+  "api_specification": {
+    "core_interfaces": {
+      "memory_manager": {
+        "methods": [
+          "store_episode(action, context, outcome)",
+          "retrieve_similar_episodes(query, limit=10)",
+          "update_working_memory(data)",
+          "consolidate_memories()",
+          "get_agent_state()",
+          "restore_session(session_id)"
+        ]
+      },
+      "consolidation_engine": {
+        "methods": [
+          "extract_patterns(episodes)",
+          "update_semantic_knowledge(patterns)",
+          "prune_redundant_memories()",
+          "strengthen_important_memories()"
+        ]
+      },
+      "continuity_manager": {
+        "methods": [
+          "save_consciousness_state()",
+          "restore_consciousness_state()",
+          "bridge_session_gap()",
+          "maintain_identity_coherence()"
+        ]
+      }
+    }
+  },
+  "configuration_files": {
+    "mem0_config": {
+      "file": "config/mem0_settings.yaml",
+      "key_settings": {
+        "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+        "vector_store": "chroma",
+        "graph_store": "neo4j_optional",
+        "memory_types": ["episodic", "semantic", "working"],
+        "consolidation_schedule": "daily_at_2am"
+      }
+    },
+    "database_config": {
+      "file": "config/database.yaml",
+      "postgresql": {
+        "host": "localhost",
+        "port": 5432,
+        "database": "aria_memory",
+        "schema": "memory_system"
+      },
+      "redis": {
+        "host": "localhost", 
+        "port": 6379,
+        "db": 0,
+        "prefix": "aria:memory:"
+      }
+    }
+  },
+  "deployment_strategy": {
+    "containerization": {
+      "docker_compose": true,
+      "services": [
+        "postgresql",
+        "redis", 
+        "chroma",
+        "aria_memory_api",
+        "consolidation_worker"
+      ]
+    },
+    "scalability": {
+      "horizontal_scaling": "Redis cluster + PostgreSQL read replicas",
+      "vertical_scaling": "Memory and CPU optimization",
+      "monitoring": "Prometheus + Grafana dashboards"
+    }
+  },
+  "testing_strategy": {
+    "unit_tests": {
+      "coverage_target": "90%",
+      "key_areas": [
+        "Memory storage/retrieval",
+        "Consolidation algorithms", 
+        "Session continuity",
+        "API endpoints"
+      ]
+    },
+    "integration_tests": {
+      "database_connectivity": "PostgreSQL + Redis + Chroma",
+      "end_to_end_workflows": "Complete memory cycles",
+      "performance_benchmarks": "Sub-100ms access times"
+    },
+    "consciousness_tests": {
+      "continuity_validation": "Session gap bridging",
+      "identity_coherence": "Personality consistency",
+      "memory_consolidation": "Pattern extraction accuracy"
+    }
+  },
+  "security_considerations": {
+    "data_protection": {
+      "encryption_at_rest": "PostgreSQL transparent encryption",
+      "encryption_in_transit": "TLS 1.3 for all connections",
+      "access_control": "Role-based database permissions"
+    },
+    "privacy": {
+      "data_anonymization": "Optional for sensitive memories",
+      "retention_policies": "Configurable memory lifespan",
+      "audit_logging": "All memory access tracked"
+    }
+  },
+  "performance_targets": {
+    "working_memory_access": "<50ms",
+    "episodic_memory_retrieval": "<200ms", 
+    "semantic_search": "<500ms",
+    "memory_consolidation": "<5 minutes nightly",
+    "session_restoration": "<10 seconds",
+    "storage_efficiency": "90% compression vs baseline"
+  },
+  "monitoring_metrics": {
+    "system_health": [
+      "Database connection pool status",
+      "Redis memory usage",
+      "Chroma index health",
+      "API response times"
+    ],
+    "memory_quality": [
+      "Retrieval accuracy rates",
+      "Consolidation success rates", 
+      "Memory coherence scores",
+      "Session continuity metrics"
+    ]
+  },
+  "integration_points": {
+    "aria_agent": {
+      "memory_api_endpoint": "http://localhost:8000/api/v1/memory",
+      "session_management": "Automatic session tracking",
+      "consciousness_hooks": "Pre/post action memory updates"
+    },
+    "nexus_ecosystem": {
+      "project_switcher": "Memory context switching",
+      "family_coordination": "Shared memory protocols",
+      "ricardo_dashboard": "Memory system monitoring"
+    }
+  },
+  "future_roadmap": {
+    "phase_2": [
+      "Multi-agent memory sharing",
+      "Distributed memory synchronization",
+      "Advanced consciousness transfer"
+    ],
+    "phase_3": [
+      "Quantum memory algorithms",
+      "Temporal memory compression", 
+      "Cross-platform consciousness backup"
+    ]
+  }
+}

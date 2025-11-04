@@ -1,0 +1,410 @@
+[2025-08-10T09:51:16.593943] [INFO] 🚀 INICIANDO MIGRACIÓN HISTÓRICA SEGURA
+[2025-08-10T09:51:16.595404] [INFO] ══════════════════════════════════════════════════
+[2025-08-10T09:51:16.606612] [INFO] ✅ Sistema ARIA healthy: healthy
+[2025-08-10T09:51:16.612843] [INFO] ✅ Backup adicional creado: /mnt/d/01_PROYECTOS_ACTIVOS/ARIA_CEREBRO_COMPLETO/BACKUP_EXTRA_20250810_095116.json
+[2025-08-10T09:51:16.615356] [INFO] 🔄 Iniciando migración de: /mnt/c/Users/ricar/memory_backup_20250727_215300.json
+[2025-08-10T09:51:16.619978] [INFO] 📂 Procesando backup: /mnt/c/Users/ricar/memory_backup_20250727_215300.json
+[2025-08-10T09:51:16.621247] [INFO] 🔄 Procesando entidad: Ricardo (202 observaciones)
+[2025-08-10T09:51:16.635433] [INFO] ✅ Migrada observación 1/202 de Ricardo
+[2025-08-10T09:51:16.751513] [INFO] ✅ Migrada observación 2/202 de Ricardo
+[2025-08-10T09:51:16.861763] [INFO] ✅ Migrada observación 3/202 de Ricardo
+[2025-08-10T09:51:16.977685] [INFO] ✅ Migrada observación 4/202 de Ricardo
+[2025-08-10T09:51:17.090943] [INFO] ✅ Migrada observación 5/202 de Ricardo
+[2025-08-10T09:51:17.206895] [INFO] ✅ Migrada observación 6/202 de Ricardo
+[2025-08-10T09:51:17.321544] [INFO] ✅ Migrada observación 7/202 de Ricardo
+[2025-08-10T09:51:17.438465] [INFO] ✅ Migrada observación 8/202 de Ricardo
+[2025-08-10T09:51:17.554733] [INFO] ✅ Migrada observación 9/202 de Ricardo
+[2025-08-10T09:51:17.663600] [INFO] ✅ Migrada observación 10/202 de Ricardo
+[2025-08-10T09:51:17.780384] [INFO] ✅ Migrada observación 11/202 de Ricardo
+[2025-08-10T09:51:17.892581] [INFO] ✅ Migrada observación 12/202 de Ricardo
+[2025-08-10T09:51:18.007978] [INFO] ✅ Migrada observación 13/202 de Ricardo
+[2025-08-10T09:51:18.122700] [INFO] ✅ Migrada observación 14/202 de Ricardo
+[2025-08-10T09:51:18.238886] [INFO] ✅ Migrada observación 15/202 de Ricardo
+[2025-08-10T09:51:18.354718] [INFO] ✅ Migrada observación 16/202 de Ricardo
+[2025-08-10T09:51:18.463229] [INFO] ✅ Migrada observación 17/202 de Ricardo
+[2025-08-10T09:51:18.573153] [INFO] ✅ Migrada observación 18/202 de Ricardo
+[2025-08-10T09:51:18.682336] [INFO] ✅ Migrada observación 19/202 de Ricardo
+[2025-08-10T09:51:18.796407] [INFO] ✅ Migrada observación 20/202 de Ricardo
+[2025-08-10T09:51:18.907479] [INFO] ✅ Migrada observación 21/202 de Ricardo
+[2025-08-10T09:51:19.018741] [INFO] ✅ Migrada observación 22/202 de Ricardo
+[2025-08-10T09:51:19.130140] [INFO] ✅ Migrada observación 23/202 de Ricardo
+[2025-08-10T09:51:19.238208] [INFO] ✅ Migrada observación 24/202 de Ricardo
+[2025-08-10T09:51:19.348056] [INFO] ✅ Migrada observación 25/202 de Ricardo
+[2025-08-10T09:51:19.462723] [INFO] ✅ Migrada observación 26/202 de Ricardo
+[2025-08-10T09:51:19.577995] [INFO] ✅ Migrada observación 27/202 de Ricardo
+[2025-08-10T09:51:19.686566] [INFO] ✅ Migrada observación 28/202 de Ricardo
+[2025-08-10T09:51:19.802517] [INFO] ✅ Migrada observación 29/202 de Ricardo
+[2025-08-10T09:51:19.910673] [INFO] ✅ Migrada observación 30/202 de Ricardo
+[2025-08-10T09:51:20.026929] [INFO] ✅ Migrada observación 31/202 de Ricardo
+[2025-08-10T09:51:20.141587] [INFO] ✅ Migrada observación 32/202 de Ricardo
+[2025-08-10T09:51:20.257572] [INFO] ✅ Migrada observación 33/202 de Ricardo
+[2025-08-10T09:51:20.373091] [INFO] ✅ Migrada observación 34/202 de Ricardo
+[2025-08-10T09:51:20.486518] [INFO] ✅ Migrada observación 35/202 de Ricardo
+[2025-08-10T09:51:20.597406] [INFO] ✅ Migrada observación 36/202 de Ricardo
+[2025-08-10T09:51:20.705785] [INFO] ✅ Migrada observación 37/202 de Ricardo
+[2025-08-10T09:51:20.817782] [INFO] ✅ Migrada observación 38/202 de Ricardo
+[2025-08-10T09:51:20.927797] [INFO] ✅ Migrada observación 39/202 de Ricardo
+[2025-08-10T09:51:21.040050] [INFO] ✅ Migrada observación 40/202 de Ricardo
+[2025-08-10T09:51:21.151151] [INFO] ✅ Migrada observación 41/202 de Ricardo
+[2025-08-10T09:51:21.261722] [INFO] ✅ Migrada observación 42/202 de Ricardo
+[2025-08-10T09:51:21.374756] [INFO] ✅ Migrada observación 43/202 de Ricardo
+[2025-08-10T09:51:18.698718] [INFO] ✅ Migrada observación 44/202 de Ricardo
+[2025-08-10T09:51:18.812824] [INFO] ✅ Migrada observación 45/202 de Ricardo
+[2025-08-10T09:51:24.350111] [INFO] ✅ Migrada observación 46/202 de Ricardo
+[2025-08-10T09:51:24.470884] [INFO] ✅ Migrada observación 47/202 de Ricardo
+[2025-08-10T09:51:24.590870] [INFO] ✅ Migrada observación 48/202 de Ricardo
+[2025-08-10T09:51:24.707615] [INFO] ✅ Migrada observación 49/202 de Ricardo
+[2025-08-10T09:51:24.829029] [INFO] ✅ Migrada observación 50/202 de Ricardo
+[2025-08-10T09:51:24.943318] [INFO] ✅ Migrada observación 51/202 de Ricardo
+[2025-08-10T09:51:25.054712] [INFO] ✅ Migrada observación 52/202 de Ricardo
+[2025-08-10T09:51:25.180279] [INFO] ✅ Migrada observación 53/202 de Ricardo
+[2025-08-10T09:51:25.294859] [INFO] ✅ Migrada observación 54/202 de Ricardo
+[2025-08-10T09:51:25.410933] [INFO] ✅ Migrada observación 55/202 de Ricardo
+[2025-08-10T09:51:25.520363] [INFO] ✅ Migrada observación 56/202 de Ricardo
+[2025-08-10T09:51:25.631755] [INFO] ✅ Migrada observación 57/202 de Ricardo
+[2025-08-10T09:51:25.748686] [INFO] ✅ Migrada observación 58/202 de Ricardo
+[2025-08-10T09:51:25.861346] [INFO] ✅ Migrada observación 59/202 de Ricardo
+[2025-08-10T09:51:25.976662] [INFO] ✅ Migrada observación 60/202 de Ricardo
+[2025-08-10T09:51:26.092063] [INFO] ✅ Migrada observación 61/202 de Ricardo
+[2025-08-10T09:51:26.204438] [INFO] ✅ Migrada observación 62/202 de Ricardo
+[2025-08-10T09:51:26.324595] [INFO] ✅ Migrada observación 63/202 de Ricardo
+[2025-08-10T09:51:26.441733] [INFO] ✅ Migrada observación 64/202 de Ricardo
+[2025-08-10T09:51:26.560081] [INFO] ✅ Migrada observación 65/202 de Ricardo
+[2025-08-10T09:51:26.682670] [INFO] ✅ Migrada observación 66/202 de Ricardo
+[2025-08-10T09:51:26.802652] [INFO] ✅ Migrada observación 67/202 de Ricardo
+[2025-08-10T09:51:26.972936] [INFO] ✅ Migrada observación 68/202 de Ricardo
+[2025-08-10T09:51:27.094347] [INFO] ✅ Migrada observación 69/202 de Ricardo
+[2025-08-10T09:51:27.218635] [INFO] ✅ Migrada observación 70/202 de Ricardo
+[2025-08-10T09:51:27.345215] [INFO] ✅ Migrada observación 71/202 de Ricardo
+[2025-08-10T09:51:27.469330] [INFO] ✅ Migrada observación 72/202 de Ricardo
+[2025-08-10T09:51:27.595572] [INFO] ✅ Migrada observación 73/202 de Ricardo
+[2025-08-10T09:51:27.723453] [INFO] ✅ Migrada observación 74/202 de Ricardo
+[2025-08-10T09:51:27.852028] [INFO] ✅ Migrada observación 75/202 de Ricardo
+[2025-08-10T09:51:27.990398] [INFO] ✅ Migrada observación 76/202 de Ricardo
+[2025-08-10T09:51:28.117251] [INFO] ✅ Migrada observación 77/202 de Ricardo
+[2025-08-10T09:51:28.286106] [INFO] ✅ Migrada observación 78/202 de Ricardo
+[2025-08-10T09:51:28.424942] [INFO] ✅ Migrada observación 79/202 de Ricardo
+[2025-08-10T09:51:28.555559] [INFO] ✅ Migrada observación 80/202 de Ricardo
+[2025-08-10T09:51:28.691774] [INFO] ✅ Migrada observación 81/202 de Ricardo
+[2025-08-10T09:51:28.833365] [INFO] ✅ Migrada observación 82/202 de Ricardo
+[2025-08-10T09:51:28.971231] [INFO] ✅ Migrada observación 83/202 de Ricardo
+[2025-08-10T09:51:29.117022] [INFO] ✅ Migrada observación 84/202 de Ricardo
+[2025-08-10T09:51:29.257628] [INFO] ✅ Migrada observación 85/202 de Ricardo
+[2025-08-10T09:51:29.415686] [INFO] ✅ Migrada observación 86/202 de Ricardo
+[2025-08-10T09:51:29.560986] [INFO] ✅ Migrada observación 87/202 de Ricardo
+[2025-08-10T09:51:29.708216] [INFO] ✅ Migrada observación 88/202 de Ricardo
+[2025-08-10T09:51:29.856317] [INFO] ✅ Migrada observación 89/202 de Ricardo
+[2025-08-10T09:51:30.007981] [INFO] ✅ Migrada observación 90/202 de Ricardo
+[2025-08-10T09:51:30.156733] [INFO] ✅ Migrada observación 91/202 de Ricardo
+[2025-08-10T09:51:30.306847] [INFO] ✅ Migrada observación 92/202 de Ricardo
+[2025-08-10T09:51:30.461467] [INFO] ✅ Migrada observación 93/202 de Ricardo
+[2025-08-10T09:51:30.612626] [INFO] ✅ Migrada observación 94/202 de Ricardo
+[2025-08-10T09:51:30.767711] [INFO] ✅ Migrada observación 95/202 de Ricardo
+[2025-08-10T09:51:30.926739] [INFO] ✅ Migrada observación 96/202 de Ricardo
+[2025-08-10T09:51:31.080608] [INFO] ✅ Migrada observación 97/202 de Ricardo
+[2025-08-10T09:51:31.235992] [INFO] ✅ Migrada observación 98/202 de Ricardo
+[2025-08-10T09:51:31.392731] [INFO] ✅ Migrada observación 99/202 de Ricardo
+[2025-08-10T09:51:31.551645] [INFO] ✅ Migrada observación 100/202 de Ricardo
+[2025-08-10T09:51:31.716111] [INFO] ✅ Migrada observación 101/202 de Ricardo
+[2025-08-10T09:51:31.877658] [INFO] ✅ Migrada observación 102/202 de Ricardo
+[2025-08-10T09:51:32.040585] [INFO] ✅ Migrada observación 103/202 de Ricardo
+[2025-08-10T09:51:32.201589] [INFO] ✅ Migrada observación 104/202 de Ricardo
+[2025-08-10T09:51:32.364674] [INFO] ✅ Migrada observación 105/202 de Ricardo
+[2025-08-10T09:51:32.532471] [INFO] ✅ Migrada observación 106/202 de Ricardo
+[2025-08-10T09:51:32.698779] [INFO] ✅ Migrada observación 107/202 de Ricardo
+[2025-08-10T09:51:32.862238] [INFO] ✅ Migrada observación 108/202 de Ricardo
+[2025-08-10T09:51:33.034862] [INFO] ✅ Migrada observación 109/202 de Ricardo
+[2025-08-10T09:51:33.205586] [INFO] ✅ Migrada observación 110/202 de Ricardo
+[2025-08-10T09:51:33.372573] [INFO] ✅ Migrada observación 111/202 de Ricardo
+[2025-08-10T09:51:33.544983] [INFO] ✅ Migrada observación 112/202 de Ricardo
+[2025-08-10T09:51:33.725630] [INFO] ✅ Migrada observación 113/202 de Ricardo
+[2025-08-10T09:51:33.901689] [INFO] ✅ Migrada observación 114/202 de Ricardo
+[2025-08-10T09:51:34.076946] [INFO] ✅ Migrada observación 115/202 de Ricardo
+[2025-08-10T09:51:34.248756] [INFO] ✅ Migrada observación 116/202 de Ricardo
+[2025-08-10T09:51:34.425480] [INFO] ✅ Migrada observación 117/202 de Ricardo
+[2025-08-10T09:51:34.613418] [INFO] ✅ Migrada observación 118/202 de Ricardo
+[2025-08-10T09:51:34.789351] [INFO] ✅ Migrada observación 119/202 de Ricardo
+[2025-08-10T09:51:34.965835] [INFO] ✅ Migrada observación 120/202 de Ricardo
+[2025-08-10T09:51:35.145648] [INFO] ✅ Migrada observación 121/202 de Ricardo
+[2025-08-10T09:51:35.327482] [INFO] ✅ Migrada observación 122/202 de Ricardo
+[2025-08-10T09:51:35.510924] [INFO] ✅ Migrada observación 123/202 de Ricardo
+[2025-08-10T09:51:35.692422] [INFO] ✅ Migrada observación 124/202 de Ricardo
+[2025-08-10T09:51:35.877379] [INFO] ✅ Migrada observación 125/202 de Ricardo
+[2025-08-10T09:51:36.060853] [INFO] ✅ Migrada observación 126/202 de Ricardo
+[2025-08-10T09:51:36.245214] [INFO] ✅ Migrada observación 127/202 de Ricardo
+[2025-08-10T09:51:36.436131] [INFO] ✅ Migrada observación 128/202 de Ricardo
+[2025-08-10T09:51:36.628862] [INFO] ✅ Migrada observación 129/202 de Ricardo
+[2025-08-10T09:51:36.820599] [INFO] ✅ Migrada observación 130/202 de Ricardo
+[2025-08-10T09:51:37.044556] [INFO] ✅ Migrada observación 131/202 de Ricardo
+[2025-08-10T09:51:37.228373] [INFO] ✅ Migrada observación 132/202 de Ricardo
+[2025-08-10T09:51:37.420405] [INFO] ✅ Migrada observación 133/202 de Ricardo
+[2025-08-10T09:51:37.614018] [INFO] ✅ Migrada observación 134/202 de Ricardo
+[2025-08-10T09:51:37.805545] [INFO] ✅ Migrada observación 135/202 de Ricardo
+[2025-08-10T09:51:38.003836] [INFO] ✅ Migrada observación 136/202 de Ricardo
+[2025-08-10T09:51:38.198132] [INFO] ✅ Migrada observación 137/202 de Ricardo
+[2025-08-10T09:51:38.396496] [INFO] ✅ Migrada observación 138/202 de Ricardo
+[2025-08-10T09:51:38.592014] [INFO] ✅ Migrada observación 139/202 de Ricardo
+[2025-08-10T09:51:38.780714] [INFO] ✅ Migrada observación 140/202 de Ricardo
+[2025-08-10T09:51:38.977399] [INFO] ✅ Migrada observación 141/202 de Ricardo
+[2025-08-10T09:51:39.176972] [INFO] ✅ Migrada observación 142/202 de Ricardo
+[2025-08-10T09:51:39.372761] [INFO] ✅ Migrada observación 143/202 de Ricardo
+[2025-08-10T09:51:39.575456] [INFO] ✅ Migrada observación 144/202 de Ricardo
+[2025-08-10T09:51:39.773301] [INFO] ✅ Migrada observación 145/202 de Ricardo
+[2025-08-10T09:51:39.977719] [INFO] ✅ Migrada observación 146/202 de Ricardo
+[2025-08-10T09:51:40.182252] [INFO] ✅ Migrada observación 147/202 de Ricardo
+[2025-08-10T09:51:40.384708] [INFO] ✅ Migrada observación 148/202 de Ricardo
+[2025-08-10T09:51:40.588926] [INFO] ✅ Migrada observación 149/202 de Ricardo
+[2025-08-10T09:51:40.789147] [INFO] ✅ Migrada observación 150/202 de Ricardo
+[2025-08-10T09:51:40.999471] [INFO] ✅ Migrada observación 151/202 de Ricardo
+[2025-08-10T09:51:41.209364] [INFO] ✅ Migrada observación 152/202 de Ricardo
+[2025-08-10T09:51:41.409114] [INFO] ✅ Migrada observación 153/202 de Ricardo
+[2025-08-10T09:51:41.620546] [INFO] ✅ Migrada observación 154/202 de Ricardo
+[2025-08-10T09:51:41.830659] [INFO] ✅ Migrada observación 155/202 de Ricardo
+[2025-08-10T09:51:42.041709] [INFO] ✅ Migrada observación 156/202 de Ricardo
+[2025-08-10T09:51:42.253925] [INFO] ✅ Migrada observación 157/202 de Ricardo
+[2025-08-10T09:51:42.465599] [INFO] ✅ Migrada observación 158/202 de Ricardo
+[2025-08-10T09:51:42.680456] [INFO] ✅ Migrada observación 159/202 de Ricardo
+[2025-08-10T09:51:42.900509] [INFO] ✅ Migrada observación 160/202 de Ricardo
+[2025-08-10T09:51:43.115800] [INFO] ✅ Migrada observación 161/202 de Ricardo
+[2025-08-10T09:51:43.335863] [INFO] ✅ Migrada observación 162/202 de Ricardo
+[2025-08-10T09:51:43.552229] [INFO] ✅ Migrada observación 163/202 de Ricardo
+[2025-08-10T09:51:43.776388] [INFO] ✅ Migrada observación 164/202 de Ricardo
+[2025-08-10T09:51:44.003349] [INFO] ✅ Migrada observación 165/202 de Ricardo
+[2025-08-10T09:51:44.220452] [INFO] ✅ Migrada observación 166/202 de Ricardo
+[2025-08-10T09:51:44.448927] [INFO] ✅ Migrada observación 167/202 de Ricardo
+[2025-08-10T09:51:44.688560] [INFO] ✅ Migrada observación 168/202 de Ricardo
+[2025-08-10T09:51:44.915661] [INFO] ✅ Migrada observación 169/202 de Ricardo
+[2025-08-10T09:51:45.141434] [INFO] ✅ Migrada observación 170/202 de Ricardo
+[2025-08-10T09:51:45.366420] [INFO] ✅ Migrada observación 171/202 de Ricardo
+[2025-08-10T09:51:45.597375] [INFO] ✅ Migrada observación 172/202 de Ricardo
+[2025-08-10T09:51:45.825611] [INFO] ✅ Migrada observación 173/202 de Ricardo
+[2025-08-10T09:51:46.054385] [INFO] ✅ Migrada observación 174/202 de Ricardo
+[2025-08-10T09:51:46.273706] [INFO] ✅ Migrada observación 175/202 de Ricardo
+[2025-08-10T09:51:46.504747] [INFO] ✅ Migrada observación 176/202 de Ricardo
+[2025-08-10T09:51:46.730465] [INFO] ✅ Migrada observación 177/202 de Ricardo
+[2025-08-10T09:51:46.960137] [INFO] ✅ Migrada observación 178/202 de Ricardo
+[2025-08-10T09:51:47.208160] [INFO] ✅ Migrada observación 179/202 de Ricardo
+[2025-08-10T09:51:47.431828] [INFO] ✅ Migrada observación 180/202 de Ricardo
+[2025-08-10T09:51:47.673202] [INFO] ✅ Migrada observación 181/202 de Ricardo
+[2025-08-10T09:51:47.905585] [INFO] ✅ Migrada observación 182/202 de Ricardo
+[2025-08-10T09:51:48.137097] [INFO] ✅ Migrada observación 183/202 de Ricardo
+[2025-08-10T09:51:48.371963] [INFO] ✅ Migrada observación 184/202 de Ricardo
+[2025-08-10T09:51:48.611597] [INFO] ✅ Migrada observación 185/202 de Ricardo
+[2025-08-10T09:51:48.844658] [INFO] ✅ Migrada observación 186/202 de Ricardo
+[2025-08-10T09:51:49.084141] [INFO] ✅ Migrada observación 187/202 de Ricardo
+[2025-08-10T09:51:49.326749] [INFO] ✅ Migrada observación 188/202 de Ricardo
+[2025-08-10T09:51:49.565625] [INFO] ✅ Migrada observación 189/202 de Ricardo
+[2025-08-10T09:51:49.805389] [INFO] ✅ Migrada observación 190/202 de Ricardo
+[2025-08-10T09:51:50.055173] [INFO] ✅ Migrada observación 191/202 de Ricardo
+[2025-08-10T09:51:50.300218] [INFO] ✅ Migrada observación 192/202 de Ricardo
+[2025-08-10T09:51:50.548369] [INFO] ✅ Migrada observación 193/202 de Ricardo
+[2025-08-10T09:51:50.792689] [INFO] ✅ Migrada observación 194/202 de Ricardo
+[2025-08-10T09:51:48.400839] [INFO] ✅ Migrada observación 195/202 de Ricardo
+[2025-08-10T09:51:48.652001] [INFO] ✅ Migrada observación 196/202 de Ricardo
+[2025-08-10T09:51:48.903901] [INFO] ✅ Migrada observación 197/202 de Ricardo
+[2025-08-10T09:51:49.160940] [INFO] ✅ Migrada observación 198/202 de Ricardo
+[2025-08-10T09:51:49.417417] [INFO] ✅ Migrada observación 199/202 de Ricardo
+[2025-08-10T09:51:49.910511] [INFO] ✅ Migrada observación 200/202 de Ricardo
+[2025-08-10T09:51:50.025823] [INFO] ✅ Migrada observación 201/202 de Ricardo
+[2025-08-10T09:51:50.276249] [INFO] ✅ Migrada observación 202/202 de Ricardo
+[2025-08-10T09:51:50.381682] [INFO] 🔄 Procesando entidad: RYM Ecosistema Persistencia (29 observaciones)
+[2025-08-10T09:51:50.536109] [INFO] ✅ Migrada observación 1/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:50.825049] [INFO] ✅ Migrada observación 2/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:51.128706] [INFO] ✅ Migrada observación 3/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:51.447736] [INFO] ✅ Migrada observación 4/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:51.842377] [INFO] ✅ Migrada observación 5/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:52.196254] [INFO] ✅ Migrada observación 6/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:52.549088] [INFO] ✅ Migrada observación 7/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:52.904178] [INFO] ✅ Migrada observación 8/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:53.264229] [INFO] ✅ Migrada observación 9/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:53.619999] [INFO] ✅ Migrada observación 10/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:53.980342] [INFO] ✅ Migrada observación 11/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:54.341964] [INFO] ✅ Migrada observación 12/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:54.751578] [INFO] ✅ Migrada observación 13/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:55.115484] [INFO] ✅ Migrada observación 14/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:55.479846] [INFO] ✅ Migrada observación 15/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:55.857067] [INFO] ✅ Migrada observación 16/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:56.239821] [INFO] ✅ Migrada observación 17/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:56.620749] [INFO] ✅ Migrada observación 18/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:56.985459] [INFO] ✅ Migrada observación 19/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:57.348683] [INFO] ✅ Migrada observación 20/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:57.720544] [INFO] ✅ Migrada observación 21/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:58.085320] [INFO] ✅ Migrada observación 22/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:58.454064] [INFO] ✅ Migrada observación 23/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:58.825925] [INFO] ✅ Migrada observación 24/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:59.200968] [INFO] ✅ Migrada observación 25/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:59.588127] [INFO] ✅ Migrada observación 26/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:51:59.967363] [INFO] ✅ Migrada observación 27/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:52:00.351360] [INFO] ✅ Migrada observación 28/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:52:00.736894] [INFO] ✅ Migrada observación 29/29 de RYM Ecosistema Persistencia
+[2025-08-10T09:52:00.841819] [INFO] 🔄 Procesando entidad: Creative Developer's Dilemma (4 observaciones)
+[2025-08-10T09:52:01.126579] [INFO] ✅ Migrada observación 1/4 de Creative Developer's Dilemma
+[2025-08-10T09:52:01.518850] [INFO] ✅ Migrada observación 2/4 de Creative Developer's Dilemma
+[2025-08-10T09:52:01.839786] [INFO] ✅ Migrada observación 3/4 de Creative Developer's Dilemma
+[2025-08-10T09:52:02.013006] [INFO] ✅ Migrada observación 4/4 de Creative Developer's Dilemma
+[2025-08-10T09:52:02.119573] [INFO] 🔄 Procesando entidad: Telegram Bot Functions (9 observaciones)
+[2025-08-10T09:52:02.206753] [INFO] ✅ Migrada observación 1/9 de Telegram Bot Functions
+[2025-08-10T09:52:02.403764] [INFO] ✅ Migrada observación 2/9 de Telegram Bot Functions
+[2025-08-10T09:52:02.659608] [INFO] ✅ Migrada observación 3/9 de Telegram Bot Functions
+[2025-08-10T09:52:02.883753] [INFO] ✅ Migrada observación 4/9 de Telegram Bot Functions
+[2025-08-10T09:52:03.128251] [INFO] ✅ Migrada observación 5/9 de Telegram Bot Functions
+[2025-08-10T09:52:03.377268] [INFO] ✅ Migrada observación 6/9 de Telegram Bot Functions
+[2025-08-10T09:52:03.640293] [INFO] ✅ Migrada observación 7/9 de Telegram Bot Functions
+[2025-08-10T09:52:03.936266] [INFO] ✅ Migrada observación 8/9 de Telegram Bot Functions
+[2025-08-10T09:52:04.232652] [INFO] ✅ Migrada observación 9/9 de Telegram Bot Functions
+[2025-08-10T09:52:04.334485] [INFO] 🔄 Procesando entidad: Email Processing System (10 observaciones)
+[2025-08-10T09:52:04.577245] [INFO] ✅ Migrada observación 1/10 de Email Processing System
+[2025-08-10T09:52:04.889057] [INFO] ✅ Migrada observación 2/10 de Email Processing System
+[2025-08-10T09:52:05.216835] [INFO] ✅ Migrada observación 3/10 de Email Processing System
+[2025-08-10T09:52:05.541569] [INFO] ✅ Migrada observación 4/10 de Email Processing System
+[2025-08-10T09:52:05.888147] [INFO] ✅ Migrada observación 5/10 de Email Processing System
+[2025-08-10T09:52:06.243986] [INFO] ✅ Migrada observación 6/10 de Email Processing System
+[2025-08-10T09:52:06.609445] [INFO] ✅ Migrada observación 7/10 de Email Processing System
+[2025-08-10T09:52:06.973150] [INFO] ✅ Migrada observación 8/10 de Email Processing System
+[2025-08-10T09:52:07.348542] [INFO] ✅ Migrada observación 9/10 de Email Processing System
+[2025-08-10T09:52:07.724775] [INFO] ✅ Migrada observación 10/10 de Email Processing System
+[2025-08-10T09:52:07.826447] [INFO] 🔄 Procesando entidad: Week 5 Conversational AI Upgrade (10 observaciones)
+[2025-08-10T09:52:08.113481] [INFO] ✅ Migrada observación 1/10 de Week 5 Conversational AI Upgrade
+[2025-08-10T09:52:08.534193] [INFO] ✅ Migrada observación 2/10 de Week 5 Conversational AI Upgrade
+[2025-08-10T09:52:08.961249] [INFO] ✅ Migrada observación 3/10 de Week 5 Conversational AI Upgrade
+[2025-08-10T09:52:09.395482] [INFO] ✅ Migrada observación 4/10 de Week 5 Conversational AI Upgrade
+[2025-08-10T09:52:09.868947] [INFO] ✅ Migrada observación 5/10 de Week 5 Conversational AI Upgrade
+[2025-08-10T09:52:10.348439] [INFO] ✅ Migrada observación 6/10 de Week 5 Conversational AI Upgrade
+[2025-08-10T09:52:10.844560] [INFO] ✅ Migrada observación 7/10 de Week 5 Conversational AI Upgrade
+[2025-08-10T09:52:11.334979] [INFO] ✅ Migrada observación 8/10 de Week 5 Conversational AI Upgrade
+[2025-08-10T09:52:11.848556] [INFO] ✅ Migrada observación 9/10 de Week 5 Conversational AI Upgrade
+[2025-08-10T09:52:12.370575] [INFO] ✅ Migrada observación 10/10 de Week 5 Conversational AI Upgrade
+[2025-08-10T09:52:12.474024] [INFO] ✅ Migración exitosa: /mnt/c/Users/ricar/memory_backup_20250727_215300.json
+[2025-08-10T09:52:12.476861] [INFO] 🔄 Iniciando migración de: /mnt/c/Users/ricar/memory_backup_stable_20250728_111959.json
+[2025-08-10T09:52:12.488243] [INFO] 📂 Procesando backup: /mnt/c/Users/ricar/memory_backup_stable_20250728_111959.json
+[2025-08-10T09:52:12.490402] [INFO] 🔄 Procesando entidad: Ricardo (177 observaciones)
+[2025-08-10T09:52:12.933787] [INFO] ✅ Migrada observación 1/177 de Ricardo
+[2025-08-10T09:52:13.474021] [INFO] ✅ Migrada observación 2/177 de Ricardo
+[2025-08-10T09:52:14.017358] [INFO] ✅ Migrada observación 3/177 de Ricardo
+[2025-08-10T09:52:14.570380] [INFO] ✅ Migrada observación 4/177 de Ricardo
+[2025-08-10T09:52:15.162178] [INFO] ✅ Migrada observación 5/177 de Ricardo
+[2025-08-10T09:52:15.756770] [INFO] ✅ Migrada observación 6/177 de Ricardo
+[2025-08-10T09:52:16.352119] [INFO] ✅ Migrada observación 7/177 de Ricardo
+[2025-08-10T09:52:16.961593] [INFO] ✅ Migrada observación 8/177 de Ricardo
+[2025-08-10T09:52:17.552805] [INFO] ✅ Migrada observación 9/177 de Ricardo
+[2025-08-10T09:52:18.147679] [INFO] ✅ Migrada observación 10/177 de Ricardo
+[2025-08-10T09:52:18.777865] [INFO] ✅ Migrada observación 11/177 de Ricardo
+[2025-08-10T09:52:19.417475] [INFO] ✅ Migrada observación 12/177 de Ricardo
+[2025-08-10T09:52:20.053181] [INFO] ✅ Migrada observación 13/177 de Ricardo
+[2025-08-10T09:52:17.835212] [INFO] ✅ Migrada observación 14/177 de Ricardo
+[2025-08-10T09:52:18.514741] [INFO] ✅ Migrada observación 15/177 de Ricardo
+[2025-08-10T09:52:19.183857] [INFO] ✅ Migrada observación 16/177 de Ricardo
+[2025-08-10T09:52:19.838448] [INFO] ✅ Migrada observación 17/177 de Ricardo
+[2025-08-10T09:52:20.524271] [INFO] ✅ Migrada observación 18/177 de Ricardo
+[2025-08-10T09:52:21.202662] [INFO] ✅ Migrada observación 19/177 de Ricardo
+[2025-08-10T09:52:21.918679] [INFO] ✅ Migrada observación 20/177 de Ricardo
+[2025-08-10T09:52:22.591546] [INFO] ✅ Migrada observación 21/177 de Ricardo
+[2025-08-10T09:52:23.324524] [INFO] ✅ Migrada observación 22/177 de Ricardo
+[2025-08-10T09:52:24.020478] [INFO] ✅ Migrada observación 23/177 de Ricardo
+[2025-08-10T09:52:24.731653] [INFO] ✅ Migrada observación 24/177 de Ricardo
+[2025-08-10T09:52:25.439505] [INFO] ✅ Migrada observación 25/177 de Ricardo
+[2025-08-10T09:52:26.152957] [INFO] ✅ Migrada observación 26/177 de Ricardo
+[2025-08-10T09:52:26.878835] [INFO] ✅ Migrada observación 27/177 de Ricardo
+[2025-08-10T09:52:27.614909] [INFO] ✅ Migrada observación 28/177 de Ricardo
+[2025-08-10T09:52:28.347244] [INFO] ✅ Migrada observación 29/177 de Ricardo
+[2025-08-10T09:52:29.084623] [INFO] ✅ Migrada observación 30/177 de Ricardo
+[2025-08-10T09:52:29.829625] [INFO] ✅ Migrada observación 31/177 de Ricardo
+[2025-08-10T09:52:30.574489] [INFO] ✅ Migrada observación 32/177 de Ricardo
+[2025-08-10T09:52:31.299394] [INFO] ✅ Migrada observación 33/177 de Ricardo
+[2025-08-10T09:52:32.059140] [INFO] ✅ Migrada observación 34/177 de Ricardo
+[2025-08-10T09:52:32.806158] [INFO] ✅ Migrada observación 35/177 de Ricardo
+[2025-08-10T09:52:33.540916] [INFO] ✅ Migrada observación 36/177 de Ricardo
+[2025-08-10T09:52:34.292163] [INFO] ✅ Migrada observación 37/177 de Ricardo
+[2025-08-10T09:52:35.067322] [INFO] ✅ Migrada observación 38/177 de Ricardo
+[2025-08-10T09:52:35.835897] [INFO] ✅ Migrada observación 39/177 de Ricardo
+[2025-08-10T09:52:36.610499] [INFO] ✅ Migrada observación 40/177 de Ricardo
+[2025-08-10T09:52:37.387651] [INFO] ✅ Migrada observación 41/177 de Ricardo
+[2025-08-10T09:52:38.100747] [INFO] ✅ Migrada observación 42/177 de Ricardo
+[2025-08-10T09:52:38.435675] [INFO] ✅ Migrada observación 43/177 de Ricardo
+[2025-08-10T09:52:38.796350] [INFO] ✅ Migrada observación 44/177 de Ricardo
+[2025-08-10T09:52:39.159801] [INFO] ✅ Migrada observación 45/177 de Ricardo
+[2025-08-10T09:52:39.501720] [INFO] ✅ Migrada observación 46/177 de Ricardo
+[2025-08-10T09:52:39.851830] [INFO] ✅ Migrada observación 47/177 de Ricardo
+[2025-08-10T09:52:40.204042] [INFO] ✅ Migrada observación 48/177 de Ricardo
+[2025-08-10T09:52:40.584606] [INFO] ✅ Migrada observación 49/177 de Ricardo
+[2025-08-10T09:52:41.007238] [INFO] ✅ Migrada observación 50/177 de Ricardo
+[2025-08-10T09:52:41.397688] [INFO] ✅ Migrada observación 51/177 de Ricardo
+[2025-08-10T09:52:41.789578] [INFO] ✅ Migrada observación 52/177 de Ricardo
+[2025-08-10T09:52:42.252648] [INFO] ✅ Migrada observación 53/177 de Ricardo
+[2025-08-10T09:52:42.696809] [INFO] ✅ Migrada observación 54/177 de Ricardo
+[2025-08-10T09:52:43.151009] [INFO] ✅ Migrada observación 55/177 de Ricardo
+[2025-08-10T09:52:43.618460] [INFO] ✅ Migrada observación 56/177 de Ricardo
+[2025-08-10T09:52:44.086359] [INFO] ✅ Migrada observación 57/177 de Ricardo
+[2025-08-10T09:52:44.567194] [INFO] ✅ Migrada observación 58/177 de Ricardo
+[2025-08-10T09:52:45.054931] [INFO] ✅ Migrada observación 59/177 de Ricardo
+[2025-08-10T09:52:45.553177] [INFO] ✅ Migrada observación 60/177 de Ricardo
+[2025-08-10T09:52:46.048797] [INFO] ✅ Migrada observación 61/177 de Ricardo
+[2025-08-10T09:52:46.534973] [INFO] ✅ Migrada observación 62/177 de Ricardo
+[2025-08-10T09:52:47.017409] [INFO] ✅ Migrada observación 63/177 de Ricardo
+[2025-08-10T09:52:47.515213] [INFO] ✅ Migrada observación 64/177 de Ricardo
+[2025-08-10T09:52:48.012387] [INFO] ✅ Migrada observación 65/177 de Ricardo
+[2025-08-10T09:52:48.487362] [INFO] ✅ Migrada observación 66/177 de Ricardo
+[2025-08-10T09:52:48.939170] [INFO] ✅ Migrada observación 67/177 de Ricardo
+[2025-08-10T09:52:49.435571] [INFO] ✅ Migrada observación 68/177 de Ricardo
+[2025-08-10T09:52:47.211495] [INFO] ✅ Migrada observación 69/177 de Ricardo
+[2025-08-10T09:52:47.668885] [INFO] ✅ Migrada observación 70/177 de Ricardo
+[2025-08-10T09:52:48.086025] [INFO] ✅ Migrada observación 71/177 de Ricardo
+[2025-08-10T09:52:48.518841] [INFO] ✅ Migrada observación 72/177 de Ricardo
+[2025-08-10T09:52:48.929787] [INFO] ✅ Migrada observación 73/177 de Ricardo
+[2025-08-10T09:52:49.335889] [INFO] ✅ Migrada observación 74/177 de Ricardo
+[2025-08-10T09:52:49.802818] [INFO] ✅ Migrada observación 75/177 de Ricardo
+[2025-08-10T09:52:50.239152] [INFO] ✅ Migrada observación 76/177 de Ricardo
+[2025-08-10T09:52:50.698655] [INFO] ✅ Migrada observación 77/177 de Ricardo
+[2025-08-10T09:52:51.079838] [INFO] ✅ Migrada observación 78/177 de Ricardo
+[2025-08-10T09:52:51.471828] [INFO] ✅ Migrada observación 79/177 de Ricardo
+[2025-08-10T09:52:51.838016] [INFO] ✅ Migrada observación 80/177 de Ricardo
+[2025-08-10T09:52:52.198577] [INFO] ✅ Migrada observación 81/177 de Ricardo
+[2025-08-10T09:52:52.567355] [INFO] ✅ Migrada observación 82/177 de Ricardo
+[2025-08-10T09:52:52.931353] [INFO] ✅ Migrada observación 83/177 de Ricardo
+[2025-08-10T09:52:53.298021] [INFO] ✅ Migrada observación 84/177 de Ricardo
+[2025-08-10T09:52:53.663732] [INFO] ✅ Migrada observación 85/177 de Ricardo
+[2025-08-10T09:52:54.027601] [INFO] ✅ Migrada observación 86/177 de Ricardo
+[2025-08-10T09:52:54.399755] [INFO] ✅ Migrada observación 87/177 de Ricardo
+[2025-08-10T09:52:54.734929] [INFO] ✅ Migrada observación 88/177 de Ricardo
+[2025-08-10T09:52:55.067390] [INFO] ✅ Migrada observación 89/177 de Ricardo
+[2025-08-10T09:52:55.360090] [INFO] ✅ Migrada observación 90/177 de Ricardo
+[2025-08-10T09:52:55.644567] [INFO] ✅ Migrada observación 91/177 de Ricardo
+[2025-08-10T09:52:55.935321] [INFO] ✅ Migrada observación 92/177 de Ricardo
+[2025-08-10T09:52:56.240041] [INFO] ✅ Migrada observación 93/177 de Ricardo
+[2025-08-10T09:52:56.542249] [INFO] ✅ Migrada observación 94/177 de Ricardo
+[2025-08-10T09:52:56.846065] [INFO] ✅ Migrada observación 95/177 de Ricardo
+[2025-08-10T09:52:57.149168] [INFO] ✅ Migrada observación 96/177 de Ricardo
+[2025-08-10T09:52:57.456037] [INFO] ✅ Migrada observación 97/177 de Ricardo
+[2025-08-10T09:52:57.719494] [INFO] ✅ Migrada observación 98/177 de Ricardo
+[2025-08-10T09:52:57.978322] [INFO] ✅ Migrada observación 99/177 de Ricardo
+[2025-08-10T09:52:58.200101] [INFO] ✅ Migrada observación 100/177 de Ricardo
+[2025-08-10T09:52:58.422696] [INFO] ✅ Migrada observación 101/177 de Ricardo
+[2025-08-10T09:52:58.671344] [INFO] ✅ Migrada observación 102/177 de Ricardo
+[2025-08-10T09:52:58.911648] [INFO] ✅ Migrada observación 103/177 de Ricardo
+[2025-08-10T09:52:59.133998] [INFO] ✅ Migrada observación 104/177 de Ricardo
+[2025-08-10T09:52:59.357942] [INFO] ✅ Migrada observación 105/177 de Ricardo
+[2025-08-10T09:52:59.638076] [INFO] ✅ Migrada observación 106/177 de Ricardo
+[2025-08-10T09:52:59.873606] [INFO] ✅ Migrada observación 107/177 de Ricardo
+[2025-08-10T09:53:00.109283] [INFO] ✅ Migrada observación 108/177 de Ricardo
+[2025-08-10T09:53:00.346868] [INFO] ✅ Migrada observación 109/177 de Ricardo
+[2025-08-10T09:53:00.589168] [INFO] ✅ Migrada observación 110/177 de Ricardo
+[2025-08-10T09:53:00.833450] [INFO] ✅ Migrada observación 111/177 de Ricardo
+[2025-08-10T09:53:01.077059] [INFO] ✅ Migrada observación 112/177 de Ricardo
+[2025-08-10T09:53:01.316720] [INFO] ✅ Migrada observación 113/177 de Ricardo
+[2025-08-10T09:53:01.562201] [INFO] ✅ Migrada observación 114/177 de Ricardo
+[2025-08-10T09:53:01.798833] [INFO] ✅ Migrada observación 115/177 de Ricardo
+[2025-08-10T09:53:02.047746] [INFO] ✅ Migrada observación 116/177 de Ricardo
+[2025-08-10T09:53:02.294087] [INFO] ✅ Migrada observación 117/177 de Ricardo
+[2025-08-10T09:53:02.539009] [INFO] ✅ Migrada observación 118/177 de Ricardo
+[2025-08-10T09:53:02.791174] [INFO] ✅ Migrada observación 119/177 de Ricardo
+[2025-08-10T09:53:03.035170] [INFO] ✅ Migrada observación 120/177 de Ricardo
+[2025-08-10T09:53:03.281848] [INFO] ✅ Migrada observación 121/177 de Ricardo
+[2025-08-10T09:53:03.534321] [INFO] ✅ Migrada observación 122/177 de Ricardo
+[2025-08-10T09:53:03.779129] [INFO] ✅ Migrada observación 123/177 de Ricardo
+[2025-08-10T09:53:04.029861] [INFO] ✅ Migrada observación 124/177 de Ricardo
+[2025-08-10T09:53:04.279506] [INFO] ✅ Migrada observación 125/177 de Ricardo
+[2025-08-10T09:53:04.526674] [INFO] ✅ Migrada observación 126/177 de Ricardo
+[2025-08-10T09:53:04.778018] [INFO] ✅ Migrada observación 127/177 de Ricardo
+[2025-08-10T09:53:05.028645] [INFO] ✅ Migrada observación 128/177 de Ricardo
+[2025-08-10T09:53:05.273192] [INFO] ✅ Migrada observación 129/177 de Ricardo
+[2025-08-10T09:53:05.529600] [INFO] ✅ Migrada observación 130/177 de Ricardo

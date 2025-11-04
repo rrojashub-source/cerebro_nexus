@@ -1,0 +1,27 @@
+{
+    "backup_id": "nexus_backup_20251031_030002",
+    "timestamp": "2025-10-31T13:26:51-05:00",
+    "version": "2.0.0",
+    "components": {
+        "postgresql": {
+            "database": "nexus_memory",
+            "file": "postgresql/nexus_memory_20251031_030002.sql.gz",
+            "container": "nexus_postgresql_v2"
+        },
+        "redis": {
+            "file": "redis/redis_dump_20251031_030002.rdb",
+            "container": "nexus_redis_master"
+        }
+    },
+    "system_info": {
+        "hostname": "RYMHOMEAIs",
+        "docker_version": "Docker version 27.5.1, build 27.5.1-0ubuntu3~24.04.2",
+        "compose_version": "docker-compose version 1.29.2, build unknown",
+        "total_episodes": 55105,
+        "embeddings_count": 55105
+    },
+    "checksums": {
+        "postgresql": "b417041db82989dad47cbc21e5829a0c3766940b217b06c312270ff78243e66f",
+        "redis": "faf39725f86cebda1589e14ed01b44d52b2db01f2e4b1c7a3b37860179fc703a"
+    }
+}

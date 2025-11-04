@@ -1,0 +1,189 @@
+# NEXUS MEMORIA PERSISTENTE - Configuración Puerto 8002
+
+# Database Configuration
+database:
+  postgresql:
+    host: localhost
+    port: 5436
+    database: nexus_memory
+    user: nexus_user
+    password: nexus_secure_2025
+    schema: public
+    pool_size: 20
+    max_overflow: 30
+    pool_timeout: 30
+
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    db: 1
+    password: null
+    prefix: "nexus:memory:"
+    max_connections: 50
+
+  chroma:
+    host: 127.0.0.1
+    port: 8000
+    collection_name: "nexus_semantic"
+    embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+
+# Memory System Configuration
+memory:
+  working_memory:
+    namespace: "nexus:working:"
+    max_items: 1000
+    ttl_seconds: 86400  # 24 hours
+    sliding_window_size: 50
+
+  episodic_memory:
+    agent_id: "nexus"
+    default_importance_threshold: 0.3
+    auto_consolidation: true
+    retention_days: 365  # 1 year
+    
+  semantic_memory:
+    vector_dimension: 384
+    similarity_threshold: 0.7
+    max_results_per_query: 10
+    knowledge_types:
+      - "concept"
+      - "pattern" 
+      - "relationship"
+      - "skill"
+      - "fact"
+
+# Mem0 Configuration
+mem0:
+  api_key: null  # Set via environment variable
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+  vector_store: "chroma"
+  graph_store: null
+  memory_types:
+    - "episodic"
+    - "semantic" 
+    - "working"
+  consolidation_schedule: "daily_at_2am"
+  confidence_threshold: 0.7
+
+# API Configuration
+api:
+  host: "0.0.0.0"
+  port: 8002
+  debug: false
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:8080"
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
+
+# Consolidation Engine Configuration
+consolidation:
+  schedule: "0 2 * * *"  # 2 AM daily
+  batch_size: 100
+  pattern_extraction:
+    min_episodes: 3
+    confidence_threshold: 0.7
+    similarity_threshold: 0.8
+  cleanup:
+    low_importance_threshold: 0.3
+    retention_days: 90
+  
+  # NEW: Crystallization Temporal v2.0 Configuration
+  crystallization:
+    enabled: true
+    schedule: "0 3 * * *"  # 3 AM daily (after regular consolidation)
+    emotional_threshold: 0.8  # Minimum emotional intensity for crystals
+    breakthrough_keywords:
+      - "breakthrough"
+      - "discovery" 
+      - "revelation"
+      - "insight"
+      - "epiphany"
+      - "realization"
+      - "eureka"
+      - "aha"
+      - "understand"
+      - "connect"
+      - "consolidacion"  # Para nuestro proyecto específico
+      - "knowledge"
+      - "metodologia"
+    layers:
+      immediate: 1    # Dentro de la sesión (horas)
+      daily: 24       # 24 horas
+      weekly: 168     # 1 semana 
+      monthly: 720    # 1 mes
+      permanent: -1   # Cristales permanentes (importancia >= 0.95)
+    emotional_analysis:
+      enabled: true
+      continuity_days: 7
+      stability_threshold: 0.6
+    cross_session_threading:
+      enabled: true
+      max_thread_length: 10
+      similarity_threshold: 0.7
+
+# Continuity Manager Configuration
+continuity:
+  session_gap_threshold_hours: 4
+  bridge_narrative_length: 200
+  identity_coherence_weight: 0.8
+  emotional_continuity_weight: 0.6
+  context_preservation_limit: 1000
+
+# Performance Targets
+performance:
+  working_memory_access_ms: 50
+  episodic_retrieval_ms: 200
+  semantic_search_ms: 500
+  session_restore_ms: 10000
+  search_accuracy_target: 0.95
+  memory_efficiency_target: 0.90
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}"
+  file: "/app/logs/aria_memory.log"
+  rotation: "100 MB"
+  retention: "30 days"
+  
+# Monitoring Configuration
+monitoring:
+  metrics_enabled: true
+  health_check_interval: 30
+  prometheus_port: 9090
+  alerts:
+    memory_usage_threshold: 0.85
+    response_time_threshold: 1.0
+    error_rate_threshold: 0.05
+
+# Security Configuration  
+security:
+  encryption_at_rest: false  # Enable in production
+  encryption_in_transit: true
+  api_key_required: false    # Enable in production
+  rate_limiting: true
+  audit_logging: true
+
+# Development Configuration
+development:
+  debug_mode: true
+  test_data_enabled: true
+  mock_external_services: false
+  profiling_enabled: false
+
+# Production overrides (loaded when ENVIRONMENT=production)
+production:
+  database:
+    postgresql:
+      pool_size: 50
+      max_overflow: 100
+  api:
+    debug: false
+  security:
+    encryption_at_rest: true
+    api_key_required: true
+  development:
+    debug_mode: false
+    test_data_enabled: false

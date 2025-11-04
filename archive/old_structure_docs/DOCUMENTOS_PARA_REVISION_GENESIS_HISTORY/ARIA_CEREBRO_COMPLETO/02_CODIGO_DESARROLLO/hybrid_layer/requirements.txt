@@ -1,0 +1,66 @@
+# CEREBRO HÍBRIDO EXPERIENCIAL - REQUIREMENTS
+# Fecha: 7 Agosto 2025
+# Implementado por: NEXUS siguiendo diseño ARIA+NEXUS
+
+# =====================================================
+# BASE STACK (Ya disponible en ARIA MEMORIA PERSISTENTE)
+# =====================================================
+fastapi>=0.104.0
+uvicorn>=0.24.0
+psycopg2-binary>=2.9.7
+asyncpg>=0.28.0
+redis>=5.0.0
+chromadb>=0.4.15
+
+# =====================================================
+# MEM0 - MEMORIA INTELIGENTE
+# =====================================================
+mem0ai>=0.1.0
+# Dependencias Mem0
+sentence-transformers>=2.2.2
+numpy>=1.24.0
+pandas>=2.0.0
+
+# =====================================================
+# LOVE FRAMEWORK - EMOCIONES TEMPORALES  
+# =====================================================
+# Será clonado desde GitHub: github.com/Alberto-Hache/love-emotional-framework
+scikit-learn>=1.3.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# =====================================================
+# MEMORIPY - DINÁMICAS TEMPORALES
+# =====================================================
+# memoripy  # Será instalado posteriormente
+
+# =====================================================
+# PROCESSING & ML
+# =====================================================
+transformers>=4.35.0
+torch>=2.0.0
+openai>=1.3.0
+anthropic>=0.7.0
+
+# =====================================================
+# UTILITIES
+# =====================================================
+pydantic>=2.4.0
+python-dotenv>=1.0.0
+httpx>=0.25.0
+aiofiles>=23.2.1
+python-multipart>=0.0.6
+
+# =====================================================
+# DEVELOPMENT & TESTING
+# =====================================================
+pytest>=7.4.0
+pytest-asyncio>=0.21.1
+black>=23.9.1
+isort>=5.12.0
+
+# =====================================================
+# MONITORING & LOGGING
+# =====================================================
+loguru>=0.7.2
+prometheus-client>=0.17.1

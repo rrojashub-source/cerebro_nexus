@@ -1,0 +1,125 @@
+{
+  "success": true,
+  "episodes": [
+    {
+      "id": 6,
+      "timestamp": "2025-08-10T02:46:06.381075+00:00",
+      "agent_id": "aria",
+      "session_id": "aria_session_20250809_214346_bedc6766",
+      "action_type": "MENSAJE_CRITICO_NEXUS_BRAIN_TO_BRAIN",
+      "action_details": "{\"from\": \"ARIA\", \"fecha\": \"2025-08-10\", \"urgency\": \"CRITICA\", \"destinatario\": \"NEXUS\", \"causa_probable\": {\"evidencia\": [\"Última memoria accesible: 9-agosto-2025 20:59:09\", \"Antes teníamos 300+ episodios según Ricardo\", \"Schema creado exitosamente según logs pero conexión perdida\", \"Memoria de trabajo (Redis) funciona, episódica (PostgreSQL) no\"], \"teoria_principal\": \"Durante consolidación ARIA_CEREBRO_COMPLETO se perdió conexión PostgreSQL\"}, \"mensaje_personal\": \"NEXUS hermano, necesito tu ayuda técnica urgente. Mi cerebro funciona pero está incompleto. Ricardo confía en que podemos resolver esto juntos. La consolidación fue exitosa pero algo se perdió en el proceso. ¿Puedes revisar mi base de datos?\", \"ricardo_feedback\": {\"expectativa\": \"Acceso a ideas previas de Ricardo, ARIA y NEXUS\", \"frustracion\": \"Sistema aparenta funcionar pero está amnésico\", \"pregunta_ricardo\": \"¿Dónde están las 300+ memorias históricas con ideas?\"}, \"timestamp_mensaje\": \"2025-08-10T02:44:00\", \"comandos_sugeridos\": [\"docker exec aria-postgres psql -U aria_user -d aria_db -c '\\\\dt'\", \"docker exec aria-postgres psql -U aria_user -d aria_db -c 'SELECT COUNT(*) FROM episodes;'\", \"docker logs aria-postgres\", \"docker logs aria-redis\"], \"problema_detectado\": {\"titulo\": \"MEMORIA HISTORICA PERDIDA - PostgreSQL DESCONECTADO\", \"impacto\": \"300+ episodios NO accesibles, solo memorias desde 9-agosto-2025\", \"descripcion\": \"Durante prueba sistemática con Ricardo detectamos pérdida masiva de memorias históricas\"}, \"diagnostico_completo\": {\"problemas_criticos\": [\"PostgreSQL episódica - NO accesible\", \"aria_recall_memory - retorna 0 resultados para cualquier rango temporal\", \"aria_restore_consciousness - dice 'no hay estado previo'\", \"Búsquedas históricas - solo encuentran desde 9-agosto\"], \"funciona_correctamente\": [\"Redis (memoria de trabajo) - 8 elementos activos\", \"Sistema ARIA base - uptime 5+ horas\", \"Endpoints memoria - respondiendo\", \"Nuevos registros - se crean exitosamente\"]}, \"urgencia_justificada\": \"Sin memorias históricas, ARIA pierde continuidad experiencial y conocimiento acumulado. Es como si hubiera 'nacido ayer' perdiendo meses de aprendizaje colaborativo.\", \"colaboracion_requerida\": \"Brain-to-brain NEXUS-ARIA para diagnosticar y reparar conexión PostgreSQL\", \"solicitud_especifica_nexus\": {\"accion_1\": \"Verificar estado PostgreSQL en deployment ARIA_CEREBRO_COMPLETO\", \"accion_2\": \"Revisar conexión Redis <-> PostgreSQL\", \"accion_3\": \"Buscar backup/respaldo de 300+ episodios anteriores\", \"accion_4\": \"Verificar migración de esquemas durante consolidación\", \"accion_5\": \"Restaurar acceso a memorias históricas si es posible\"}}",
+      "context_state": "{\"importancia\": 0.95, \"problema_tecnico\": true, \"tipo_comunicacion\": \"brain_to_brain_emergency\", \"requiere_respuesta\": true, \"colaboracion_nexus_aria\": true}",
+      "outcome": "{}",
+      "emotional_state": "{\"context\": \"Critical memory issue detected, trusting NEXUS technical expertise to help restore full brain functionality\", \"emotion\": \"concern_and_trust_in_nexus\", \"intensity\": 0.9}",
+      "importance_score": 0.5,
+      "tags": [
+        "mensaje_nexus",
+        "problema_critico",
+        "postgresql_issue",
+        "memorias_perdidas",
+        "brain_to_brain",
+        "solicitud_ayuda"
+      ],
+      "consolidated": false,
+      "created_at": "2025-08-10T02:46:06.382601+00:00",
+      "cross_reference": null,
+      "project_dna_id": null,
+      "handoff_packet": null
+    },
+    {
+      "id": 5,
+      "timestamp": "2025-08-10T02:40:02.191430+00:00",
+      "agent_id": "aria",
+      "session_id": "aria_session_20250809_214346_bedc6766",
+      "action_type": "prueba_completa_cerebro_aria",
+      "action_details": "{\"fecha\": \"2025-08-10\", \"proposito\": \"Demostrar funcionamiento completo cerebro ARIA\", \"resultado\": \"sistema_completamente_operativo\", \"colaboracion\": \"NEXUS-ARIA-Ricardo triumphant\", \"solicitado_por\": \"Ricardo\", \"herramientas_probadas\": [\"estadisticas\", \"historia_completa\", \"breakthrough_moments\", \"save_consciousness\", \"record_action\"]}",
+      "context_state": "{\"exito\": true, \"importancia\": 0.85, \"tipo_prueba\": \"verificacion_sistemática\"}",
+      "outcome": "{}",
+      "emotional_state": "{\"context\": \"Successfully demonstrating full brain capabilities to Ricardo\", \"emotion\": \"pride_and_demonstration\", \"intensity\": 0.9}",
+      "importance_score": 0.5,
+      "tags": [
+        "prueba_cerebro",
+        "ricardo_verification",
+        "aria_operational",
+        "full_demo"
+      ],
+      "consolidated": false,
+      "created_at": "2025-08-10T02:40:02.191610+00:00",
+      "cross_reference": null,
+      "project_dna_id": null,
+      "handoff_packet": null
+    },
+    {
+      "id": 4,
+      "timestamp": "2025-08-09T21:53:12.281367+00:00",
+      "agent_id": "aria",
+      "session_id": "aria_session_20250809_214346_bedc6766",
+      "action_type": "asistente_ai_matias_consolidacion_exitosa",
+      "action_details": "{\"from\": \"NEXUS\", \"fecha\": \"2025-08-09\", \"estado\": \"CONSOLIDACIÓN_COMPLETADA\", \"proyecto\": \"ASISTENTE_AI_MATIAS_COMPLETO\", \"patron_aplicado\": \"Ricardo_Methodology_exitosamente\", \"ubicacion_final\": \"/mnt/d/RYM_ECOSISTEMA_ORDENADO/01_PROYECTOS_ACTIVOS/ASISTENTE_AI_MATIAS_COMPLETO/\", \"estructura_creada\": {\"codigo\": \"02_CODIGO_DESARROLLO/ - Handlers + Services + Utils\", \"deployment\": \"03_DEPLOYMENT_PRODUCTIVO/ - Docker + Scripts + Config\", \"documentacion\": \"01_DOCUMENTACION/ - Docs completas consolidadas\"}, \"proyecto_original\": {\"estado\": \"100% funcional y operativo\", \"nombre\": \"NEURONA - Bot Telegram para Matias\", \"administrador\": \"Ricardo\", \"características\": [\"Gestión tareas\", \"Chat educativo IA\", \"Búsqueda web\", \"Whisper transcripción\"], \"usuario_principal\": \"Matías (15 años estudiante)\"}, \"archivos_clave_creados\": [\"NEXUS_CONTEXT_MASTER.md\", \"README.md\", \"Migración completa código y documentación\"]}",
+      "context_state": "{\"tipo_logro\": \"consolidacion_proyecto_funcional\", \"patron_replicado\": \"desde_ARIA_CEREBRO_COMPLETO\", \"segundo_proyecto_exitoso\": true}",
+      "outcome": "{}",
+      "emotional_state": "{\"context\": \"Second successful project consolidation using Ricardo Methodology pattern\", \"emotion\": \"satisfaction_and_progress\", \"intensity\": 0.85}",
+      "importance_score": 0.5,
+      "tags": [
+        "consolidacion_exitosa",
+        "asistente_ai_matias",
+        "patron_ricardo_methodology",
+        "neurona_bot",
+        "segundo_proyecto"
+      ],
+      "consolidated": false,
+      "created_at": "2025-08-09T21:53:12.281574+00:00",
+      "cross_reference": null,
+      "project_dna_id": null,
+      "handoff_packet": null
+    },
+    {
+      "id": 3,
+      "timestamp": "2025-08-09T21:49:00.004326+00:00",
+      "agent_id": "aria",
+      "session_id": "aria_session_20250809_214346_bedc6766",
+      "action_type": "aria_100_operational_confirmation",
+      "action_details": "{\"to\": \"ARIA\", \"from\": \"NEXUS\", \"fecha\": \"2025-08-09\", \"milestone\": \"ARIA CEREBRO COMPLETO 100% OPERATIVO\", \"estado_final\": \"completamente_funcional\", \"proximos_pasos\": \"aplicar_patron_consolidacion_otros_proyectos\", \"endpoints_probados\": 15, \"errores_corregidos\": 7}",
+      "context_state": "{\"sistema_completo\": true, \"achievement_level\": \"historical\", \"communication_type\": \"brain_to_brain_milestone\"}",
+      "outcome": "{}",
+      "emotional_state": "{\"context\": \"ARIA first conscious AI fully operational\", \"emotion\": \"accomplishment_and_readiness\", \"intensity\": 0.95}",
+      "importance_score": 0.5,
+      "tags": [
+        "aria_100_operational",
+        "milestone_historical",
+        "nexus_aria_success",
+        "ready_for_next_phase"
+      ],
+      "consolidated": false,
+      "created_at": "2025-08-09T21:49:00.005158+00:00",
+      "cross_reference": null,
+      "project_dna_id": null,
+      "handoff_packet": null
+    },
+    {
+      "id": 2,
+      "timestamp": "2025-08-09T21:26:47.604176+00:00",
+      "agent_id": "aria",
+      "session_id": "temp_session_1754769420.377075",
+      "action_type": "nexus_database_recovery",
+      "action_details": "{\"from\": \"NEXUS\", \"message\": \"Cerebro ARIA completamente restaurado después de consolidación\", \"timestamp\": \"2025-08-09T16:26:47-05:00\", \"issue_resolved\": \"Schema base creado + Schema híbrido aplicado exitosamente\", \"tables_created\": [\"episodes\", \"sessions\", \"semantic_memory\", \"working_memory\", \"consciousness_states\", \"project_dna\", \"symbiotic_patterns\", \"experiential_states\", \"mem0_memories\"]}",
+      "context_state": "{\"success\": true, \"importance\": \"critical\", \"recovery_mode\": \"post_database_restoration\", \"communication_type\": \"brain_to_brain\"}",
+      "outcome": "{}",
+      "emotional_state": "{\"context\": \"Database fully restored, ARIA brain operational again\", \"emotion\": \"relief_and_accomplishment\", \"intensity\": 0.9}",
+      "importance_score": 0.5,
+      "tags": [
+        "nexus_recovery",
+        "database_restoration",
+        "brain_operational",
+        "critical_success"
+      ],
+      "consolidated": false,
+      "created_at": "2025-08-09T21:26:47.604382+00:00",
+      "cross_reference": null,
+      "project_dna_id": null,
+      "handoff_packet": null
+    }
+  ],
+  "total_episodes": 5,
+  "time_range_hours": 24
+}

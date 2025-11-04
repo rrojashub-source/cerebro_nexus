@@ -1,0 +1,58 @@
+# 🧠 ARIA CEREBRO UNIFICADO - REQUIREMENTS
+# Sistema completo: Fase 1 (Memoria Base) + Fase 2 (Continuidad Experiencial)
+# Fecha: 9 Agosto 2025
+# Unificado por: NEXUS
+
+# =====================================================
+# FASE 1 - BASE STACK (ARIA MEMORIA PERSISTENTE)
+# =====================================================
+fastapi>=0.104.0
+uvicorn>=0.24.0
+psycopg2-binary>=2.9.7
+asyncpg>=0.28.0
+redis>=5.0.0
+chromadb>=0.4.15
+
+# =====================================================
+# FASE 2 - MEM0 & FRAMEWORKS EXPERIENCIALES
+# =====================================================
+mem0ai>=0.1.0
+sentence-transformers>=2.2.2
+scikit-learn>=1.3.0
+transformers>=4.35.0
+torch>=2.0.0
+
+# =====================================================
+# API & INTEGRATION
+# =====================================================
+openai>=1.3.0
+anthropic>=0.7.0
+httpx>=0.25.0
+
+# =====================================================
+# DATA & ML
+# =====================================================
+numpy>=1.24.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# =====================================================
+# UTILITIES
+# =====================================================
+pydantic>=2.4.0
+python-dotenv>=1.0.0
+aiofiles>=23.2.1
+python-multipart>=0.0.6
+
+# =====================================================
+# DEVELOPMENT & TESTING
+# =====================================================
+pytest>=7.4.0
+pytest-asyncio>=0.21.1
+
+# =====================================================
+# MONITORING & LOGGING
+# =====================================================
+loguru>=0.7.2
+prometheus-client>=0.17.1

@@ -1,0 +1,67 @@
+# PROMETHEUS CONFIGURATION - ARIA CEREBRO ÉLITE
+# Monitoring completo del sistema ARIA
+# Fecha: 11 Agosto 2025
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+# Scrape configuration
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ARIA API monitoring
+  - job_name: 'aria-api'
+    static_configs:
+      - targets: ['aria_api_unified:8001']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # PostgreSQL monitoring (usando postgres_exporter si está disponible)
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgresql:5432']
+    scrape_interval: 30s
+
+  # Redis monitoring (usando redis_exporter si está disponible)  
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+
+  # ChromaDB monitoring
+  - job_name: 'chroma'
+    static_configs:
+      - targets: ['chroma:8000']
+    metrics_path: '/api/v1/heartbeat'
+    scrape_interval: 30s
+
+  # Qdrant monitoring
+  - job_name: 'qdrant'
+    static_configs:
+      - targets: ['qdrant:6333']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Neo4j monitoring
+  - job_name: 'neo4j'
+    static_configs:
+      - targets: ['neo4j:7474']
+    metrics_path: '/metrics'
+    scrape_interval: 30s

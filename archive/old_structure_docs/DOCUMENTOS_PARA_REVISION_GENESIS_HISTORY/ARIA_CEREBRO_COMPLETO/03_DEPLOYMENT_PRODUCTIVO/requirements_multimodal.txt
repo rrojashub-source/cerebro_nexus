@@ -1,0 +1,36 @@
+# Multi-Modal Memory System Dependencies
+# ====================================== 
+
+# Core ML libraries
+transformers>=4.30.0
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Image processing
+Pillow>=9.5.0
+opencv-python>=4.8.0
+
+# Audio processing
+openai-whisper>=20231117
+librosa>=0.10.0
+soundfile>=0.12.0
+
+# Video processing - requires OpenCV
+# opencv-python already included above
+
+# Text embeddings
+sentence-transformers>=2.2.0
+
+# Scientific computing
+numpy>=1.24.0
+scipy>=1.10.0
+
+# FastAPI file uploads
+python-multipart>=0.0.6
+
+# Additional dependencies for production
+ffmpeg-python>=0.2.0  # For video audio extraction
+
+# Optional: For GPU acceleration
+# torch-audio  # Uncomment if using GPU
+# torchaudio   # Uncomment if using GPU
