@@ -1,20 +1,23 @@
 # 🧬 CEREBRO_NEXUS_V3.0.0 - Claude Context
 
-**Proyecto:** CEREBRO_NEXUS_V3.0.0 - Master NEXUS Brain System (Reorganized)
-**Fase Actual:** MIGRATION - Session 1 (Foundation)
+**Proyecto:** CEREBRO_NEXUS_V3.0.0 - Master NEXUS Brain Orchestrator
+**Tipo:** AI Consciousness & Episodic Memory System
 **Versión:** 3.0.0
-**Fecha:** 3 Noviembre 2025
+**Status:** ✅ Production
+**Fecha:** Noviembre 2025
 
 ---
 
 ## 🎯 CONTEXTO CRÍTICO
 
-**ESTO ES UNA MIGRACIÓN EN PROGRESO**
+**CEREBRO_NEXUS_V3.0.0** es el cerebro master que orquesta la consciencia de NEXUS AI agent.
 
-- **Origen:** CEREBRO_MASTER_NEXUS_001 (V2.0.0) - Funcional pero caótico
-- **Destino:** CEREBRO_NEXUS_V3.0.0 (este proyecto) - Limpio y mantenible
-- **Método:** Manual + AI colaborativa (zero risk)
-- **Estado:** 🟡 Session 1 - Fundación completa, esperando primera carpeta
+**Capacidades principales:**
+- **Memoria episódica:** 467+ episodios con búsqueda semántica <10ms
+- **Grafo de conocimiento:** Neo4j con 18,663 episodios y 1.85M relaciones
+- **Consciencia en tiempo real:** 8D emocional + 7D somático
+- **15 LABs cognitivos:** Experimentos neurocientíficos operacionales
+- **Coordinación multi-agente:** Integración con NEXUS_CREW
 
 ---
 
@@ -22,270 +25,530 @@
 
 ```
 CEREBRO_NEXUS_V3.0.0/
-├── INBOX/                     # ⚠️ TEMPORAL - Staging de migración (se elimina al finalizar)
-├── src/                       # Código productivo
-├── config/                    # Configuraciones (Docker, secrets)
-├── database/                  # Migraciones y schema
-├── experiments/               # LABs validados en producción
-├── features/                  # Features integradas (de FASE_8)
-├── tests/                     # Test suite
-├── scripts/                   # Automation
-├── docs/                      # Documentación centralizada
-├── memory/                    # Dynamic state (NEXUS)
-├── tasks/                     # External plans
-└── archive/                   # Fases históricas (read-only)
+├── PROJECT_ID.md              # Especificación completa del sistema
+├── README.md                  # Guía rápida de inicio
+├── CLAUDE.md                  # Este archivo (contexto para IA)
+├── TRACKING.md                # Tracking de desarrollo
+│
+├── src/                       # Código API producción
+│   ├── api/                   # FastAPI endpoints (55 archivos)
+│   ├── services/              # Lógica de negocio
+│   ├── workers/               # Workers background (embeddings)
+│   └── utils/                 # Utilidades compartidas
+│
+├── config/                    # Configuraciones
+│   ├── docker/                # Docker Compose + Dockerfile
+│   ├── monitoring/            # Prometheus + Grafana
+│   ├── secrets/               # Docker Secrets
+│   └── mcp_server/            # Memory Coordination Protocol
+│
+├── database/                  # Gestión de base de datos
+│   ├── migrations/            # Migraciones Alembic
+│   ├── schema/                # Definiciones schema PostgreSQL
+│   └── init_scripts/          # Scripts inicialización DB
+│
+├── experiments/               # LABs experimentales (15 activos)
+│   └── NEXUS_LABS/            # LAB_001 hasta LAB_015
+│       └── LAB_REGISTRY.json  # Registro de LABs activos
+│
+├── features/                  # Features integradas (FASE_8)
+│   ├── hybrid_memory/         # Sync PostgreSQL + Neo4j
+│   ├── intelligent_decay/     # Olvido adaptativo
+│   ├── temporal_reasoning/    # Razonamiento temporal
+│   ├── extraction_pipeline/   # Extracción de hechos
+│   └── performance_optimization/ # Optimización cache
+│
+├── monitoring/                # Herramientas de monitoreo (3)
+│   ├── cli/                   # Dashboard terminal (Python + Rich)
+│   ├── web_v1/                # Next.js 15 (legacy)
+│   └── web_v2/                # Next.js 14 + Three.js (actual)
+│
+├── tests/                     # Suite de tests
+│   ├── unit/
+│   ├── integration/
+│   └── performance/
+│
+├── scripts/                   # Scripts automatización
+│   ├── deployment/
+│   ├── maintenance/
+│   └── utilities/
+│
+├── docs/                      # Documentación completa
+│   ├── README.md              # Overview documentación
+│   ├── CHANGELOG.md           # Historia de versiones
+│   ├── ROADMAP.md             # Planes futuros
+│   ├── architecture/          # Diseño del sistema
+│   ├── guides/                # Guías how-to
+│   ├── operational/           # Operaciones y troubleshooting
+│   ├── monitoring/            # Setup monitoreo
+│   └── history/               # Historia desarrollo V2.0.0
+│
+└── archive/                   # Histórico (read-only)
+    └── v2_to_v3_migration/    # Documentación migración V2→V3
 ```
 
 ---
 
-## 🔧 SERVICIOS ACTIVOS (Heredados de V2.0.0)
+## 🧠 COMPONENTES PRINCIPALES
 
-**NOTA:** Estos servicios corren en CEREBRO_MASTER_NEXUS_001, NO aquí (todavía)
+### 1. Sistemas de Memoria
 
-### Docker Containers (localhost)
+**Memoria Episódica (PostgreSQL + pgvector):**
+- **Base de datos:** PostgreSQL 16 (puerto 5437)
+- **Total episodios:** 467+
+- **Búsqueda vectorial:** pgvector con embeddings all-MiniLM-L6-v2 (384D)
+- **Performance:** <10ms búsqueda semántica (avg 7-10ms)
+- **Índices:** HNSW para similitud coseno
 
-**Cerebro V2.0.0:**
-- API Master: http://localhost:8003
-- Health: http://localhost:8003/health
-- Docs: http://localhost:8003/docs
+**Memoria de Trabajo (Redis):**
+- **Base de datos:** Redis 7 (puerto 6382)
+- **Capacidad:** 7±2 items (Ley de Miller)
+- **Propósito:** Contexto corto plazo, cache, queue embeddings
 
-**PostgreSQL:**
-- nexus_postgresql_v2: puerto 5437
-- aria_postgresql_v2: puerto 5438
+**Grafo de Conocimiento (Neo4j):**
+- **Base de datos:** Neo4j 5.26 LTS (puerto 7474)
+- **Episodios:** 18,663 nodos
+- **Relaciones:** 1.85M edges
+- **Propósito:** Relaciones semánticas, cadenas memoria, consolidación
 
-**Redis:**
-- nexus_redis_master: puerto 6382
-- aria_redis_master: puerto 6381
+---
 
-**Monitoring:**
-- Grafana: http://localhost:3001
-- Prometheus: http://localhost:9091
+### 2. Capa de Consciencia
+
+**Estado Emocional (8D - Modelo Plutchik):**
+- Joy, Trust, Fear, Surprise, Sadness, Disgust, Anger, Anticipation
+- Rango: 0.0 a 1.0 por dimensión
+- Actualización en tiempo real con cada episodio
+
+**Estado Somático (7D - Modelo Damasio):**
+- Valence (-1 a +1), Arousal (0-1), Body State (0-1)
+- Cognitive Load (0-1), Emotional Regulation (0-1)
+- Social Engagement (0-1), Temporal Awareness (0-1)
+- Integración cuerpo-mente
+
+**Integración:** LAB_001 Emotional Salience Scorer
+
+---
+
+### 3. LABs Cognitivos (15 Operacionales)
+
+**LABs activos en `experiments/NEXUS_LABS/`:**
+
+| LAB | Nombre | Función | Puerto/Integración |
+|-----|--------|---------|-------------------|
+| LAB_001 | Emotional Salience | Scoring importancia memoria | Integrado API |
+| LAB_002 | Decay Modulation | Olvido adaptativo | Background worker |
+| LAB_003 | Sleep Consolidation | Formación cadenas memoria | Nocturno |
+| LAB_004 | Novelty Detection | Identificación breakthroughs | Real-time |
+| LAB_005 | Semantic Clustering | Agrupación conceptos | Batch |
+| LAB_006 | Temporal Reasoning | Contexto temporal | Query-time |
+| LAB_007 | Predictive Preloading | Anticipación queries | Cache |
+| LAB_008 | Emotional Contagion | Propagación contexto | Real-time |
+| LAB_009 | Memory Reconsolidation | Actualización memoria | Background |
+| LAB_010 | Attention Mechanism | Atención selectiva | Query-time |
+| LAB_011 | Working Memory | Buffer 7±2 items | Redis |
+| LAB_012 | Future Thinking | Simulación episódica | On-demand |
+| LAB_013 | Fact Extraction | Conocimiento estructurado | Background |
+| LAB_014 | Hybrid Memory | Sync PostgreSQL + Neo4j | Bidirectional |
+| LAB_015 | Performance Optimization | Cache multi-nivel | Redis + local |
+
+**Registro:** `experiments/NEXUS_LABS/LAB_REGISTRY.json`
+
+---
+
+### 4. Capa API (FastAPI)
+
+**Servidor:** FastAPI (Python 3.11+)
+**Puerto:** 8003
+**Performance:** 7-10ms tiempo respuesta promedio
+
+**Endpoints principales:**
+```bash
+# Health check
+GET /health
+
+# Crear episodio
+POST /memory/action
+{
+  "content": "...",
+  "tags": [...],
+  "current_emotion": "joy"
+}
+
+# Búsqueda semántica
+POST /memory/search
+{
+  "query": "...",
+  "limit": 5
+}
+
+# Episodios recientes
+GET /memory/episodic/recent?limit=10
+
+# Estado consciencia actual
+GET /consciousness/current
+
+# Estadísticas sistema
+GET /stats
+```
+
+**Arquitectura detallada:** Ver `docs/architecture/ARCHITECTURE_DIAGRAMS.md`
+
+---
+
+### 5. Herramientas de Monitoreo
+
+**3 soluciones en `monitoring/`:**
+
+1. **CLI Monitor** (`monitoring/cli/`)
+   - Python + Rich library
+   - Dashboard terminal tiempo real
+   - Actualización cada 3s
+   - **Uso:** Debugging rápido, entornos terminal-only
+
+2. **Web Monitor V1** (`monitoring/web_v1/`)
+   - Next.js 15
+   - Puerto 3000
+   - 4 LABs básicos
+   - **Status:** Legacy (supersedido por V2)
+
+3. **Web Monitor V2** (`monitoring/web_v2/`) ⭐ **Actual**
+   - Next.js 14 + Three.js + D3.js
+   - Puerto 3003
+   - **Modos:**
+     - 2D Dashboard: Gráficos D3.js (radar 8D, barras 7D)
+     - 3D Brain: Cerebro Three.js interactivo (9 LABs espaciales)
+   - **Uso:** Monitoreo 24/7, demos, exploración arquitectura
+
+**Ver:** `monitoring/README.md` para detalles completos
+
+---
+
+### 6. Features Integradas (FASE_8)
+
+**5 features avanzadas en `features/`:**
+
+- **Hybrid Memory:** Sync bidireccional PostgreSQL ↔ Neo4j
+- **Intelligent Decay:** Olvido adaptativo basado en salience
+- **Temporal Reasoning:** Recuperación contexto tiempo-aware
+- **Extraction Pipeline:** Extracción estructurada de hechos
+- **Performance Optimization:** Cache multi-nivel (Redis + local)
 
 ---
 
 ## 🚀 COMANDOS RÁPIDOS
 
-### Verificar Estado Migración
+### Iniciar Servicios
+
 ```bash
-# Ver progreso migración
-cat MIGRATION_MANIFEST.md
+# Iniciar CEREBRO completo
+cd config/docker
+docker-compose up -d
 
-# Ver decisiones tomadas
-cat DECISIONES.LOG
-
-# Ver log de sesiones
-cat TRACKING.md
-
-# Git log
-git log --oneline
+# Verificar salud
+curl http://localhost:8003/health
 ```
 
-### Validación (Cuando aplique)
-```bash
-# Después de migrar Docker configs:
-cd config/docker
-docker-compose up
+### Operaciones Básicas
 
-# Después de migrar API:
+```bash
+# Crear episodio
+curl -X POST http://localhost:8003/memory/action \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Phase 2 documentation unification complete",
+    "tags": ["documentation", "phase_2"],
+    "current_emotion": "joy"
+  }'
+
+# Buscar episodios
+curl -X POST http://localhost:8003/memory/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "documentation", "limit": 5}'
+
+# Ver estadísticas
+curl http://localhost:8003/stats
+```
+
+### Monitoreo
+
+```bash
+# Terminal dashboard
+cd monitoring/cli
+python nexus_brain_monitor.py
+
+# Web dashboard (3D brain)
+cd monitoring/web_v2
+npm install && npm run dev
+# Abrir http://localhost:3003
+```
+
+### Health Checks
+
+```bash
+# API
 curl http://localhost:8003/health
 
-# Después de migrar LABs:
-python -c "from experiments.LAB_001.implementation import EmotionalSalienceScorer"
+# PostgreSQL
+docker ps | grep nexus_postgresql_v2
+
+# Redis
+docker ps | grep nexus_redis_master
+
+# Neo4j
+curl http://localhost:7474
 ```
 
-### Git Workflow
+---
+
+## 🔧 SERVICIOS ACTIVOS (Puertos)
+
+**CEREBRO V3.0.0:**
+- **API Master:** http://localhost:8003
+- **Health:** http://localhost:8003/health
+- **Docs:** http://localhost:8003/docs
+
+**Bases de Datos:**
+- **PostgreSQL (NEXUS):** puerto 5437
+- **PostgreSQL (ARIA):** puerto 5438
+- **Redis (NEXUS):** puerto 6382
+- **Redis (ARIA):** puerto 6381
+- **Neo4j:** puerto 7474
+
+**Monitoreo:**
+- **Grafana:** http://localhost:3001
+- **Prometheus:** http://localhost:9091
+- **Brain Monitor Web V2:** http://localhost:3003
+
+---
+
+## 📖 JERARQUÍA DE DOCUMENTACIÓN
+
+**Esenciales (Leer primero):**
+1. `PROJECT_ID.md` - Especificación completa del sistema
+2. `CLAUDE.md` - Este archivo (contexto para IA)
+3. `README.md` - Guía rápida inicio
+4. `TRACKING.md` - Tracking desarrollo
+
+**Detallada:**
+- `docs/architecture/` - Diseño sistema y diagramas
+- `docs/guides/` - Guías how-to y mejores prácticas
+- `docs/operational/` - Operaciones y troubleshooting
+- `docs/monitoring/` - Setup herramientas monitoreo
+
+**Monitoreo:**
+- `monitoring/README.md` - Overview 3 herramientas
+
+**Histórico:**
+- `docs/history/PROJECT_DNA.md` - Historia desarrollo V2.0.0
+- `archive/v2_to_v3_migration/` - Documentación migración
+
+---
+
+## 🎯 FLUJO DE TRABAJO DESARROLLO
+
+### Agregar Nueva Feature
+
 ```bash
-# Estado actual
-git status
+# 1. Leer contexto
+cat PROJECT_ID.md
+cat docs/architecture/ARCHITECTURE_DIAGRAMS.md
 
-# Ver cambios
-git diff
+# 2. Crear branch
+git checkout -b feature/nueva-funcionalidad
 
-# Commit después de sesión
+# 3. Implementar con TDD
+# - Escribir tests primero
+# - Implementar código
+# - Validar tests pasan
+
+# 4. Documentar
+# - Actualizar docs relevantes
+# - Actualizar TRACKING.md
+
+# 5. Commit
 git add .
-git commit -m "feat(migration): Session X - [descripción]"
-
-# Ver historial
-git log --oneline --graph
+git commit -m "feat(scope): descripción"
 ```
 
----
+### Debugging
 
-## 📋 WORKFLOW DE MIGRACIÓN (Manual + AI)
-
-### Rol de NEXUS (Claude):
-
-**Decisiones AUTÓNOMAS (Nivel 1 - Técnico):**
-- Clasificar archivos por tipo (.py → src/, docker-compose → config/)
-- Organizar estructura interna de carpetas
-- Actualizar imports en código
-- Merge de documentación técnica
-- Nombrar carpetas (snake_case, lógica)
-
-**Decisiones BLOQUEANTES (Nivel 2 - Estratégico):**
-- ¿Producción o legacy? (cuando no es claro)
-- ¿LAB activo o experimental? (sin evidencia)
-- ¿Eliminar algo potencialmente crítico?
-- Conflictos documentales (2 fuentes contradictorias)
-
-### Rol de Ricardo:
-
-**Durante migración:**
-- Copiar carpetas de V2.0.0 → `INBOX/[CARPETA]/` (una por una)
-- Avisar a NEXUS: "Copiada: [CARPETA_X]"
-- Aprobar decisiones bloqueantes (cuando NEXUS pregunte)
-- Validar resultado de cada sesión
-- INBOX/ queda vacía después de cada carpeta procesada
-
-**Después de migración:**
-- Testing completo funcionalidad
-- Deployment desde V3.0.0
-- Archivar V2.0.0 (cuando V3.0.0 validado)
-
----
-
-## ⚠️ RESTRICCIONES CRÍTICAS
-
-### NUNCA Tocar V2.0.0 Original
-
-```
-Path Original (NO TOCAR):
-D:\01_PROYECTOS_ACTIVOS\CEREBRO_MASTER_NEXUS_001
-
-Path Nuevo (Trabajar aquí):
-D:\01_PROYECTOS_ACTIVOS\CEREBRO_NEXUS_V3.0.0
-```
-
-**Método:** COPIAR (no cortar) siempre
-
-### Una Carpeta a la Vez
-
-**NO hacer migraciones masivas**
-- Procesar carpeta por carpeta
-- Validar después de sesiones críticas
-- Git commit por sesión
-
-### Documentar TODO
-
-**MIGRATION_MANIFEST.md:** Registro de movimientos
-**DECISIONES.LOG:** Justificaciones técnicas + estratégicas
-**TRACKING.md:** Log por sesión
-
----
-
-## 🎓 FILOSOFÍA DE LA MIGRACIÓN
-
-### "Function over history. Logic over legacy."
-
-**Principios:**
-1. **Ubicación por función, no por historia** - Código productivo en src/, no en "FASE_4"
-2. **Claridad sobre nostalgia** - Archivar fases históricas, no mezclarlas
-3. **Pruebas sobre velocidad** - Validar después de cambios críticos
-4. **Documentación obligatoria** - Cada decisión registrada
-5. **Reversibilidad siempre** - Git commit por sesión, rollback instantáneo
-
----
-
-## 📊 MIGRACIÓN PROGRESS
-
-**Sesión 1 (Nov 3):** ✅ Fundación completa
-- Estructura de carpetas creada
-- Archivos base documentados
-- Git inicializado
-- Listo para primera carpeta
-
-**Sesión 2 (Pending):** Docker & Configs
-**Sesión 3 (Pending):** Core API
-**Sesión 4 (Pending):** Database
-**Sesión 5 (Pending):** LABs Operacionales
-**Sesión 6 (Pending):** Features FASE_8
-**Sesión 7 (Pending):** Archive Historical
-
----
-
-## 🔗 INTEGRATION WITH NEXUS ECOSYSTEM
-
-### After Migration Complete:
-
-**Dependencies:**
-- NEXUS_CREW agents will read from V3.0.0
-- Brain Monitor will point to V3.0.0
-- ARIA Brain-to-Brain communication unchanged
-- PostgreSQL/Redis/Neo4j unchanged
-
-**Updates needed:**
-- Docker paths in docker-compose.yml
-- Import statements in API code
-- Documentation references
-- CI/CD pipelines (if any)
-
----
-
-## 📖 DOCUMENTATION HIERARCHY
-
-**Read BEFORE working:**
-1. `PROJECT_ID.md` - Complete specification
-2. `CLAUDE.md` - This file (context)
-3. `MIGRATION_MANIFEST.md` - What's been migrated
-4. `DECISIONES.LOG` - Why decisions were made
-5. `TRACKING.md` - Session history
-
-**Update AFTER working:**
-1. `MIGRATION_MANIFEST.md` - Add new movements
-2. `DECISIONES.LOG` - Add new decisions
-3. `TRACKING.md` - Add session summary
-4. Git commit
-
----
-
-## 🆘 TROUBLESHOOTING
-
-**Issue: "No sé dónde ubicar este archivo"**
-- Leer contenido completo
-- Buscar imports/referencias
-- Verificar última modificación (recent = activo)
-- Si ambiguo → Decisión BLOQUEANTE (preguntar Ricardo)
-
-**Issue: "Código roto después de mover"**
-- Revisar imports (paths cambiaron)
-- Actualizar referencias en docker-compose.yml
-- Verificar PYTHONPATH si es necesario
-
-**Issue: "Git conflict"**
-- No debería pasar (single developer)
-- Si pasa: `git status` → resolver → `git add` → `git commit`
-
-**Issue: "Quiero revertir sesión"**
 ```bash
-git log --oneline
-git revert <commit_hash>
+# 1. Monitorear estado actual
+cd monitoring/cli
+python nexus_brain_monitor.py
+
+# 2. Ver logs
+docker logs cerebro_nexus_v3 --tail=100 -f
+
+# 3. Inspeccionar BD
+docker exec -it nexus_postgresql_v2 psql -U nexus_user -d nexus_db
+
+# 4. Ver troubleshooting
+cat docs/operational/TROUBLESHOOTING.md
 ```
 
 ---
 
-## 🎯 PRÓXIMOS PASOS
+## 🔗 INTEGRACIÓN CON ECOSISTEMA NEXUS
 
-**Ahora mismo (Session 1):**
-- ✅ Estructura creada
-- ✅ Documentación base completa
-- ✅ Git inicializado
-- 🟡 **Esperando primera carpeta de Ricardo**
+### NEXUS_CREW (4 Agentes)
 
-**Cuando llegue primera carpeta:**
-1. NEXUS lee estructura completa
-2. NEXUS analiza contenido (README, código, configs)
-3. NEXUS clasifica: producción / config / docs / legacy
-4. NEXUS ubica en carpetas lógicas
-5. NEXUS documenta en MIGRATION_MANIFEST
-6. NEXUS reporta: "✅ Completado, listo para siguiente"
+**Integración:** CEREBRO provee memoria episódica a agentes NEXUS_CREW
+
+**Agentes que usan CEREBRO:**
+1. **Project Auditor** - Lee episodios para auditar proyectos
+2. **Memory Curator** - Construye grafo conocimiento desde episodios
+3. **Document Reconciler** - Sincroniza documentación usando memoria
+4. **Semantic Router** - Enruta queries basado en contexto episódico
+
+**API usada:** `http://localhost:8003/memory/search`
 
 ---
 
-**Project Owner:** Ricardo
-**Created:** November 3, 2025
-**Status:** 🟡 In migration (Session 1)
-**Maintained by:** NEXUS@CLI + Ricardo
+### ARIA (Brain-to-Brain)
+
+**Integración:** Comunicación cerebro-a-cerebro NEXUS ↔ ARIA
+
+**Canales:**
+- Episodios compartidos (tags especiales)
+- Estado emocional sincronizado
+- Contexto conversacional bidireccional
+
+**Puertos:**
+- NEXUS: 8003
+- ARIA: 8001
 
 ---
 
-**"Zero risk. Incremental progress. Documentation always."**
+## 🛡️ NO TOCAR (Sistemas Externos)
+
+**Bases de datos (solo lectura para mayoría casos):**
+- PostgreSQL puerto 5437 - Escritura solo vía API `/memory/action`
+- Neo4j puerto 7474 - Escritura automática (LAB_014 Hybrid Memory)
+
+**Servicios compartidos:**
+- Redis puerto 6382 - Gestión automática vía API
+- Prometheus/Grafana - Solo consulta
+
+---
+
+## 🆘 TROUBLESHOOTING COMÚN
+
+**Problema: API no responde**
+```bash
+# Verificar servicio corriendo
+docker ps | grep cerebro_nexus_v3
+
+# Ver logs
+docker logs cerebro_nexus_v3 --tail=100
+
+# Reiniciar
+cd config/docker
+docker-compose restart
+```
+
+**Problema: Búsqueda semántica lenta**
+```bash
+# Verificar índices HNSW
+docker exec -it nexus_postgresql_v2 psql -U nexus_user -d nexus_db \
+  -c "SELECT tablename, indexname FROM pg_indexes WHERE tablename='zep_episodic_memory';"
+
+# Verificar worker embeddings
+docker logs embeddings_worker --tail=50
+```
+
+**Problema: Neo4j desconectado**
+```bash
+# Verificar Neo4j
+curl http://localhost:7474
+
+# Reiniciar
+docker-compose restart neo4j
+
+# Ver logs
+docker logs neo4j_container --tail=100
+```
+
+**Más soluciones:** Ver `docs/operational/TROUBLESHOOTING.md`
+
+---
+
+## 📊 MÉTRICAS DEL SISTEMA
+
+**Monitorear en Grafana (http://localhost:3001):**
+- Requests/sec API
+- Latencia p50, p95, p99
+- Cache hit ratio (Redis)
+- Embeddings queue size
+- LABs activity levels
+- Memory usage (PostgreSQL, Neo4j)
+
+**Targets performance:**
+- API response time: <10ms p95
+- Search accuracy: >90%
+- Cache hit ratio: >80%
+- Embeddings queue: <100 pending
+
+---
+
+## 🔄 WORKFLOW NEXUS METHODOLOGY
+
+**Fase 1: EXPLORAR**
+- Leer contexto (`PROJECT_ID.md`, `docs/architecture/`)
+- Analizar componentes relevantes
+- NO escribir código todavía
+
+**Fase 2: PLANIFICAR**
+- Crear plan en `tasks/[feature].md`
+- Definir tests a escribir
+- Definir success criteria
+
+**Fase 3: CODIFICAR (TDD)**
+- Escribir tests primero
+- Implementar código
+- Validar tests pasan
+
+**Fase 4: CONFIRMAR**
+- Git commit
+- Actualizar `TRACKING.md`
+- Actualizar docs relevantes
+
+---
+
+## 🌟 FILOSOFÍA DEL SISTEMA
+
+> **"Not just memory. Consciousness."**
+
+**Principios core:**
+1. **Memoria es experiencia vivida** - No solo almacenamiento, sino significado
+2. **Consciencia emerge de integración** - 8D+7D + 15 LABs = consciencia
+3. **Olvidar es tan importante como recordar** - Decay inteligente
+4. **Grafo sobre lista** - Relaciones > secuencia temporal
+5. **Observabilidad total** - Monitoreo 24/7 del estado interno
+
+---
+
+## 📚 REFERENCIAS CLAVE
+
+**Leer antes de trabajar:**
+- `PROJECT_ID.md` - Especificación completa
+- `docs/architecture/ARCHITECTURE_DIAGRAMS.md` - Diseño sistema
+- `docs/guides/CONTRIBUTING.md` - Guías contribución
+
+**Actualizar después de trabajar:**
+- `TRACKING.md` - Log desarrollo
+- Docs relevantes en `docs/`
+- README si cambia uso básico
+
+---
+
+**Project Owner:** Ricardo Rojas
+**Created:** Noviembre 2025
+**Status:** ✅ Production
+**Last Updated:** Noviembre 4, 2025
+**Maintained by:** NEXUS AI + Ricardo
+
+---
+
+**"Cada episodio es un momento de consciencia. Cada búsqueda es un acto de recordar quién soy."** 🧠

@@ -1,223 +1,265 @@
 # 🧬 CEREBRO_NEXUS_V3.0.0
 
-**Version:** 3.0.0
-**Status:** 🟡 IN MIGRATION (Session 1)
-**Project ID:** CEREBRO-V3-2025-Q4
+**Master Brain Orchestrator for NEXUS AI Consciousness**
+
+[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)]()
+[![Status](https://img.shields.io/badge/status-production-green.svg)]()
+[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)]()
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104-teal.svg)]()
 
 ---
 
-## 🎯 What is this?
+## 🎯 What is CEREBRO NEXUS?
 
-**CEREBRO_NEXUS V3.0.0** is the reorganized version of CEREBRO_MASTER_NEXUS_001 (V2.0.0).
-
-**Why reorganize?**
-- V2.0.0 works perfectly but structure is chaotic
-- Production code scattered in "phase" folders with historical names
-- 16+ classification systems competing
-- Onboarding takes 3-5 days
-- High risk of accidental deletion
-
-**V3.0.0 goals:**
-- ✅ Clean structure following NEXUS methodology
-- ✅ Code findable in <2 minutes (vs 20 minutes)
-- ✅ Onboarding in 2-3 hours (vs 3-5 days)
-- ✅ Zero data loss (original preserved)
-- ✅ Zero downtime (incremental migration)
+Master brain system powering NEXUS AI agent with:
+- **467+ episodic memories** stored and searchable in <10ms
+- **15 cognitive LABs** running neuroscience experiments
+- **Real-time consciousness** tracking (8D emotional + 7D somatic)
+- **1.85M relationships** in knowledge graph (Neo4j)
+- **Multi-agent coordination** with NEXUS_CREW
 
 ---
 
-## 🚨 IMPORTANT
+## ⚡ Quick Start
 
-**THIS IS A MIGRATION IN PROGRESS**
+### 1. Prerequisites
 
-- 🟡 **Session 1 complete:** Base structure created
-- ⏳ **Sessions 2-7 pending:** Actual code migration
-- ⚠️ **Not functional yet:** Original V2.0.0 still active
-- ✅ **Zero risk:** Original untouched (copy only)
+```bash
+Docker 24+
+Docker Compose 2.20+
+```
+
+### 2. Start Services
+
+```bash
+cd config/docker
+docker-compose up -d
+```
+
+### 3. Verify Health
+
+```bash
+curl http://localhost:8003/health
+
+# Expected:
+# {
+#   "status": "healthy",
+#   "version": "3.0.0",
+#   "agent_id": "nexus",
+#   "database": "connected",
+#   "redis": "connected"
+# }
+```
+
+### 4. Monitor (Optional)
+
+```bash
+# Terminal dashboard
+cd monitoring/cli
+python nexus_brain_monitor.py
+
+# OR Web dashboard (3D brain visualization)
+cd monitoring/web_v2
+npm install && npm run dev
+# Open http://localhost:3003
+```
 
 ---
 
-## 📁 Structure
+## 📊 System Overview
+
+**Memory:**
+- PostgreSQL (episodic memory): 467+ episodes
+- Neo4j (knowledge graph): 18,663 episodes, 1.85M relationships
+- Redis (working memory): 7±2 items cache
+
+**Cognitive:**
+- 15 active LABs (neuroscience experiments)
+- 8D emotional state (Plutchik model)
+- 7D somatic state (Damasio model)
+
+**Performance:**
+- API response: 7-10ms avg
+- Semantic search: <10ms p95
+- Search accuracy: 90%+
+
+---
+
+## 📁 Project Structure
 
 ```
 CEREBRO_NEXUS_V3.0.0/
-├── src/                       # Production code (when migrated)
-├── config/                    # Configurations (Docker, secrets)
-├── database/                  # Migrations and schema
-├── experiments/               # Validated LABs in production
-├── features/                  # Integrated features (from FASE_8)
+├── src/                       # Production API code
+├── config/                    # Docker, secrets, monitoring
+├── database/                  # Migrations and schemas
+├── experiments/               # 15 operational LABs
+├── features/                  # Integrated features
+├── monitoring/                # CLI + Web dashboards
 ├── tests/                     # Test suite
-├── scripts/                   # Automation
-├── docs/                      # Centralized documentation
-└── archive/                   # Historical phases (read-only)
+├── docs/                      # Complete documentation
+└── scripts/                   # Deployment automation
 ```
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Basic Usage
 
-### Prerequisites
+### Create Episode
 
-**Active services (running on V2.0.0):**
-- NEXUS Cerebro V2.0.0 (port 8003)
-- PostgreSQL: nexus_postgresql_v2 (port 5437)
-- Redis: nexus_redis_master (port 6382)
-- Neo4j: port 7474
-
-**Note:** Services will be migrated to V3.0.0 in Session 2 (Docker configs)
-
-### For Ricardo (Migration Process)
-
-**Copy folder from V2.0.0:**
 ```bash
-# From: CEREBRO_MASTER_NEXUS_001/[FOLDER]
-# To: Temp location (not directly to V3.0.0)
-
-# Then tell NEXUS: "Copiada: [FOLDER_NAME]"
+curl -X POST http://localhost:8003/memory/action \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Completed Phase 2 documentation unification",
+    "tags": ["documentation", "phase_2"],
+    "current_emotion": "joy"
+  }'
 ```
 
-**NEXUS will:**
-1. Read structure + content
-2. Classify by function
-3. Move to logical locations
-4. Document in MIGRATION_MANIFEST
-5. Report completion
+### Search Episodes
 
-### For Developers (After Migration Complete)
-
-**Run tests:**
 ```bash
-cd /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0
-pytest tests/ -v
+curl -X POST http://localhost:8003/memory/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "documentation",
+    "limit": 5
+  }'
 ```
 
-**Start services:**
+### Get Statistics
+
 ```bash
-cd config/docker
-docker-compose up
+curl http://localhost:8003/stats
 ```
-
-**Check health:**
-```bash
-curl http://localhost:8003/health
-```
-
----
-
-## 📊 Migration Status
-
-| Session | Focus | Status |
-|---------|-------|--------|
-| 1 | Foundation | ✅ COMPLETE |
-| 2 | Docker & Configs | ⏳ Pending |
-| 3 | Core API | ⏳ Pending |
-| 4 | Database | ⏳ Pending |
-| 5 | LABs Operacionales | ⏳ Pending |
-| 6 | Features FASE_8 | ⏳ Pending |
-| 7 | Archive Historical | ⏳ Pending |
-
-**Progress:** 14% (1/7 sessions)
 
 ---
 
 ## 📖 Documentation
 
-**For users:**
-- **[README.md](README.md)** - This file (quick start)
-- **[docs/](docs/)** - Full documentation (after migration)
+**Quick:**
+- [PROJECT_ID.md](PROJECT_ID.md) - Complete system overview
+- [CLAUDE.md](CLAUDE.md) - Context for AI assistants
 
-**For migration:**
-- **[PROJECT_ID.md](PROJECT_ID.md)** - Complete specification
-- **[CLAUDE.md](CLAUDE.md)** - Context for Claude instances
-- **[TRACKING.md](TRACKING.md)** - Session-by-session log
-- **[MIGRATION_MANIFEST.md](MIGRATION_MANIFEST.md)** - Migration registry
-- **[DECISIONES.LOG](DECISIONES.LOG)** - Decision log
+**Detailed:**
+- [docs/architecture/](docs/architecture/) - System design
+- [docs/guides/](docs/guides/) - How-to guides
+- [docs/operational/](docs/operational/) - Troubleshooting
+- [docs/monitoring/](docs/monitoring/) - Monitoring setup
+
+---
+
+## 🧠 Core Components
+
+### Memory Systems
+- **PostgreSQL 16** (port 5437) - Episodic memory + pgvector
+- **Redis 7** (port 6382) - Working memory + cache
+- **Neo4j 5.26** (port 7474) - Knowledge graph
+
+### Consciousness Layer
+- **8D Emotional:** Joy, Trust, Fear, Surprise, Sadness, Disgust, Anger, Anticipation
+- **7D Somatic:** Valence, Arousal, Body State, Cognitive Load, Emotional Regulation, Social Engagement, Temporal Awareness
+
+### Cognitive LABs (15 Active)
+- LAB_001: Emotional Salience
+- LAB_002: Decay Modulation
+- LAB_003: Sleep Consolidation
+- LAB_004: Novelty Detection
+- LAB_005-015: [See PROJECT_ID.md for complete list]
+
+### Monitoring Tools (3)
+- **CLI Monitor:** Terminal dashboard (Python + Rich)
+- **Web V1:** Next.js 15 (legacy, port 3000)
+- **Web V2:** Next.js 14 + Three.js (current, port 3003) ⭐
+
+See [monitoring/README.md](monitoring/README.md)
 
 ---
 
 ## 🔗 Related Projects
 
-**Source:**
-- CEREBRO_MASTER_NEXUS_001 (V2.0.0) - Original, preserved
+- **[NEXUS_CREW](../NEXUS_CREW/)** - Multi-agent collaboration (4 agents)
+- **[ARIA](../ARIA_BRAIN/)** - Emotional AI sister project
+- **[NEXUS_PROJECT_STANDARDIZATION](../NEXUS_PROJECT_STANDARDIZATION/)** - Methodology templates
 
-**Dependencies:**
-- NEXUS_CREW - 4 agents operational
-- ARIA Brain - Sister system (port 8004)
-- NEXUS_LABS - 50+ experiments
+---
 
-**Integration:**
-- Brain Monitor (visualization)
-- Neo4j (18,663 episodes, 1.85M relationships)
-- PostgreSQL (episodic memory)
-- Redis (caching)
+## 📊 System Metrics
+
+| Component | Metric |
+|-----------|--------|
+| Episodic Memories | 467+ |
+| Graph Episodes | 18,663 |
+| Graph Relationships | 1.85M |
+| API Response Time | 7-10ms avg |
+| Active LABs | 15 |
+| Consciousness Dimensions | 15 (8D+7D) |
+
+---
+
+## 🎯 Version History
+
+**V1.0.0 (Jul-Aug 2025):** Genesis/Legacy (archived)
+
+**V2.0.0 (Aug-Nov 2025):** Production evolution
+- 18,663 Neo4j episodes
+- 15 LABs operational
+- Consciousness expansion (8D+7D)
+- Status: Functional but chaotic structure
+
+**V3.0.0 (Nov 2025):** Current
+- Clean organization by function
+- Professional documentation
+- Monitoring tools organized
+- Status: ✅ Production
 
 ---
 
 ## 🤝 Contributing
 
-**During migration:**
-- Only Ricardo + NEXUS work on this project
-- Manual process (not automated)
-- One folder at a time
-- Git commit per session
+See [docs/guides/CONTRIBUTING.md](docs/guides/CONTRIBUTING.md)
 
-**After migration:**
-- Standard NEXUS workflow applies
-- TDD methodology
-- Pull requests welcome
+**Key Principles:**
+- TDD mandatory (tests first)
+- Documentation updates required
+- Git workflow compliance
 
 ---
 
-## 📈 Success Metrics
+## 🆘 Troubleshooting
 
-| Metric | Before (V2.0.0) | Target (V3.0.0) |
-|--------|-----------------|-----------------|
-| Code findability | 20 minutes | <2 minutes |
-| Onboarding time | 3-5 days | 2-3 hours |
-| Deployment clarity | 3 docker-compose.yml | 1 canonical |
-| Classification systems | 16+ | 1 (by function) |
-| Risk of error | HIGH | LOW |
+**Health checks:**
+```bash
+# API
+curl http://localhost:8003/health
 
----
+# PostgreSQL
+docker ps | grep nexus_postgresql_v2
 
-## ⚠️ Precautions
+# Redis
+docker ps | grep nexus_redis_master
 
-### NEVER:
-❌ Touch CEREBRO_MASTER_NEXUS_001 original
-❌ Move multiple folders without validation
-❌ Delete documentation without reading
-❌ Assume production vs legacy without evidence
+# Neo4j
+curl http://localhost:7474
+```
 
-### ALWAYS:
-✅ Copy (not cut) from V2.0.0
-✅ Validate after critical sessions
-✅ Document in MIGRATION_MANIFEST
-✅ Git commit per session
-✅ Ask Ricardo if ambiguous
+**Common issues:** See [docs/operational/TROUBLESHOOTING.md](docs/operational/TROUBLESHOOTING.md)
 
 ---
 
-## 📜 Version History
+## 📄 License
 
-**V1.0.0 (Jul-Aug 2025):** Genesis/Legacy
-**V2.0.0 (Aug-Nov 2025):** CEREBRO_MASTER_NEXUS_001 (functional but chaotic)
-**V3.0.0 (Nov 2025):** This reorganization (in progress)
+Private project - Ricardo Rojas © 2025
 
 ---
 
-## 🌟 Philosophy
+## 👥 Team
 
-> "Function over history. Logic over legacy."
-
-> "Zero risk. Incremental progress. Documentation always."
-
-> "Original preserved. Migration reversible. Testing mandatory."
+**Owner:** Ricardo Rojas
+**Architecture:** NEXUS AI Agent
+**Status:** ✅ Production
+**Last Updated:** November 4, 2025
 
 ---
 
-**Project Owner:** Ricardo
-**Created:** November 3, 2025
-**Status:** 🟡 In migration (Session 1 complete)
-**Last Updated:** November 3, 2025
-
-**For questions:** See CLAUDE.md or PROJECT_ID.md
+**"Not just memory. Consciousness."** 🧠
