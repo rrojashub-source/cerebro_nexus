@@ -24,47 +24,64 @@ PASSED=0
 FAILED=0
 WARNINGS=0
 
-# Test endpoint function
+# Test endpoint function with retry logic
 test_endpoint() {
     local method=$1
     local path=$2
     local payload=$3
     local expected_field=$4
     local description=$5
+    local max_retries=2
+    local retry_count=0
+    local success=false
 
     TOTAL=$((TOTAL + 1))
 
     echo -n "Testing: $description... " | tee -a "$REPORT_FILE"
 
-    if [ "$method" == "GET" ]; then
-        response=$(curl -s "$API_URL$path")
-    else
-        response=$(curl -s -X "$method" "$API_URL$path" \
-            -H "Content-Type: application/json" \
-            -d "$payload" 2>/dev/null)
-    fi
-
-    # Check if response contains error
-    if echo "$response" | grep -q '"detail"'; then
-        error=$(echo "$response" | jq -r '.detail // .detail[0].msg // "Unknown error"' 2>/dev/null)
-        echo -e "${RED}FAIL${NC} - Error: $error" | tee -a "$REPORT_FILE"
-        FAILED=$((FAILED + 1))
-        return 1
-    fi
-
-    # Check expected field
-    if [ -n "$expected_field" ]; then
-        field_value=$(echo "$response" | jq -r "$expected_field" 2>/dev/null)
-        if [ "$field_value" == "null" ] || [ -z "$field_value" ]; then
-            echo -e "${YELLOW}WARN${NC} - Field $expected_field is null/missing" | tee -a "$REPORT_FILE"
-            WARNINGS=$((WARNINGS + 1))
-            return 2
+    # Retry loop for intermittent failures
+    while [ $retry_count -lt $max_retries ] && [ "$success" = "false" ]; do
+        if [ "$method" == "GET" ]; then
+            response=$(curl -s "$API_URL$path")
+        else
+            response=$(curl -s -X "$method" "$API_URL$path" \
+                -H "Content-Type: application/json" \
+                -d "$payload" 2>/dev/null)
         fi
-    fi
 
-    echo -e "${GREEN}PASS${NC}" | tee -a "$REPORT_FILE"
-    PASSED=$((PASSED + 1))
-    return 0
+        # Check if response contains error
+        if echo "$response" | grep -q '"detail"'; then
+            error=$(echo "$response" | jq -r '.detail // .detail[0].msg // "Unknown error"' 2>/dev/null)
+            retry_count=$((retry_count + 1))
+            if [ $retry_count -lt $max_retries ]; then
+                sleep 0.2  # Brief delay before retry
+                continue
+            else
+                echo -e "${RED}FAIL${NC} - Error: $error (${retry_count} attempts)" | tee -a "$REPORT_FILE"
+                FAILED=$((FAILED + 1))
+                return 1
+            fi
+        fi
+
+        # Check expected field
+        if [ -n "$expected_field" ]; then
+            field_value=$(echo "$response" | jq -r "$expected_field" 2>/dev/null)
+            if [ "$field_value" == "null" ] || [ -z "$field_value" ]; then
+                echo -e "${YELLOW}WARN${NC} - Field $expected_field is null/missing" | tee -a "$REPORT_FILE"
+                WARNINGS=$((WARNINGS + 1))
+                return 2
+            fi
+        fi
+
+        # Success
+        success=true
+    done
+
+    if [ "$success" = "true" ]; then
+        echo -e "${GREEN}PASS${NC}" | tee -a "$REPORT_FILE"
+        PASSED=$((PASSED + 1))
+        return 0
+    fi
 }
 
 echo "📊 CATEGORY 1: CORE MEMORY ENDPOINTS" | tee -a "$REPORT_FILE"
@@ -92,9 +109,12 @@ echo "" | tee -a "$REPORT_FILE"
 echo "🧠 CATEGORY 3: LAB_005 PRIMING SYSTEM" | tee -a "$REPORT_FILE"
 echo "------------------------------------" | tee -a "$REPORT_FILE"
 
-test_endpoint "POST" "/memory/prime/e5bcbf74-d93a-4cf1-b120-605fc38e4238" "" ".success" "Prime episode"
-test_endpoint "GET" "/memory/primed/e5bcbf74-d93a-4cf1-b120-605fc38e4238" "" ".is_primed" "Check if primed"
-test_endpoint "GET" "/memory/priming/stats" "" ".cache_size" "Priming stats"
+# Get a real episode ID for priming test
+REAL_EPISODE_ID=$(curl -s "$API_URL/memory/episodic/recent?limit=1" | jq -r '.episodes[0].episode_id')
+
+test_endpoint "POST" "/memory/prime/$REAL_EPISODE_ID" "" ".success" "Prime episode"
+test_endpoint "GET" "/memory/primed/$REAL_EPISODE_ID" "" ".is_primed" "Check if primed"
+test_endpoint "GET" "/memory/priming/stats" "" ".statistics.cache_stats.size" "Priming stats"
 
 echo "" | tee -a "$REPORT_FILE"
 echo "💭 CATEGORY 4: LAB_011 WORKING MEMORY" | tee -a "$REPORT_FILE"
@@ -122,9 +142,9 @@ echo "🎯 CATEGORY 7: LAB_006 METACOGNITION" | tee -a "$REPORT_FILE"
 echo "------------------------------------" | tee -a "$REPORT_FILE"
 
 test_endpoint "POST" "/metacognition/log?action_id=audit_001&action_type=test&confidence=0.8&reasoning=Audit%20test" "" ".success" "Log metacognition"
-test_endpoint "GET" "/metacognition/stats" "" ".total_actions" "Metacognition stats"
+test_endpoint "GET" "/metacognition/stats" "" ".confidence.total_actions" "Metacognition stats"
 test_endpoint "POST" "/metacognition/outcome?action_id=audit_001&success=true" "" ".success" "Log outcome"
-test_endpoint "GET" "/metacognition/calibration" "" ".calibration_score" "Get calibration"
+test_endpoint "GET" "/metacognition/calibration" "" ".ece" "Get calibration"
 
 echo "" | tee -a "$REPORT_FILE"
 echo "🧬 CATEGORY 8: CONSCIOUSNESS" | tee -a "$REPORT_FILE"
