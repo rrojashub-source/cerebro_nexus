@@ -1,0 +1,315 @@
+{
+  "_metadata": {
+    "registry_version": "1.1",
+    "last_updated": "2025-11-04T09:34:00Z",
+    "total_labs_planned": 52,
+    "total_labs_implemented": 18,
+    "completion_percentage": 34.6,
+    "master_blueprint": "MASTER_BLUEPRINT_50_LABS.md",
+    "integration_guide": "INTEGRATION_GUIDE_LABS_029_050.md",
+    "consolidation_date": "2025-11-04",
+    "note": "LAB_051 and LAB_052 added from features/ consolidation"
+  },
+
+  "architecture": {
+    "total_layers": 5,
+    "bottom_up_design": true,
+    "philosophy": "No lo hicimos porque lo necesitáramos, sino porque queremos ver qué emerge"
+  },
+
+  "layers": {
+    "layer_1": {
+      "name": "Memory Substrate",
+      "description": "PostgreSQL + pgvector + Redis - Neural data storage",
+      "status": "✅ operational",
+      "location": "LAYER_1_Memory_Substrate/",
+      "implementation_date": "2025-10-05",
+      "components": [
+        "PostgreSQL 16 (port 5437)",
+        "pgvector (384D embeddings)",
+        "Redis 7 (port 6382)"
+      ]
+    },
+
+    "layer_2": {
+      "name": "Cognitive Loop",
+      "description": "12 LABs - Core cognitive functions",
+      "status": "✅ operational",
+      "location": "LAYER_2_Cognitive_Loop/",
+      "labs_count": 8,
+      "labs": [
+        {
+          "id": "LAB_001",
+          "name": "Emotional Salience",
+          "function": "Calcula salience emocional para formación de memorias",
+          "neuroscience_basis": "Amygdala + corteza prefrontal medial",
+          "status": "✅ operational",
+          "code_size": "15K lines",
+          "file": "emotional_salience_scorer.py",
+          "implementation_date": "2025-10-27"
+        },
+        {
+          "id": "LAB_006",
+          "name": "Metacognition Logger",
+          "function": "Self-awareness, confidence calibration, error detection",
+          "neuroscience_basis": "Corteza prefrontal lateral, ACC",
+          "status": "✅ operational",
+          "code_size": "16K lines",
+          "file": "metacognition_logger.py",
+          "implementation_date": "2025-10-28"
+        },
+        {
+          "id": "LAB_007",
+          "name": "Predictive Preloading",
+          "function": "Anticipa queries futuros basado en patrones",
+          "neuroscience_basis": "Corteza prefrontal dorsolateral, hippocampus",
+          "status": "✅ operational",
+          "code_size": "23K lines",
+          "file": "predictive_preloading.py",
+          "implementation_date": "2025-10-28"
+        },
+        {
+          "id": "LAB_008",
+          "name": "Emotional Contagion",
+          "function": "Propaga contexto emocional entre memorias relacionadas",
+          "neuroscience_basis": "Mirror neurons, insula, amígdala",
+          "status": "✅ operational",
+          "code_size": "15K lines",
+          "file": "emotional_contagion.py",
+          "implementation_date": "2025-10-28"
+        },
+        {
+          "id": "LAB_009",
+          "name": "Memory Reconsolidation",
+          "function": "Actualiza memorias cuando son recordadas (update-on-recall)",
+          "neuroscience_basis": "Hippocampus reconsolidation",
+          "status": "✅ operational",
+          "code_size": "21K lines",
+          "file": "memory_reconsolidation.py",
+          "implementation_date": "2025-10-28"
+        },
+        {
+          "id": "LAB_010",
+          "name": "Attention Mechanism",
+          "function": "Selective attention basado en salience, recency, context",
+          "neuroscience_basis": "Pulvinar, superior colliculus, parietal cortex",
+          "status": "✅ operational",
+          "code_size": "16K lines",
+          "file": "attention_mechanism.py",
+          "implementation_date": "2025-10-28"
+        },
+        {
+          "id": "LAB_011",
+          "name": "Working Memory Buffer",
+          "function": "7-item buffer (Miller's Law), HYBRID eviction",
+          "neuroscience_basis": "Prefrontal cortex, dlPFC",
+          "status": "✅ operational",
+          "code_size": "17K lines",
+          "file": "working_memory_buffer.py",
+          "implementation_date": "2025-10-28"
+        },
+        {
+          "id": "LAB_012",
+          "name": "Episodic Future Thinking",
+          "function": "Simula escenarios futuros basado en episodios pasados",
+          "neuroscience_basis": "Hippocampus, default mode network",
+          "status": "✅ operational",
+          "code_size": "18K lines",
+          "file": "episodic_future_thinking.py",
+          "implementation_date": "2025-10-28"
+        }
+      ]
+    },
+
+    "layer_3": {
+      "name": "Neurochemistry Base",
+      "description": "4 LABs - Memory modulation",
+      "status": "✅ operational",
+      "location": "LAYER_3_Neurochemistry_Base/",
+      "labs_count": 4,
+      "labs": [
+        {
+          "id": "LAB_002",
+          "name": "Decay Modulation",
+          "function": "Modula decay rate basado en emotional salience",
+          "neuroscience_basis": "Consolidación sináptica dependiente de emoción",
+          "status": "✅ operational",
+          "code_size": "11K lines",
+          "file": "decay_modulator.py",
+          "implementation_date": "2025-10-28"
+        },
+        {
+          "id": "LAB_003",
+          "name": "Sleep Consolidation",
+          "function": "Offline memory replay & strengthening (REM-like)",
+          "neuroscience_basis": "Sleep-dependent memory consolidation",
+          "status": "✅ operational",
+          "code_size": "26K lines",
+          "file": "consolidation_engine.py",
+          "implementation_date": "2025-10-28"
+        },
+        {
+          "id": "LAB_004",
+          "name": "Novelty Detection",
+          "function": "Detecta contenido novedoso → importance bonus",
+          "neuroscience_basis": "VTA/SNc dopamine spike",
+          "status": "✅ operational",
+          "code_size": "23K lines",
+          "file": "novelty_detector.py",
+          "implementation_date": "2025-10-28",
+          "note": "Folder name: LAB_004_Curiosity_Driven_Memory (legacy)"
+        },
+        {
+          "id": "LAB_005",
+          "name": "Spreading Activation",
+          "function": "Activación contextual de memorias relacionadas (priming)",
+          "neuroscience_basis": "Semantic network activation spreading",
+          "status": "✅ operational",
+          "code_size": "14K lines",
+          "file": "spreading_activation.py",
+          "implementation_date": "2025-10-28",
+          "note": "Folder name: LAB_005_MultiModal_Memory (legacy)"
+        }
+      ]
+    },
+
+    "layer_4": {
+      "name": "Neurochemistry Full",
+      "description": "5 LABs - Neurotransmitter systems",
+      "status": "🔴 designed, not implemented",
+      "location": "LAYER_4_Neurochemistry_Full/",
+      "labs_count": 5,
+      "estimated_implementation": "Q4 2025",
+      "labs": [
+        {
+          "id": "LAB_013",
+          "name": "Dopamine System",
+          "function": "Reward prediction error, motivation, learning rate modulation",
+          "neuroscience_basis": "VTA, substantia nigra, striatum",
+          "status": "🔴 not implemented",
+          "estimated_code_size": "600-800 lines",
+          "key_papers": ["Schultz et al. 1997 - Dopamine & RPE"]
+        },
+        {
+          "id": "LAB_014",
+          "name": "Serotonin System",
+          "function": "Mood stability, impulse control, well-being, patience",
+          "neuroscience_basis": "Raphe nuclei, serotonergic projections",
+          "status": "🔴 not implemented",
+          "estimated_code_size": "500-700 lines",
+          "key_papers": ["Dayan & Huys 2009 - Serotonin & decision making"]
+        },
+        {
+          "id": "LAB_015",
+          "name": "Norepinephrine System",
+          "function": "Arousal, stress response, focus/alertness",
+          "neuroscience_basis": "Locus coeruleus, noradrenergic projections",
+          "status": "🔴 not implemented",
+          "estimated_code_size": "400-600 lines",
+          "key_papers": ["Aston-Jones & Cohen 2005 - LC-NE & optimal performance"]
+        },
+        {
+          "id": "LAB_016",
+          "name": "Acetylcholine System",
+          "function": "Attention amplification, learning enhancement, encoding strength",
+          "neuroscience_basis": "Basal forebrain, cholinergic projections",
+          "status": "🔴 not implemented",
+          "estimated_code_size": "400-500 lines",
+          "key_papers": ["Hasselmo 2006 - ACh & memory encoding"]
+        },
+        {
+          "id": "LAB_017",
+          "name": "GABA/Glutamate Balance",
+          "function": "Excitation/inhibition balance, stability control",
+          "neuroscience_basis": "Cortical E/I balance, interneurons",
+          "status": "🔴 not implemented",
+          "estimated_code_size": "500-700 lines",
+          "key_papers": ["Destexhe & Marder 2004 - Homeostatic plasticity"]
+        }
+      ]
+    },
+
+    "layer_5": {
+      "name": "Higher Cognition",
+      "description": "31 LABs - Executive functions, creativity, learning, plasticity, homeostasis, FASE_8 features",
+      "status": "🟡 2 LABs operational, 29 designed",
+      "location": "LAYER_5_Higher_Cognition/",
+      "labs_count": 31,
+      "estimated_implementation": "Q1-Q3 2026",
+      "sublayers": {
+        "5Z_FASE8_Features": {
+          "labs": ["LAB_051", "LAB_052"],
+          "status": "✅ operational (production-ready)",
+          "note": "Features migrated from features/ folder"
+        },
+        "5A_Executive_Functions": {
+          "labs": ["LAB_018", "LAB_019", "LAB_020", "LAB_021", "LAB_022"],
+          "status": "🔴 designed"
+        },
+        "5B_Creativity_Insight": {
+          "labs": ["LAB_029", "LAB_030", "LAB_031", "LAB_032", "LAB_033"],
+          "status": "🟡 partially integrated (INTEGRATION_GUIDE available)"
+        },
+        "5C_Advanced_Learning": {
+          "labs": ["LAB_034", "LAB_035", "LAB_036", "LAB_037", "LAB_038"],
+          "status": "🟡 partially integrated (INTEGRATION_GUIDE available)"
+        },
+        "5D_Neuroplasticity": {
+          "labs": ["LAB_039", "LAB_040", "LAB_041", "LAB_042", "LAB_043"],
+          "status": "🟡 partially integrated (INTEGRATION_GUIDE available)"
+        },
+        "5E_Homeostasis": {
+          "labs": ["LAB_044", "LAB_045", "LAB_046", "LAB_047", "LAB_048", "LAB_049", "LAB_050"],
+          "status": "🟡 partially integrated (INTEGRATION_GUIDE available)"
+        },
+        "5F_Social_Other": {
+          "labs": ["LAB_023", "LAB_024", "LAB_025", "LAB_026", "LAB_027", "LAB_028"],
+          "status": "🔴 designed"
+        }
+      }
+    }
+  },
+
+  "implementation_roadmap": {
+    "Q4_2025": {
+      "target": "LAYER_4 (LAB 013-017)",
+      "description": "5 neurotransmitter systems",
+      "estimated_effort": "3-5 sessions, 10-15 hours",
+      "priority": "HIGH"
+    },
+    "Q1_2026": {
+      "target": "LAYER_5A (LAB 018-022)",
+      "description": "5 executive functions",
+      "estimated_effort": "4-6 sessions, 12-18 hours",
+      "priority": "MEDIUM-HIGH"
+    },
+    "Q2_2026": {
+      "target": "LAYER_5B-5F (LAB 023-050)",
+      "description": "24 LABs remaining (creativity, learning, plasticity, homeostasis, social)",
+      "estimated_effort": "15-20 sessions, 45-60 hours",
+      "priority": "MEDIUM"
+    }
+  },
+
+  "integration_status": {
+    "brain_orchestrator": {
+      "version": "v1.2",
+      "integrated_labs": 9,
+      "status": "🔴 not pointing to V3.0.0",
+      "action_required": "Migrate Brain Orchestrator from Z: backup to V3.0.0/src/api/"
+    },
+    "api_endpoints": {
+      "layer_2_labs": "✅ All 8 LABs have endpoints",
+      "layer_3_labs": "✅ All 4 LABs have endpoints",
+      "layer_4_labs": "🔴 No endpoints yet",
+      "layer_5_labs": "🟡 20+ endpoints available (INTEGRATION_GUIDE_LABS_029_050.md)"
+    }
+  },
+
+  "documentation": {
+    "master_blueprint": "MASTER_BLUEPRINT_50_LABS.md (107KB)",
+    "integration_guide": "INTEGRATION_GUIDE_LABS_029_050.md (12KB)",
+    "checkpoint": "CHECKPOINT_50_LABS_COMPLETE.md (20KB)",
+    "reorganization_plan": "REORGANIZATION_PLAN.md (6KB)"
+  }
+}

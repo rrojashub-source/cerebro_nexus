@@ -12,11 +12,12 @@
 ## 🎯 What is CEREBRO NEXUS?
 
 Master brain system powering NEXUS AI agent with:
-- **467+ episodic memories** stored and searchable in <10ms
-- **15 cognitive LABs** running neuroscience experiments
+- **19,742+ episodic memories** stored and searchable in <10ms (Nov 2025)
+- **18/52 cognitive LABs** (34.6% operational, 5-layer architecture + 2 FASE_8)
 - **Real-time consciousness** tracking (8D emotional + 7D somatic)
-- **1.85M relationships** in knowledge graph (Neo4j)
+- **1.85M relationships** in knowledge graph (Neo4j - to verify)
 - **Multi-agent coordination** with NEXUS_CREW
+- **34 API endpoints** across 6 categories (memory, temporal, working, metacognition, testing)
 
 ---
 
@@ -69,19 +70,28 @@ npm install && npm run dev
 ## 📊 System Overview
 
 **Memory:**
-- PostgreSQL (episodic memory): 467+ episodes
-- Neo4j (knowledge graph): 18,663 episodes, 1.85M relationships
-- Redis (working memory): 7±2 items cache
+- PostgreSQL (episodic memory): 19,742+ episodes (Nov 2025, ~520/day growth)
+- Neo4j (knowledge graph): 18,663 episodes, 1.85M relationships (to verify)
+- Redis (working memory): 7±2 items cache (port 6385)
 
 **Cognitive:**
-- 15 active LABs (neuroscience experiments)
+- 18/52 LABs operational (34.6% - 5-layer architecture)
+  - Layer 1: ✅ Memory Substrate
+  - Layer 2: ✅ 8 LABs operational (Cognitive Loop)
+  - Layer 3: ✅ 4 LABs operational (Neurochemistry Base)
+  - Layer 4: 🔴 5 LABs designed (Neurochemistry Full)
+  - Layer 5: ⚠️ 2 operational (LAB_051/052 FASE_8) + 29 designed
 - 8D emotional state (Plutchik model)
 - 7D somatic state (Damasio model)
 
 **Performance:**
-- API response: 7-10ms avg
-- Semantic search: <10ms p95
-- Search accuracy: 90%+
+- API response: 5-8ms avg (verified Nov 2025)
+- API p95: <10ms, p99: <25ms
+- Semantic search accuracy: 90%+
+
+**Infrastructure:**
+- 8 Docker services (API, PostgreSQL, Redis, Neo4j, Prometheus, Grafana, Worker, GraphRAG)
+- 34 API endpoints
 
 ---
 
@@ -92,8 +102,10 @@ CEREBRO_NEXUS_V3.0.0/
 ├── src/                       # Production API code
 ├── config/                    # Docker, secrets, monitoring
 ├── database/                  # Migrations and schemas
-├── experiments/               # 15 operational LABs
-├── features/                  # Integrated features
+├── experiments/               # 18/52 LABs (5-layer + 2 FASE_8)
+│   └── LAYER_5_Higher_Cognition/
+│       ├── LAB_051_Hybrid_Memory/
+│       └── LAB_052_Temporal_Reasoning/
 ├── monitoring/                # CLI + Web dashboards
 ├── tests/                     # Test suite
 ├── docs/                      # Complete documentation
@@ -160,12 +172,25 @@ curl http://localhost:8003/stats
 - **8D Emotional:** Joy, Trust, Fear, Surprise, Sadness, Disgust, Anger, Anticipation
 - **7D Somatic:** Valence, Arousal, Body State, Cognitive Load, Emotional Regulation, Social Engagement, Temporal Awareness
 
-### Cognitive LABs (15 Active)
-- LAB_001: Emotional Salience
-- LAB_002: Decay Modulation
-- LAB_003: Sleep Consolidation
-- LAB_004: Novelty Detection
-- LAB_005-015: [See PROJECT_ID.md for complete list]
+### Cognitive LABs (50 LABs Architecture)
+
+**Status:** 16/50 LABs Operational (32%)
+**Location:** `experiments/` (organized by 5 Layers)
+
+**Architecture:**
+```
+Layer 5: Higher Cognition (29 LABs) 🔴 Designed
+Layer 4: Neurochemistry Full (5 LABs) 🔴 Designed
+Layer 3: Neurochemistry Base (4 LABs) ✅ Operational
+Layer 2: Cognitive Loop (8 LABs) ✅ Operational
+Layer 1: Memory Substrate ✅ Operational
+```
+
+**Operational LABs:**
+- **Layer 2 (8 LABs):** Emotional Salience, Metacognition, Predictive Preloading, Emotional Contagion, Memory Reconsolidation, Attention, Working Memory, Future Thinking
+- **Layer 3 (4 LABs):** Decay Modulation, Sleep Consolidation, Novelty Detection, Spreading Activation
+
+**Complete details:** [experiments/README.md](experiments/README.md) | [PROJECT_ID.md](PROJECT_ID.md)
 
 ### Monitoring Tools (3)
 - **CLI Monitor:** Terminal dashboard (Python + Rich)
@@ -192,7 +217,7 @@ See [monitoring/README.md](monitoring/README.md)
 | Graph Episodes | 18,663 |
 | Graph Relationships | 1.85M |
 | API Response Time | 7-10ms avg |
-| Active LABs | 15 |
+| Active LABs | 16/50 (32%) |
 | Consciousness Dimensions | 15 (8D+7D) |
 
 ---
@@ -203,7 +228,7 @@ See [monitoring/README.md](monitoring/README.md)
 
 **V2.0.0 (Aug-Nov 2025):** Production evolution
 - 18,663 Neo4j episodes
-- 15 LABs operational
+- 16 LABs operational (50 LABs architecture designed)
 - Consciousness expansion (8D+7D)
 - Status: Functional but chaotic structure
 

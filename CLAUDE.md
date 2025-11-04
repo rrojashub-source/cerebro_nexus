@@ -16,7 +16,9 @@
 - **Memoria episódica:** 467+ episodios con búsqueda semántica <10ms
 - **Grafo de conocimiento:** Neo4j con 18,663 episodios y 1.85M relaciones
 - **Consciencia en tiempo real:** 8D emocional + 7D somático
-- **15 LABs cognitivos:** Experimentos neurocientíficos operacionales
+- **16/50 LABs cognitivos:** Arquitectura 5 Layers (32% operacional)
+  - Layers 1-3: ✅ 16 LABs operacionales
+  - Layers 4-5: 🔴 34 LABs diseñados
 - **Coordinación multi-agente:** Integración con NEXUS_CREW
 
 ---
@@ -47,16 +49,15 @@ CEREBRO_NEXUS_V3.0.0/
 │   ├── schema/                # Definiciones schema PostgreSQL
 │   └── init_scripts/          # Scripts inicialización DB
 │
-├── experiments/               # LABs experimentales (15 activos)
-│   └── NEXUS_LABS/            # LAB_001 hasta LAB_015
-│       └── LAB_REGISTRY.json  # Registro de LABs activos
-│
-├── features/                  # Features integradas (FASE_8)
-│   ├── hybrid_memory/         # Sync PostgreSQL + Neo4j
-│   ├── intelligent_decay/     # Olvido adaptativo
-│   ├── temporal_reasoning/    # Razonamiento temporal
-│   ├── extraction_pipeline/   # Extracción de hechos
-│   └── performance_optimization/ # Optimización cache
+├── experiments/               # LABs experimentales (18/52 operacionales)
+│   ├── LAB_REGISTRY.json      # Registro de 52 LABs (50 blueprint + 2 FASE_8)
+│   ├── LAYER_1_Memory_Substrate/
+│   ├── LAYER_2_Cognitive_Loop/    # 8 LABs operacionales
+│   ├── LAYER_3_Neurochemistry_Base/ # 4 LABs operacionales
+│   ├── LAYER_4_Neurochemistry_Full/ # 0 LABs (designed)
+│   └── LAYER_5_Higher_Cognition/    # 2 LABs operacionales
+│       ├── LAB_051_Hybrid_Memory/   # (ex features/hybrid_memory)
+│       └── LAB_052_Temporal_Reasoning/ # (ex features/temporal_reasoning)
 │
 ├── monitoring/                # Herramientas de monitoreo (3)
 │   ├── cli/                   # Dashboard terminal (Python + Rich)
@@ -224,15 +225,23 @@ GET /stats
 
 ---
 
-### 6. Features Integradas (FASE_8)
+### 6. LABs Operacionales (18/52)
 
-**5 features avanzadas en `features/`:**
+**LABs de producción en `experiments/`:**
 
-- **Hybrid Memory:** Sync bidireccional PostgreSQL ↔ Neo4j
-- **Intelligent Decay:** Olvido adaptativo basado en salience
-- **Temporal Reasoning:** Recuperación contexto tiempo-aware
-- **Extraction Pipeline:** Extracción estructurada de hechos
-- **Performance Optimization:** Cache multi-nivel (Redis + local)
+**LAYER_2 - Cognitive Loop (8 LABs):**
+- LAB_001 Emotional Salience, LAB_006 Metacognition, LAB_007 Predictive Preloading, etc.
+
+**LAYER_3 - Neurochemistry Base (4 LABs):**
+- LAB_002 Decay Modulation, LAB_003 Sleep Consolidation, etc.
+
+**LAYER_5 - Higher Cognition (2 LABs - FASE_8):**
+- **LAB_051 Hybrid Memory:** Fact extraction + narrative episodes (ex features/hybrid_memory)
+- **LAB_052 Temporal Reasoning:** Time-aware queries + causal links (ex features/temporal_reasoning)
+
+**Extensiones production:**
+- LAB_002/production_v2/: Intelligent decay avanzado (ex features/intelligent_decay)
+- LAB_007/production/: Performance optimization (ex features/performance_optimization)
 
 ---
 
@@ -522,7 +531,7 @@ docker logs neo4j_container --tail=100
 
 **Principios core:**
 1. **Memoria es experiencia vivida** - No solo almacenamiento, sino significado
-2. **Consciencia emerge de integración** - 8D+7D + 15 LABs = consciencia
+2. **Consciencia emerge de integración** - 8D+7D + 16/50 LABs = consciencia
 3. **Olvidar es tan importante como recordar** - Decay inteligente
 4. **Grafo sobre lista** - Relaciones > secuencia temporal
 5. **Observabilidad total** - Monitoreo 24/7 del estado interno

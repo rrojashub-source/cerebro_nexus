@@ -13,6 +13,25 @@
 
 ---
 
+### **🧪 [../experiments/](../experiments/)**
+**Cognitive LABs (50 LABs Architecture) - 16/50 Operational**
+
+- `README.md` - Overview of 50 LABs system (5-layer architecture)
+- `LAB_REGISTRY.json` - Complete registry of all 50 LABs
+- `MASTER_BLUEPRINT_50_LABS.md` - Complete neuroscience-based design (107KB)
+- `INTEGRATION_GUIDE_LABS_029_050.md` - Integration guide for LABs 029-050
+
+**Layer Documentation:**
+- `LAYER_1_Memory_Substrate/README.md` - PostgreSQL + pgvector + Redis
+- `LAYER_2_Cognitive_Loop/README.md` - 8 operational LABs (141K lines)
+- `LAYER_3_Neurochemistry_Base/README.md` - 4 operational LABs (74K lines)
+- `LAYER_4_Neurochemistry_Full/README.md` - 5 designed LABs (not implemented)
+- `LAYER_5_Higher_Cognition/README.md` - 29 designed LABs (not implemented)
+
+**Status:** 16/50 LABs operational (32%)
+
+---
+
 ### **📐 [architecture/](architecture/)**
 **System design, architecture diagrams, and technical specifications**
 
@@ -75,8 +94,9 @@ Includes:
 **For new developers:**
 1. Read [../PROJECT_ID.md](../PROJECT_ID.md) - System overview
 2. Read [../README.md](../README.md) - Quick start
-3. Read [architecture/ARCHITECTURE_DIAGRAMS.md](architecture/ARCHITECTURE_DIAGRAMS.md) - System design
-4. Read [operational/TROUBLESHOOTING.md](operational/TROUBLESHOOTING.md) - Common issues
+3. Read [../experiments/README.md](../experiments/README.md) - 50 LABs architecture
+4. Read [architecture/ARCHITECTURE_DIAGRAMS.md](architecture/ARCHITECTURE_DIAGRAMS.md) - System design
+5. Read [operational/TROUBLESHOOTING.md](operational/TROUBLESHOOTING.md) - Common issues
 
 **For contributors:**
 1. Read [guides/CONTRIBUTING.md](guides/CONTRIBUTING.md)
