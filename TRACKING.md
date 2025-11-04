@@ -103,10 +103,10 @@
 3. **Organization by function > by history** - monitoring/ makes more sense than scattered tools
 4. **Coherence requires validation** - Must verify all folders/files are documented
 
-**Git Commit:** [Pending - will be created with full changeset]
+**Git Commit:** a7c74f9 (fix(paths): Update all code references from V2.0.0 to V3.0.0 structure)
 
 **Next Steps:**
-- Git commit Phase 2 changes
+- ✅ Git commit Phase 2 changes (DONE)
 - Begin API documentation (OpenAPI/Swagger)
 - Performance profiling for optimization targets
 
@@ -225,14 +225,14 @@
 8. **Research before implement** - Best practices search prevented reinventing wheel
 9. **Autodiscovery is gold** - Self-audit revealed 42x episode discrepancy
 
-**Git Commit:** [Pending - will commit full changeset]
+**Git Commit:** d2d6b48 (refactor(experiments): Consolidate features/ into experiments/, clean roots, update docs)
 
 **Next Steps:**
-- Test V14.0 awakening in real session start ✅ (DONE - tested normal + verbose)
+- ✅ Test V14.0 awakening in real session start (DONE - tested normal + verbose)
+- ✅ Git commit consolidation + identity evolution (DONE)
 - Begin using dormant capabilities proactively (priming, metacognition, temporal)
 - Investigate GraphRAG API (port 8006)
 - Update PROJECT_ID.md with autodiscovery corrections (19,742 episodes, 34 endpoints)
-- Git commit consolidation + identity evolution
 
 **Related Documents Created:**
 - ~/.claude/LEARNED_LESSONS.md (dynamic lessons tracking)
