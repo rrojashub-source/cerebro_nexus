@@ -1,8 +1,9 @@
 #!/bin/bash
 #
 # NEXUS API Endpoint Audit Script
-# Tests all 34 endpoints and detects gaps
-# Created: November 4, 2025 (Session 3)
+# Tests all 36 endpoints and detects gaps
+# Created: November 4, 2025 (Session 4)
+# Updated: November 4, 2025 (Session 5 - Added GET /memory/consciousness/current)
 #
 
 API_URL="http://localhost:8003"
@@ -130,6 +131,7 @@ echo "🧬 CATEGORY 8: CONSCIOUSNESS" | tee -a "$REPORT_FILE"
 echo "------------------------------------" | tee -a "$REPORT_FILE"
 
 test_endpoint "POST" "/memory/consciousness/update" '{"state_type":"emotional","state_data":{"joy":0.8,"trust":0.7}}' ".success" "Update consciousness"
+test_endpoint "GET" "/memory/consciousness/current" "" ".success" "Get current consciousness"
 
 echo "" | tee -a "$REPORT_FILE"
 echo "🧪 CATEGORY 9: PRUNING & A/B TESTING" | tee -a "$REPORT_FILE"

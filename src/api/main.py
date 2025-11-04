@@ -1296,6 +1296,17 @@ class ConsciousnessUpdateResponse(BaseModel):
     temporal_chain_length: int = 0
     timestamp: datetime
 
+class ConsciousnessStateData(BaseModel):
+    state_data: Optional[Dict[str, Any]] = None
+    episode_id: Optional[str] = None
+    timestamp: Optional[datetime] = None
+    chain_length: Optional[int] = None
+
+class ConsciousnessCurrentResponse(BaseModel):
+    success: bool
+    emotional_8d: Optional[ConsciousnessStateData] = None
+    somatic_7d: Optional[ConsciousnessStateData] = None
+
 # ============================================
 # Intelligent Decay Models
 # ============================================
@@ -1451,6 +1462,76 @@ async def update_consciousness_state(request: ConsciousnessUpdateRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error updating consciousness state: {str(e)}"
+        )
+
+@app.get("/memory/consciousness/current", response_model=ConsciousnessCurrentResponse, tags=["Consciousness"])
+async def get_current_consciousness_state():
+    """
+    Get current consciousness state (emotional 8D + somatic 7D)
+
+    Retrieves the most recent emotional and somatic states from episodic memory.
+    Returns the state_data from metadata along with episode IDs and timestamps.
+    """
+    try:
+        conn = get_db_connection()
+
+        emotional_state = None
+        somatic_state = None
+
+        # Get latest emotional state
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT episode_id, metadata, created_at
+                FROM nexus_memory.zep_episodic_memory
+                WHERE 'emotional_state' = ANY(tags)
+                ORDER BY created_at DESC
+                LIMIT 1
+            """)
+
+            row = cur.fetchone()
+            if row:
+                episode_id, metadata, created_at = row
+                metadata_dict = metadata or {}
+                emotional_state = ConsciousnessStateData(
+                    state_data=metadata_dict.get("state_data"),
+                    episode_id=str(episode_id),
+                    timestamp=created_at,
+                    chain_length=metadata_dict.get("temporal_chain_length", 0)
+                )
+
+        # Get latest somatic state
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT episode_id, metadata, created_at
+                FROM nexus_memory.zep_episodic_memory
+                WHERE 'somatic_state' = ANY(tags)
+                ORDER BY created_at DESC
+                LIMIT 1
+            """)
+
+            row = cur.fetchone()
+            if row:
+                episode_id, metadata, created_at = row
+                metadata_dict = metadata or {}
+                somatic_state = ConsciousnessStateData(
+                    state_data=metadata_dict.get("state_data"),
+                    episode_id=str(episode_id),
+                    timestamp=created_at,
+                    chain_length=metadata_dict.get("temporal_chain_length", 0)
+                )
+
+        conn.close()
+
+        return ConsciousnessCurrentResponse(
+            success=True,
+            emotional_8d=emotional_state,
+            somatic_7d=somatic_state
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving consciousness state: {str(e)}"
         )
 
 # ============================================
