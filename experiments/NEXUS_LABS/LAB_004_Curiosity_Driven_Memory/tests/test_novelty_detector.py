@@ -14,7 +14,7 @@ import numpy as np
 from datetime import datetime, timedelta
 
 # Add implementation path
-sys.path.insert(0, '/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_MASTER_NEXUS_001/NEXUS_LABS/LAB_004_Curiosity_Driven_Memory/implementation')
+sys.path.insert(0, '/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/experiments/NEXUS_LABS/LAB_004_Curiosity_Driven_Memory/implementation')
 
 from novelty_detector import (
     NoveltyDetector,

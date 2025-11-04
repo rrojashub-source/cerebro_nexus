@@ -14,7 +14,7 @@ DB_HOST = "localhost"
 DB_PORT = 5432
 DB_NAME = "nexus_memory"
 DB_USER = "nexus_app"
-DB_PASSWORD_FILE = "D:/01_PROYECTOS_ACTIVOS/CEREBRO_MASTER_NEXUS_001/FASE_4_CONSTRUCCION/secrets/pg_app_password.txt"
+DB_PASSWORD_FILE = "D:/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/secrets/pg_app_password.txt"
 
 TIMEOUT = 10
 WORKER_POLL_INTERVAL = 5  # seconds

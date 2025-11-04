@@ -27,7 +27,7 @@ DST_HOST = "localhost"
 DST_PORT = 5437
 DST_DB = "nexus_memory"
 DST_USER = "nexus_superuser"
-DST_PASSWORD_FILE = "D:/01_PROYECTOS_ACTIVOS/CEREBRO_MASTER_NEXUS_001/FASE_4_CONSTRUCCION/secrets/pg_superuser_password.txt"
+DST_PASSWORD_FILE = "D:/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/secrets/pg_superuser_password.txt"
 
 def get_dst_password():
     """Leer password del cerebro destino"""

@@ -25,7 +25,7 @@ set -euo pipefail
 ################################################################################
 
 # Project paths
-PROJECT_DIR="/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_MASTER_NEXUS_001"
+PROJECT_DIR="/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0"
 BACKUP_BASE_DIR="/mnt/z/NEXUS_BACKUPS"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 DATE=$(date +"%Y-%m-%d")
@@ -485,8 +485,8 @@ create_manifest() {
   "timestamp": "$(date -Iseconds)",
   "version": "3.0.0",
   "project": {
-    "name": "CEREBRO_MASTER_NEXUS_001",
-    "version": "2.0.0",
+    "name": "CEREBRO_NEXUS_V3.0.0",
+    "version": "3.0.0",
     "location": "${PROJECT_DIR}"
   },
   "components": {

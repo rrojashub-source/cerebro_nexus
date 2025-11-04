@@ -30,7 +30,7 @@ set -euo pipefail
 ################################################################################
 
 # Project paths
-PROJECT_DIR="/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_MASTER_NEXUS_001"
+PROJECT_DIR="/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0"
 BACKUP_BASE_DIR="/mnt/z/NEXUS_BACKUPS"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 LOG_DIR="${BACKUP_BASE_DIR}/logs"
@@ -40,7 +40,7 @@ LOG_FILE="${LOG_DIR}/restore_${TIMESTAMP}.log"
 DB_CONTAINER="nexus_postgresql_v2"
 REDIS_CONTAINER="nexus_redis_master"
 API_CONTAINER="nexus_api"
-COMPOSE_DIR="${PROJECT_DIR}/FASE_4_CONSTRUCCION"
+COMPOSE_DIR="${PROJECT_DIR}/config/docker"
 
 # Pre-restore safety backup
 SAFETY_BACKUP_DIR="${BACKUP_BASE_DIR}/pre_restore_safety"

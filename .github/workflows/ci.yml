@@ -57,31 +57,28 @@ jobs:
 
     - name: Install dependencies
       run: |
-        cd FASE_4_CONSTRUCCION
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest pytest-cov pytest-asyncio
 
     - name: Set up test environment
       run: |
-        cd FASE_4_CONSTRUCCION
-        cp .env.example .env.test
+        cp .env.example .env.test || true
         # Create minimal test secrets
-        mkdir -p secrets
-        echo "test_pass" > secrets/postgres_app_password.txt
-        echo "test_pass" > secrets/redis_password.txt
+        mkdir -p config/secrets
+        echo "test_pass" > config/secrets/pg_app_password.txt
+        echo "test_pass" > config/secrets/redis_password.txt
 
     - name: Run tests with coverage
       run: |
-        cd FASE_4_CONSTRUCCION
         pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
-        file: ./FASE_4_CONSTRUCCION/coverage.xml
+        file: ./coverage.xml
         flags: unittests
-        name: nexus-v2-coverage
+        name: nexus-v3-coverage
 
   lint:
     name: Code Quality
@@ -101,17 +98,14 @@ jobs:
         
     - name: Run Black formatter check
       run: |
-        cd FASE_4_CONSTRUCCION
         black --check --diff src/
         
     - name: Run Flake8 linter
       run: |
-        cd FASE_4_CONSTRUCCION
         flake8 src/ --max-line-length=88 --ignore=E203,W503
         
     - name: Run MyPy type checker
       run: |
-        cd FASE_4_CONSTRUCCION
         mypy src/ --ignore-missing-imports
 
   build:
@@ -145,7 +139,8 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
-        context: ./FASE_4_CONSTRUCCION
+        context: .
+        file: ./config/docker/Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
@@ -161,7 +156,7 @@ jobs:
       uses: aquasecurity/trivy-action@master
       with:
         scan-type: 'fs'
-        scan-ref: './FASE_4_CONSTRUCCION'
+        scan-ref: '.'
         format: 'sarif'
         output: 'trivy-results.sarif'
 
@@ -186,7 +181,6 @@ jobs:
         
     - name: Run performance tests
       run: |
-        cd FASE_4_CONSTRUCCION
         pip install -r requirements.txt
         # Run benchmark if exists
         if [ -f "tests/performance/benchmark.py" ]; then
