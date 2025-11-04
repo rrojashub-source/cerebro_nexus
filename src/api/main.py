@@ -1921,6 +1921,13 @@ async def hybrid_query(request: HybridQueryRequest):
 
     # Strategy 2: Semantic search (narrative)
     try:
+        # Check if embeddings model is loaded
+        if embeddings_model is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Embeddings model not loaded"
+            )
+
         # Use existing /memory/search endpoint logic
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -1963,6 +1970,13 @@ async def hybrid_query(request: HybridQueryRequest):
                 episode_id = row[0]
                 content = row[1]
                 similarity = row[4]
+
+                # Validate similarity score
+                if similarity is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail="Similarity score is null - episode may not have embedding"
+                    )
 
                 query_time_ms = (time.time() - start_time) * 1000
 
@@ -2106,15 +2120,17 @@ async def prime_episode(episode_uuid: str):
 
                 uuid, content, embedding = row
 
+                # Convert embedding to numpy array
+                import numpy as np
+                embedding_array = np.array(embedding) if embedding else None
+
                 # Ensure episode is in similarity graph
                 if uuid not in engine.similarity_graph.embeddings:
-                    import numpy as np
-                    embedding_array = np.array(embedding) if embedding else None
                     if embedding_array is not None:
                         engine.add_episode(uuid, content, embedding_array)
 
                 # Access episode (triggers spreading activation)
-                result = engine.access_episode(uuid, content, embedding_array or np.zeros(384))
+                result = engine.access_episode(uuid, content, embedding_array if embedding_array is not None else np.zeros(384))
 
                 return {
                     "success": True,

@@ -152,15 +152,14 @@ class ConsolidationEngine:
 
         query = """
             SELECT
-                uuid as episode_id,
+                episode_id,
                 content,
                 embedding,
                 created_at,
-                session_id,
                 tags,
                 importance_score,
                 metadata
-            FROM zep_episodic_memory
+            FROM nexus_memory.zep_episodic_memory
             WHERE created_at >= %s AND created_at < %s
             ORDER BY created_at ASC
         """
@@ -191,7 +190,7 @@ class ConsolidationEngine:
                 content=row['content'],
                 embedding=row['embedding'] if row['embedding'] else [],
                 created_at=row['created_at'],
-                session_id=row['session_id'],
+                session_id=None,  # session_id column no longer exists in schema
                 tags=row['tags'] if row['tags'] else [],
                 importance_score=float(row['importance_score']),
                 salience_score=salience_score,
@@ -423,15 +422,14 @@ class ConsolidationEngine:
 
         query = """
             SELECT
-                uuid as episode_id,
+                episode_id,
                 content,
                 embedding,
                 created_at,
-                session_id,
                 tags,
                 importance_score,
                 metadata
-            FROM zep_episodic_memory
+            FROM nexus_memory.zep_episodic_memory
             WHERE created_at >= %s
               AND created_at < %s
               AND metadata->>'consolidated_salience_score' IS NOT NULL
@@ -453,7 +451,7 @@ class ConsolidationEngine:
                 content=row['content'],
                 embedding=row['embedding'] if row['embedding'] else [],
                 created_at=row['created_at'],
-                session_id=row['session_id'],
+                session_id=None,  # session_id column no longer exists in schema
                 tags=row['tags'] if row['tags'] else [],
                 importance_score=float(row['importance_score']),
                 salience_score=metadata.get('salience_score', 0.5),
