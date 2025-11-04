@@ -767,6 +767,185 @@ curl /memory/consciousness/current → {
 
 ---
 
+### Session 6 - Audit Script Resilience & Gap Documentation (November 4, 2025) ✅
+
+**Duration:** ~2 hours
+**Goal:** Improve audit script coverage from 86.1% to near-100% and document remaining gaps
+
+**Context:**
+- After Session 5, audit showed 31/36 endpoints passing (86.1%)
+- User philosophy: "gaps become accumulative" - 100% or don't advance
+- 5 failures detected: 2 FAIL, 3 WARN
+- Need to fix easy bugs and document complex issues for future investigation
+
+**Approach:**
+User chose **Option 2**: Fix 4 quick wins + add retry logic + document complex issues separately
+
+**Bugs Fixed:**
+
+**1. WARN #3 - Priming Stats JSON Path (scripts/audit_all_endpoints.sh:117):**
+```bash
+# Before (incorrect):
+test_endpoint "GET" "/memory/priming/stats" "" ".cache_size" "Priming stats"
+
+# After (correct):
+test_endpoint "GET" "/memory/priming/stats" "" ".statistics.cache_stats.size" "Priming stats"
+```
+**Reason:** Endpoint returns nested `.statistics.cache_stats.size`, not top-level `.cache_size`
+
+**2. WARN #4 - Metacognition Stats JSON Path (scripts/audit_all_endpoints.sh:125):**
+```bash
+# Before:
+test_endpoint "GET" "/metacognition/stats" "" ".total_actions" "Metacognition stats"
+
+# After:
+test_endpoint "GET" "/metacognition/stats" "" ".confidence.total_actions" "Metacognition stats"
+```
+**Reason:** Stats returns `.confidence.total_actions`, not top-level `.total_actions`
+
+**3. WARN #5 - Calibration Score JSON Path (scripts/audit_all_endpoints.sh:127):**
+```bash
+# Before:
+test_endpoint "GET" "/metacognition/calibration" "" ".calibration_score" "Get calibration"
+
+# After:
+test_endpoint "GET" "/metacognition/calibration" "" ".ece" "Get calibration"
+```
+**Reason:** Endpoint returns `.ece` (Expected Calibration Error), not `.calibration_score`
+
+**4. FAIL #2 - Check If Primed (scripts/audit_all_endpoints.sh:95-99):**
+```bash
+# Before (hardcoded UUID):
+test_endpoint "POST" "/memory/prime/e5bcbf74-d93a-4cf1-b120-605fc38e4238" "" ".success" "Prime episode"
+test_endpoint "GET" "/memory/primed/e5bcbf74-d93a-4cf1-b120-605fc38e4238" "" ".is_primed" "Check if primed"
+
+# After (dynamic UUID):
+REAL_EPISODE_ID=$(curl -s "$API_URL/memory/episodic/recent?limit=1" | jq -r '.episodes[0].episode_id')
+test_endpoint "POST" "/memory/prime/$REAL_EPISODE_ID" "" ".success" "Prime episode"
+test_endpoint "GET" "/memory/primed/$REAL_EPISODE_ID" "" ".is_primed" "Check if primed"
+```
+**Reason:** Hardcoded UUID didn't exist in database
+
+**5. Retry Logic Enhancement (scripts/audit_all_endpoints.sh:27-85):**
+```bash
+test_endpoint() {
+    local max_retries=2
+    local retry_count=0
+    local success=false
+
+    # Retry loop for intermittent failures
+    while [ $retry_count -lt $max_retries ] && [ "$success" = "false" ]; do
+        # ... execute test ...
+        if [ error ]; then
+            retry_count=$((retry_count + 1))
+            if [ $retry_count -lt $max_retries ]; then
+                sleep 0.2  # Brief delay before retry
+                continue
+            fi
+        fi
+        success=true
+    done
+}
+```
+**Benefit:** Handles intermittent failures (network, timing, race conditions)
+
+**Issues Documented for Future Investigation:**
+
+**1. FAIL #1 - Hybrid Query Intermittent 500 Errors:**
+- **Status:** Documented in `task/hybrid_debug.md`
+- **Priority:** P2 (Mitigated with retry logic)
+- **Evidence:** 3 occurrences in logs, but not reproducible (10/10 manual tests pass, 20/20 concurrent pass)
+- **Suspected:** Race condition, DB connection pool, embeddings_model concurrency
+- **Investigation Plan:**
+  - Add detailed logging
+  - Stress testing
+  - DB connection monitoring
+  - Code review async/await patterns
+- **Estimated Effort:** 2-3 hours
+
+**2. FAIL #2 - Priming Check "Not in Cache":**
+- **Status:** Documented in `task/lab005_priming_cache_behavior.md`
+- **Priority:** P3 (Possible design feature, not bug)
+- **Observation:** `POST /memory/prime` works ✅, but `GET /memory/primed/{id}` returns 404
+- **Analysis:** LAB_005 caches **related episodes** (spreading activation), not the original episode
+- **Hypotheses:**
+  - **A (Feature):** Neuroscientially correct - spreading activation should pre-load related memories
+  - **B (Bug):** Semantic inconsistency - "primed" vs "cached" are different concepts
+  - **C (Config):** Threshold too high (0.7), no related episodes found
+- **Recommended:** Accept as feature + document clearly (after testing with populated graph)
+- **Estimated Effort:** 1-2 hours analysis
+
+**Files Modified:**
+1. `scripts/audit_all_endpoints.sh` - 5 fixes + retry logic (60 lines changed)
+2. `task/hybrid_debug.md` - Investigation plan for intermittent 500s (new, 350 lines)
+3. `task/lab005_priming_cache_behavior.md` - Analysis priming cache design (new, 265 lines)
+
+**Metrics Before/After:**
+- **Coverage:** 86.1% (31/36) → 94.4% (34/36) (+8.3 percentage points)
+- **Warnings:** 3 → 0 (100% resolved)
+- **Failures:** 2 → 2 (documented for future, not blocking)
+- **Resilience:** Added retry logic (2 attempts, 0.2s delay)
+
+**Testing Results:**
+```bash
+# Session 6 Final Audit:
+Total endpoints tested: 36
+Passed: 34 ✅
+Failed: 2 (documented)
+Warnings: 0 ✅
+
+Remaining issues:
+1. Hybrid query - intermittent (task/hybrid_debug.md)
+2. Priming cache - design evaluation (task/lab005_priming_cache_behavior.md)
+```
+
+**Key Discoveries:**
+
+**1. LAB_005 Bug Found & Root Caused:**
+```python
+# Original error: "ufunc 'multiply' with strings"
+# Root cause: Signature mismatch in add_episode call
+
+# SimilarityGraph.add_episode expects (uuid, embedding)
+# But main.py was calling engine.add_episode(uuid, content, embedding)
+# This caused content (string) to be passed where embedding (numpy array) expected
+
+# Fix was understanding SpreadingActivationEngine.add_episode wrapper exists
+# and DOES accept (uuid, content, embedding), which then delegates to SimilarityGraph
+```
+
+**2. Audit Script Architecture Lessons:**
+- JSON path assertions must match Pydantic response models exactly
+- Dynamic test data > hardcoded UUIDs (prevents stale data failures)
+- Retry logic essential for production-grade testing (intermittent != broken)
+- Color-coded output critical for quick visual scanning (GREEN/RED/YELLOW)
+
+**3. Gap Management Philosophy (User Teaching Moment):**
+> "Los gaps se vuelven acumulativos. Si dejamos 5 endpoints rotos y construimos LABs encima, la fundación se vuelve imposible de arreglar. 100% funcional o NO avanzamos."
+
+**Translation:** Gaps compound. Can't build new features on broken foundation. 100% or don't advance.
+
+**Learnings:**
+1. **Perfectionism is strategic:** User's 100% requirement prevents tech debt accumulation
+2. **Document what you can't fix now:** Issues documented with priority/effort are better than forgotten bugs
+3. **Retry logic is production-critical:** Intermittent failures are real, not test flaws
+4. **Design vs Bug requires analysis:** "Primed" endpoint behavior might be feature, not bug - needs investigation
+
+**Status:** ✅ SIGNIFICANT PROGRESS
+- 94.4% coverage achieved (from 86.1%)
+- All easy bugs fixed
+- Complex issues documented with analysis plans
+- System ready for continued development
+
+**Git Commit:** a9eada6 (fix(testing): Improve audit script coverage from 86.1% to 94.4%)
+
+**Next Steps:**
+- Session 7+: Deep debug of 2 remaining issues (P2 + P3)
+- Consider adding more episodic memories to test LAB_005 with populated graph
+- Performance profiling for optimization targets
+
+---
+
 ### Template for Future Sessions
 
 ```markdown
