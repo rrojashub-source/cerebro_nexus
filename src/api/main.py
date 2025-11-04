@@ -79,6 +79,12 @@ from novelty_detector import NoveltyDetector
 # LAB_005: Spreading Activation
 from spreading_activation import SpreadingActivationEngine
 
+# LAB_013: Dopamine System
+import sys
+experiments_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "experiments")
+sys.path.insert(0, experiments_path)
+from LAYER_4_Neurochemistry_Full.LAB_013_Dopamine_System import DopamineSystem
+
 # A/B Testing Framework
 from ab_testing import get_ab_test_manager, TestVariant
 
@@ -383,6 +389,16 @@ consolidation_engine = ConsolidationEngine()
 # LAB_004: Global Novelty Detector
 # ============================================
 novelty_detector = NoveltyDetector()
+
+# ============================================
+# LAB_013: Global Dopamine System
+# ============================================
+dopamine_system = DopamineSystem(
+    baseline_lr=0.1,
+    rpe_sensitivity=0.5,
+    motivation_decay=0.95,
+    history_window=10
+)
 
 # ============================================
 # LAB_005: Global Spreading Activation Engine
@@ -2536,6 +2552,77 @@ async def get_calibration_curve():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get calibration data: {str(e)}"
+        )
+
+
+# ============================================
+# LAB_013: Dopamine System Endpoints
+# ============================================
+
+class DopamineEventRequest(BaseModel):
+    expected_reward: float = Field(..., ge=0.0, le=1.0, description="Expected reward (0-1)")
+    actual_reward: float = Field(..., ge=0.0, le=1.0, description="Actual reward received (0-1)")
+
+
+@app.post("/dopamine/process", tags=["LAB_013"])
+async def process_dopamine_event(request: DopamineEventRequest):
+    """
+    Process a reward event and compute RPE (Reward Prediction Error)
+
+    Returns modulated learning rate, motivation level, and exploration bonus.
+
+    **Biological Inspiration:** VTA dopaminergic neurons (Schultz 1997)
+
+    **Algorithm:** RPE = Actual_Reward - Expected_Reward
+
+    **Example:**
+    - Expected: 0.5, Actual: 0.8 → RPE: +0.3 (positive surprise, boost learning)
+    - Expected: 0.7, Actual: 0.3 → RPE: -0.4 (negative surprise, reduce learning)
+    """
+    try:
+        result = dopamine_system.process_event(
+            expected=request.expected_reward,
+            actual=request.actual_reward
+        )
+
+        return {
+            "success": True,
+            "expected_reward": request.expected_reward,
+            "actual_reward": request.actual_reward,
+            **result
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process dopamine event: {str(e)}"
+        )
+
+
+@app.get("/dopamine/state", tags=["LAB_013"])
+async def get_dopamine_state():
+    """
+    Get current dopamine system state
+
+    Returns:
+    - rpe_current: Latest RPE value
+    - rpe_history: Recent RPE history (windowed)
+    - rpe_mean: Average RPE (optimism indicator)
+    - motivation_level: Current motivation (0-1)
+    - learning_rate_multiplier: Current LR boost factor
+    - exploration_bonus: Exploration tendency (0-1)
+    - total_events: Total RPE events processed
+    """
+    try:
+        state = dopamine_system.get_state()
+
+        return {
+            "success": True,
+            **state
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get dopamine state: {str(e)}"
         )
 
 
