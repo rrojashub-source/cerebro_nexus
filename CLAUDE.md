@@ -22,6 +22,7 @@
 
 ```
 CEREBRO_NEXUS_V3.0.0/
+├── INBOX/                     # ⚠️ TEMPORAL - Staging de migración (se elimina al finalizar)
 ├── src/                       # Código productivo
 ├── config/                    # Configuraciones (Docker, secrets)
 ├── database/                  # Migraciones y schema
@@ -130,10 +131,11 @@ git log --oneline --graph
 ### Rol de Ricardo:
 
 **Durante migración:**
-- Copiar carpetas de V2.0.0 a temp location (una por una)
+- Copiar carpetas de V2.0.0 → `INBOX/[CARPETA]/` (una por una)
 - Avisar a NEXUS: "Copiada: [CARPETA_X]"
 - Aprobar decisiones bloqueantes (cuando NEXUS pregunte)
 - Validar resultado de cada sesión
+- INBOX/ queda vacía después de cada carpeta procesada
 
 **Después de migración:**
 - Testing completo funcionalidad

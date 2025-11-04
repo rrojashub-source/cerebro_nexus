@@ -192,8 +192,10 @@ No blockers encountered. Ready for Session 2.
 **Waiting for:** Ricardo to copy first folder from V2.0.0
 
 **Ricardo's next action:**
-1. Copy folder from CEREBRO_MASTER_NEXUS_001 to temp location
+1. Copy folder from CEREBRO_MASTER_NEXUS_001 → `INBOX/[FOLDER_NAME]/`
 2. Tell NEXUS: "Copiada: [FOLDER_NAME]"
+
+**Note:** INBOX/ is temporary staging folder (will be deleted when migration complete)
 
 **NEXUS will then:**
 1. Read structure + content

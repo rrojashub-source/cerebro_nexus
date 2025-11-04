@@ -71,3 +71,7 @@ htmlcov/
 # Migration specific
 temp/
 backup/
+
+# INBOX - Track structure but not contents (temporary migration staging)
+INBOX/*
+!INBOX/README.md
