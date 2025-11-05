@@ -48,7 +48,7 @@ class CerebroClient:
             metadata: Optional metadata dictionary
 
         Returns:
-            Dict with keys: success, episode_id, timestamp
+            Dict with keys: success, episode_id, timestamp, message
 
         Raises:
             requests.exceptions.ConnectionError: If CEREBRO is unreachable
@@ -57,14 +57,21 @@ class CerebroClient:
         """
         url = f"{self.base_url}/memory/action"
 
-        payload = {
+        # Prepare action_details with content and emotion
+        action_details = {
             "content": content,
-            "tags": tags,
             "current_emotion": current_emotion
         }
 
         if metadata:
-            payload["metadata"] = metadata
+            action_details.update(metadata)
+
+        # Build payload according to MemoryActionRequest schema
+        payload = {
+            "action_type": "agent_episode",  # Type identifier for agent-created episodes
+            "action_details": action_details,
+            "tags": tags
+        }
 
         response = self.session.post(url, json=payload)
         response.raise_for_status()
