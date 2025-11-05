@@ -16,6 +16,9 @@ LABEL description="NEXUS Cerebro API + Workers"
 # Set working directory
 WORKDIR /app
 
+# Set PYTHONPATH so Python can find src modules
+ENV PYTHONPATH=/app
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -31,6 +34,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy application code
 COPY src/ ./src/
+
+# Copy experiments (LABs)
+COPY experiments/ ./experiments/
 
 # Create logs directory
 RUN mkdir -p /app/logs
