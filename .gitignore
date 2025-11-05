@@ -1,4 +1,6 @@
-# Python
+# === CEREBRO_NEXUS - Professional .gitignore ===
+
+# === Python ===
 __pycache__/
 *.py[cod]
 *$py.class
@@ -16,62 +18,135 @@ parts/
 sdist/
 var/
 wheels/
+pip-wheel-metadata/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Virtual Environment
+# === Testing ===
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.pytest_cache/
+.hypothesis/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.cache
+
+# === Virtual Environments ===
 venv/
 ENV/
 env/
+.venv
+.virtualenv
 
-# IDE
+# === IDEs & Editors ===
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+*~.nib
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
 
-# OS
+# === OS Files ===
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+desktop.ini
 
-# Logs
-*.log
-logs/
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Docker
+# === Docker ===
 .env
+.env.local
+.env.production
 docker-compose.override.yml
 
-# Secrets (should be in config/secrets/ but tracked, just sensitive values)
+# === Secrets & Credentials ===
 *.key
 *.pem
 *.crt
+*.cert
+*.p12
+*.pfx
+config/docker/secrets/*
+!config/docker/secrets/.gitkeep
+credentials.json
+*.secret
+.secrets/
 
-# Test coverage
-.coverage
-htmlcov/
-.pytest_cache/
+# === Database Data (generated at runtime) ===
+*.db
+*.sqlite
+*.sqlite3
+data/
+postgres_data/
+neo4j_data/
+redis_data/
+*.rdb
+*.aof
 
-# Jupyter
+# === Logs ===
+*.log
+logs/
+log/
+*.log.*
+
+# === Jupyter ===
 .ipynb_checkpoints/
+*.ipynb
 
-# Temp files
+# === Temp Files ===
 *.tmp
 *.bak
-*.swp
-*~.nib
-
-# Migration specific
 temp/
+tmp/
 backup/
+backups/
 
-# INBOX - Track structure but not contents (temporary migration staging)
-INBOX/*
+# === Project Specific ===
+archive/
+.shared_memory/
+experiments/sandbox/
+V2_ARCHIVED_LOCATION.txt
+
+# === Node.js (for monitoring dashboards) ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.next/
+out/
+.cache/
+.parcel-cache/
+dist/
+build/
+
+# === Performance Benchmarks (generated) ===
+tests/performance/benchmarks/results/
+tests/performance/benchmarks/*.json
+tests/performance/benchmarks/*.csv
+tests/performance/benchmarks/longmemeval/
+
+# === Keep These (exceptions) ===
+!.gitkeep
+!config/docker/secrets/.gitkeep
 !INBOX/README.md
