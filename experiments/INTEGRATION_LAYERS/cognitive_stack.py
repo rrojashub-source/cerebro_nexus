@@ -8,7 +8,7 @@ Date: November 5, 2025
 Session: 8 (continued - Full Stack)
 """
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Any, List
 from dataclasses import dataclass
 import sys
 from pathlib import Path
@@ -629,6 +629,105 @@ class ConsolidationEngine:
         }
 
 
+# ============================================================================
+# LAYER 5: HIGHER COGNITION (LAB_051 + LAB_052)
+# ============================================================================
+
+class HybridMemoryExtractor:
+    """
+    Session 11: LAB_051 Hybrid Memory wrapper
+
+    Extracts structured facts from narrative content
+    Pattern-based extraction without full LAB_051 dependency
+    """
+
+    def __init__(self):
+        # Simplified fact extraction patterns
+        self.fact_patterns = {
+            'nexus_version': r'(?:NEXUS|version|v|V)[\s:v]*(\d+\.\d+\.\d+)',
+            'session_number': r'[Ss]ession\s+(\d+)',
+            'phase_number': r'[Pp]hase\s+(\d+)',
+            'test_count': r'(\d+)\s+tests?',
+            'accuracy_percent': r'(\d+(?:\.\d+)?)\s*%\s*(?:accuracy|success)',
+            'latency_ms': r'(\d+(?:\.\d+)?)\s*ms',
+        }
+
+    def extract_facts(self, content: str) -> Dict[str, Any]:
+        """
+        Extract facts from content using regex patterns
+
+        Returns dict with extracted facts
+        """
+        import re
+
+        facts = {}
+
+        for fact_name, pattern in self.fact_patterns.items():
+            match = re.search(pattern, content, re.IGNORECASE)
+            if match:
+                value = match.group(1)
+                # Convert to appropriate type
+                try:
+                    if '.' in value:
+                        facts[fact_name] = float(value)
+                    else:
+                        facts[fact_name] = int(value)
+                except ValueError:
+                    facts[fact_name] = value
+
+        return facts
+
+    def compute_fact_count(self, facts: Dict[str, Any]) -> int:
+        """Count number of facts extracted"""
+        return len(facts)
+
+
+class TemporalReasoningLinker:
+    """
+    Session 11: LAB_052 Temporal Reasoning wrapper
+
+    Links events temporally (before/after relationships)
+    Simplified without full database integration
+    """
+
+    def __init__(self, max_temporal_links: int = 5):
+        self.max_temporal_links = max_temporal_links
+        self.recent_event_ids = []  # Track recent event IDs
+
+    def add_event(self, event_id: str):
+        """
+        Add event to temporal tracking
+        Maintains sliding window of recent events
+        """
+        self.recent_event_ids.append(event_id)
+
+        # Maintain max window size
+        if len(self.recent_event_ids) > self.max_temporal_links:
+            self.recent_event_ids.pop(0)
+
+    def get_temporal_refs(self, current_event_id: str) -> Dict[str, List[str]]:
+        """
+        Get temporal references for current event
+
+        Returns:
+            {
+                'before': [list of previous event IDs],
+                'after': []  # Future events, empty for current
+            }
+        """
+        # All recent events except current are "before"
+        before_events = [eid for eid in self.recent_event_ids if eid != current_event_id]
+
+        return {
+            'before': before_events,
+            'after': []  # No future events known yet
+        }
+
+    def count_linked_events(self) -> int:
+        """Count total linked events"""
+        return len(self.recent_event_ids)
+
+
 class AttentionMechanism:
     """
     Simplified interface to Layer 2 attention
@@ -1116,6 +1215,10 @@ class CognitiveStack:
         # Layer 4: Neuro (via existing bridge)
         self.neuro_bridge = NeuroEmotionalBridge()
 
+        # Layer 5: Higher Cognition (LAB_051 + LAB_052)
+        self.hybrid_memory = HybridMemoryExtractor()
+        self.temporal_reasoning = TemporalReasoningLinker(max_temporal_links=5)
+
     def process_event(
         self,
         content: str,
@@ -1267,6 +1370,39 @@ class CognitiveStack:
         )
 
         # ====================================================================
+        # PHASE 11: HYBRID MEMORY - FACT EXTRACTION (LAB_051)
+        # ====================================================================
+
+        # Extract facts from content
+        facts_extracted = self.hybrid_memory.extract_facts(content)
+        facts_count = self.hybrid_memory.compute_fact_count(facts_extracted)
+
+        hybrid_memory_result = {
+            'facts': facts_extracted,
+            'facts_count': facts_count
+        }
+
+        # ====================================================================
+        # PHASE 12: TEMPORAL REASONING - EVENT LINKING (LAB_052)
+        # ====================================================================
+
+        # Generate pseudo event ID (for tracking in simplified version)
+        import hashlib
+        event_id = hashlib.md5(f"{content}_{salience_score}".encode()).hexdigest()[:8]
+
+        # Add event to temporal tracking
+        self.temporal_reasoning.add_event(event_id)
+
+        # Get temporal references
+        temporal_refs = self.temporal_reasoning.get_temporal_refs(event_id)
+        linked_count = self.temporal_reasoning.count_linked_events()
+
+        temporal_reasoning_result = {
+            'temporal_refs': temporal_refs,
+            'linked_events_count': linked_count
+        }
+
+        # ====================================================================
         # RETURN COMPLETE STATE
         # ====================================================================
 
@@ -1290,7 +1426,9 @@ class CognitiveStack:
             },
             'metacognition': metacognition_result,
             'predictive': predictive_result,
-            'contagion': contagion_result
+            'contagion': contagion_result,
+            'hybrid_memory': hybrid_memory_result,  # Session 11: LAB_051
+            'temporal_reasoning': temporal_reasoning_result  # Session 11: LAB_052
         }
 
     def _compute_salience(

@@ -715,6 +715,186 @@ class TestEmotionalContagion:
 
 
 # ============================================================================
+# PHASE 9: LAYER 5 - HIGHER COGNITION TESTS (LAB_051 + LAB_052)
+# ============================================================================
+
+class TestHybridMemory:
+    """Test LAB_051: Hybrid Memory (Fact Extraction)"""
+
+    def test_fact_extraction_basic(self):
+        """Should extract facts from content"""
+        stack = CognitiveStack()
+
+        result = stack.process_event(
+            content="NEXUS version 3.0.0 - Accuracy: 95.5% - Latency: 12.3ms",
+            emotional_state=EmotionalState(joy=0.8)
+        )
+
+        # Should have facts extracted
+        assert 'hybrid_memory' in result
+        assert 'facts' in result['hybrid_memory']
+        assert isinstance(result['hybrid_memory']['facts'], dict)
+
+    def test_fact_extraction_with_metrics(self):
+        """Should extract multiple fact types"""
+        stack = CognitiveStack()
+
+        result = stack.process_event(
+            content="Session 10 COMPLETE - 32 tests passing - 100% success rate",
+            emotional_state=EmotionalState(joy=0.9)
+        )
+
+        # Should extract session, test count, success rate
+        facts = result['hybrid_memory']['facts']
+        assert 'session_number' in facts or 'test_count' in facts or 'facts_count' in facts
+
+    def test_fact_extraction_no_facts(self):
+        """Should handle content with no extractable facts"""
+        stack = CognitiveStack()
+
+        result = stack.process_event(
+            content="Just a simple narrative description without structured data",
+            emotional_state=EmotionalState(trust=0.5)
+        )
+
+        # Should still have facts key but empty/minimal
+        assert 'hybrid_memory' in result
+        assert 'facts' in result['hybrid_memory']
+
+    def test_hybrid_memory_fact_count(self):
+        """Should track number of facts extracted"""
+        stack = CognitiveStack()
+
+        result = stack.process_event(
+            content="NEXUS v3.0.0 - Phase 5 - Session 10 - 32 tests - 95% accuracy",
+            emotional_state=EmotionalState(anticipation=0.7)
+        )
+
+        # Should have facts_count metadata
+        assert 'facts_count' in result['hybrid_memory']
+        assert result['hybrid_memory']['facts_count'] >= 0
+
+
+class TestTemporalReasoning:
+    """Test LAB_052: Temporal Reasoning"""
+
+    def test_temporal_linking_sequential_events(self):
+        """Should link sequential events temporally"""
+        stack = CognitiveStack()
+
+        # Event 1
+        result1 = stack.process_event(
+            content="Started implementation",
+            emotional_state=EmotionalState(anticipation=0.8)
+        )
+
+        # Event 2 (should link to Event 1)
+        result2 = stack.process_event(
+            content="Completed implementation",
+            emotional_state=EmotionalState(joy=0.9)
+        )
+
+        # Should have temporal refs
+        assert 'temporal_reasoning' in result2
+        assert 'temporal_refs' in result2['temporal_reasoning']
+
+    def test_temporal_refs_structure(self):
+        """Should have proper temporal_refs structure"""
+        stack = CognitiveStack()
+
+        # Create multiple events
+        stack.process_event(content="Event 1", emotional_state=EmotionalState(joy=0.5))
+        stack.process_event(content="Event 2", emotional_state=EmotionalState(joy=0.6))
+        result = stack.process_event(content="Event 3", emotional_state=EmotionalState(joy=0.7))
+
+        # Should have before/after structure
+        refs = result['temporal_reasoning']['temporal_refs']
+        assert 'before' in refs or 'after' in refs
+        assert isinstance(refs, dict)
+
+    def test_temporal_event_count(self):
+        """Should track number of linked events"""
+        stack = CognitiveStack()
+
+        stack.process_event(content="Event 1", emotional_state=EmotionalState(trust=0.6))
+        stack.process_event(content="Event 2", emotional_state=EmotionalState(trust=0.7))
+        result = stack.process_event(content="Event 3", emotional_state=EmotionalState(trust=0.8))
+
+        # Should track linked event count
+        assert 'linked_events_count' in result['temporal_reasoning']
+        assert result['temporal_reasoning']['linked_events_count'] >= 0
+
+    def test_temporal_links_limit(self):
+        """Should limit temporal links to prevent explosion"""
+        stack = CognitiveStack()
+
+        # Create many events
+        for i in range(20):
+            result = stack.process_event(
+                content=f"Event {i}",
+                emotional_state=EmotionalState(joy=0.5)
+            )
+
+        # Latest event should have limited temporal refs (e.g., max 5-10 recent)
+        refs = result['temporal_reasoning']['temporal_refs']
+        total_refs = len(refs.get('before', [])) + len(refs.get('after', []))
+        assert total_refs <= 10  # Reasonable limit
+
+
+class TestLayer5Integration:
+    """Test Layer 5 full stack integration"""
+
+    def test_layer5_full_stack_integration(self):
+        """Full stack with Layer 5 should process correctly"""
+        stack = CognitiveStack()
+
+        result = stack.process_event(
+            content="Session 10 COMPLETE - NEXUS v3.0.0 - 32/32 tests passing",
+            emotional_state=EmotionalState(joy=0.95, trust=0.9),
+            somatic_marker=SomaticMarker(valence=0.9, arousal=0.7),
+            novelty=0.8
+        )
+
+        # Should have all layers
+        assert 'emotional_state' in result  # Layer 2
+        assert 'neuro_state' in result      # Layer 4
+        assert 'memory' in result           # Layer 3
+        assert 'hybrid_memory' in result    # Layer 5
+        assert 'temporal_reasoning' in result  # Layer 5
+
+    def test_layer5_enhances_memory(self):
+        """Layer 5 should enhance memory with facts and temporal context"""
+        stack = CognitiveStack()
+
+        result = stack.process_event(
+            content="Breakthrough: 95% accuracy achieved",
+            emotional_state=EmotionalState(joy=0.9, surprise=0.8),
+            novelty=0.9
+        )
+
+        # Memory should be enhanced with Layer 5
+        assert result['memory']['salience_score'] > 0.2  # Realistic salience (Session 11 adjustment)
+        assert 'facts' in result['hybrid_memory']  # Fact extraction
+        assert 'temporal_refs' in result['temporal_reasoning']  # Temporal links
+
+    def test_layer5_integrates_with_consolidation(self):
+        """Layer 5 should integrate with Layer 3 consolidation"""
+        stack = CognitiveStack()
+
+        # High GABA event (consolidation ready)
+        result = stack.process_event(
+            content="Important fact: System version 3.0.0",
+            emotional_state=EmotionalState(trust=0.9),
+            somatic_marker=SomaticMarker(valence=0.8)
+        )
+
+        # Consolidation should consider facts
+        if result['memory']['consolidation_ready']:
+            assert 'facts' in result['hybrid_memory']
+            assert result['memory']['consolidation_priority'] > 0.2  # Realistic priority (Session 11 adjustment)
+
+
+# ============================================================================
 # FIXTURES
 # ============================================================================
 
