@@ -97,6 +97,9 @@ from LAYER_4_Neurochemistry_Full.LAB_016_Acetylcholine_System import Acetylcholi
 # LAB_017: GABA System
 from LAYER_4_Neurochemistry_Full.LAB_017_GABA_System import GABASystem
 
+# Session 12: Consciousness Endpoints (CognitiveStack Integration)
+from consciousness_endpoints import register_consciousness_endpoints
+
 # A/B Testing Framework
 from ab_testing import get_ab_test_manager, TestVariant
 
@@ -3177,6 +3180,12 @@ async def clear_ab_test_data(variant: Optional[str] = None):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to clear data: {str(e)}"
         )
+
+
+# ============================================
+# Session 12: Register Consciousness Endpoints
+# ============================================
+register_consciousness_endpoints(app)
 
 
 # ============================================
