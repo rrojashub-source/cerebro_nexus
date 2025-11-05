@@ -85,6 +85,18 @@ experiments_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 sys.path.insert(0, experiments_path)
 from LAYER_4_Neurochemistry_Full.LAB_013_Dopamine_System import DopamineSystem
 
+# LAB_014: Serotonin System
+from LAYER_4_Neurochemistry_Full.LAB_014_Serotonin_System import SerotoninSystem
+
+# LAB_015: Norepinephrine System
+from LAYER_4_Neurochemistry_Full.LAB_015_Norepinephrine_System import NorepinephrineSystem
+
+# LAB_016: Acetylcholine System
+from LAYER_4_Neurochemistry_Full.LAB_016_Acetylcholine_System import AcetylcholineSystem
+
+# LAB_017: GABA System
+from LAYER_4_Neurochemistry_Full.LAB_017_GABA_System import GABASystem
+
 # A/B Testing Framework
 from ab_testing import get_ab_test_manager, TestVariant
 
@@ -398,6 +410,54 @@ dopamine_system = DopamineSystem(
     rpe_sensitivity=0.5,
     motivation_decay=0.95,
     history_window=10
+)
+
+# ============================================
+# LAB_014: Global Serotonin System
+# ============================================
+serotonin_system = SerotoninSystem(
+    baseline_mood=0.5,
+    impulse_threshold=0.7,
+    patience_factor=1.0,
+    reactivity_dampening=0.5,
+    mood_inertia=0.95,
+    history_window=20
+)
+
+# ============================================
+# LAB_015: Global Norepinephrine System
+# ============================================
+norepinephrine_system = NorepinephrineSystem(
+    baseline_arousal=0.5,
+    stress_sensitivity=0.3,
+    arousal_decay=0.95,
+    optimal_arousal=0.6,
+    focus_threshold=0.5,
+    history_window=20
+)
+
+# ============================================
+# LAB_016: Global Acetylcholine System
+# ============================================
+acetylcholine_system = AcetylcholineSystem(
+    baseline_ach=0.5,
+    amplification_gain=0.3,
+    encoding_threshold=0.6,
+    novelty_sensitivity=0.4,
+    ach_decay=0.9,
+    history_window=20
+)
+
+# ============================================
+# LAB_017: Global GABA System
+# ============================================
+gaba_system = GABASystem(
+    baseline_gaba=0.5,
+    inhibition_strength=0.7,
+    anxiety_threshold=0.6,
+    anxiety_sensitivity=0.3,
+    gaba_decay=0.9,
+    history_window=20
 )
 
 # ============================================
@@ -2623,6 +2683,323 @@ async def get_dopamine_state():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get dopamine state: {str(e)}"
+        )
+
+
+# ============================================
+# LAB_014: Serotonin System Endpoints
+# ============================================
+
+class SerotoninEventRequest(BaseModel):
+    emotional_event: float = Field(..., ge=-1.0, le=1.0, description="Emotional valence (-1 to +1)")
+    temptation_strength: float = Field(default=0.0, ge=0.0, le=1.0, description="Temptation strength (0-1)")
+
+
+@app.post("/serotonin/process", tags=["LAB_014"])
+async def process_serotonin_event(request: SerotoninEventRequest):
+    """
+    Process an emotional event and compute mood stability, impulse control, patience
+
+    Returns mood level, impulse control status, patience factor, emotional reactivity, and mood stability.
+
+    **Biological Inspiration:** Raphe nuclei 5-HT neurons (Dayan & Huys 2009)
+
+    **Algorithm:** Mood regulation via exponential moving average with high inertia
+
+    **Example:**
+    - emotional_event: +0.3, temptation: 0.5 → Mood increases, can resist temptation
+    - emotional_event: -0.3, temptation: 0.8 → Mood decreases, may succumb to temptation
+    """
+    try:
+        result = serotonin_system.process_event(
+            emotional_event=request.emotional_event,
+            temptation_strength=request.temptation_strength
+        )
+
+        return {
+            "success": True,
+            "emotional_event": request.emotional_event,
+            "temptation_strength": request.temptation_strength,
+            **result
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process serotonin event: {str(e)}"
+        )
+
+
+@app.get("/serotonin/state", tags=["LAB_014"])
+async def get_serotonin_state():
+    """
+    Get current serotonin system state
+
+    Returns:
+    - mood_level: Current mood (0-1)
+    - mood_history: Recent mood history (windowed)
+    - mood_mean: Average mood (baseline indicator)
+    - mood_stability: Mood stability score (0-1, inverse of variance)
+    - impulse_control_strength: Current impulse control strength (0-1)
+    - patience_factor: Patience multiplier for temporal discounting (0-2)
+    - total_events: Total emotional events processed
+    """
+    try:
+        state = serotonin_system.get_state()
+
+        return {
+            "success": True,
+            **state
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get serotonin state: {str(e)}"
+        )
+
+
+# ============================================
+# LAB_015: Norepinephrine System Endpoints
+# ============================================
+
+class NorepinephrineEventRequest(BaseModel):
+    stress_event: float = Field(..., ge=-1.0, le=1.0, description="Stress intensity (-1 to +1)")
+
+
+@app.post("/norepinephrine/process", tags=["LAB_015"])
+async def process_norepinephrine_event(request: NorepinephrineEventRequest):
+    """
+    Process a stress event and compute arousal, performance, focus, alertness
+
+    Returns arousal level, performance efficiency (Yerkes-Dodson), focus strength, and alertness.
+
+    **Biological Inspiration:** Locus coeruleus (LC) noradrenergic neurons (Aston-Jones & Cohen 2005)
+
+    **Algorithm:** Inverted-U arousal curve for performance (Yerkes-Dodson Law)
+
+    **Example:**
+    - stress_event: +0.5 → Arousal increases, performance may improve or decline
+    - stress_event: -0.3 → Arousal decreases, calming effect
+    """
+    try:
+        result = norepinephrine_system.process_event(
+            stress_event=request.stress_event
+        )
+
+        return {
+            "success": True,
+            "stress_event": request.stress_event,
+            **result
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process norepinephrine event: {str(e)}"
+        )
+
+
+@app.get("/norepinephrine/state", tags=["LAB_015"])
+async def get_norepinephrine_state():
+    """
+    Get current norepinephrine system state
+
+    Returns:
+    - arousal_level: Current arousal (0-1)
+    - arousal_history: Recent arousal history (windowed)
+    - arousal_mean: Average arousal (baseline indicator)
+    - arousal_stability: Arousal stability score (0-1, inverse of variance)
+    - performance_efficiency: Performance efficiency (0-1, Yerkes-Dodson)
+    - focus_strength: Focus strength (0-1)
+    - alertness: Alertness level (0-1)
+    - total_events: Total stress events processed
+    """
+    try:
+        state = norepinephrine_system.get_state()
+
+        return {
+            "success": True,
+            **state
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get norepinephrine state: {str(e)}"
+        )
+
+
+# ============================================
+# LAB_016: Acetylcholine System Endpoints
+# ============================================
+
+class AcetylcholineStimulusRequest(BaseModel):
+    novelty: float = Field(..., ge=0.0, le=1.0, description="Novelty score (0-1)")
+    attention_demand: float = Field(..., ge=0.0, le=1.0, description="Attention demand (0-1)")
+    base_attention: float = Field(default=0.5, ge=0.0, le=1.0, description="Base attention signal")
+    base_encoding_strength: float = Field(default=0.5, ge=0.0, le=1.0, description="Base encoding strength")
+
+
+@app.post("/acetylcholine/process", tags=["LAB_016"])
+async def process_acetylcholine_stimulus(request: AcetylcholineStimulusRequest):
+    """
+    Process a stimulus and compute ACh level, attention amplification, encoding modulation
+
+    Returns ACh level, amplified attention, encoding strength, learning readiness.
+
+    **Biological Inspiration:** Basal forebrain cholinergic neurons (Hasselmo 2006)
+
+    **Algorithm:** Attention gating & encoding/recall modulation
+
+    **Example:**
+    - novelty: 0.8, attention_demand: 0.7 → ACh spike, amplified attention, strong encoding
+    - novelty: 0.1, attention_demand: 0.2 → Low ACh, baseline attention, weak encoding
+    """
+    try:
+        result = acetylcholine_system.process_stimulus(
+            novelty=request.novelty,
+            attention_demand=request.attention_demand,
+            base_attention=request.base_attention,
+            base_encoding_strength=request.base_encoding_strength
+        )
+
+        return {
+            "success": True,
+            "novelty": request.novelty,
+            "attention_demand": request.attention_demand,
+            **result
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process acetylcholine stimulus: {str(e)}"
+        )
+
+
+@app.get("/acetylcholine/state", tags=["LAB_016"])
+async def get_acetylcholine_state():
+    """
+    Get current acetylcholine system state
+
+    Returns:
+    - ach_level: Current ACh level (0-1)
+    - ach_history: Recent ACh history (windowed)
+    - ach_mean: Average ACh (baseline indicator)
+    - ach_stability: ACh stability score (0-1, inverse of variance)
+    - mode: Current mode ('encoding' or 'recall')
+    - learning_readiness: Learning readiness score (0-1)
+    - total_events: Total stimuli processed
+    """
+    try:
+        state = acetylcholine_system.get_state()
+
+        return {
+            "success": True,
+            **state
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get acetylcholine state: {str(e)}"
+        )
+
+
+@app.post("/acetylcholine/mode", tags=["LAB_016"])
+async def set_acetylcholine_mode(mode: str = "encoding"):
+    """
+    Set encoding/recall mode
+
+    **Modes:**
+    - encoding: High ACh enables strong encoding (plasticity enabled)
+    - recall: Low ACh reduces encoding (consolidation phase)
+    """
+    try:
+        acetylcholine_system.set_mode(mode)
+
+        return {
+            "success": True,
+            "mode": mode,
+            "message": f"Acetylcholine mode set to '{mode}'"
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to set acetylcholine mode: {str(e)}"
+        )
+
+
+# ============================================
+# LAB_017: GABA System Endpoints
+# ============================================
+
+class GABAEventRequest(BaseModel):
+    anxiety: float = Field(..., ge=0.0, le=1.0, description="Anxiety level (0-1)")
+    excitation: float = Field(..., ge=0.0, le=1.0, description="Excitation level (0-1)")
+    base_anxiety: float = Field(default=0.5, ge=0.0, le=1.0, description="Base anxiety level")
+    excitatory_signal: float = Field(default=0.5, ge=0.0, le=1.0, description="Excitatory signal strength")
+
+
+@app.post("/gaba/process", tags=["LAB_017"])
+async def process_gaba_event(request: GABAEventRequest):
+    """
+    Process an event and compute GABA level, E/I balance, anxiety modulation
+
+    Returns GABA level, E/I balance state, modulated anxiety, inhibitory control, network stability.
+
+    **Biological Inspiration:** GABAergic interneurons (Yizhar et al. 2011)
+
+    **Algorithm:** Excitation/inhibition balance & anxiety reduction
+
+    **Example:**
+    - anxiety: 0.8, excitation: 0.7 → GABA spike, reduced anxiety, balanced E/I
+    - anxiety: 0.2, excitation: 0.2 → Low GABA, minimal inhibition, potential over-excitation
+    """
+    try:
+        result = gaba_system.process_event(
+            anxiety=request.anxiety,
+            excitation=request.excitation,
+            base_anxiety=request.base_anxiety,
+            excitatory_signal=request.excitatory_signal
+        )
+
+        return {
+            "success": True,
+            "anxiety": request.anxiety,
+            "excitation": request.excitation,
+            **result
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process GABA event: {str(e)}"
+        )
+
+
+@app.get("/gaba/state", tags=["LAB_017"])
+async def get_gaba_state():
+    """
+    Get current GABA system state
+
+    Returns:
+    - gaba_level: Current GABA level (0-1)
+    - gaba_history: Recent GABA history (windowed)
+    - gaba_mean: Average GABA (baseline indicator)
+    - network_stability: Network stability score (0-1, inverse of variance)
+    - total_events: Total events processed
+    """
+    try:
+        state = gaba_system.get_state()
+
+        return {
+            "success": True,
+            **state
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get GABA state: {str(e)}"
         )
 
 
