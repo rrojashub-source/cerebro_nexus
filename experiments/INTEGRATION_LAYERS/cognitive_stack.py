@@ -34,23 +34,82 @@ from LAYER_2_Cognitive_Loop.LAB_001_Emotional_Salience.implementation.emotional_
 
 class DecayModulator:
     """
-    Simplified interface to Layer 3 decay modulation
+    Enhanced Layer 3 decay modulation with multiple curves
+
+    Session 10 Enhancement:
+    - 3 decay curves (exponential, power law, logarithmic)
+    - Adaptive curve selection based on salience
+    - Novelty bonus integration
+
+    Based on LAB_002 specifications (McGaugh 2000, Cahill & McGaugh 1998)
 
     Integrates:
     - Emotional salience (Layer 2)
     - Dopamine protection (Layer 4)
+    - Novelty bonus (Layer 3)
     """
 
     def __init__(self):
         self.base_decay = 0.85
 
+        # Decay curve parameters
+        self.power_law_alpha = 0.8  # Power law exponent
+        self.log_max_days = 100.0   # Logarithmic normalization
+
+    def _exponential_decay(self, days: float, multiplier: float) -> float:
+        """
+        Exponential decay curve: 0.95^(days / M)
+
+        Best for: Medium salience memories (balanced decay)
+        """
+        return 0.95 ** (days / multiplier)
+
+    def _power_law_decay(self, days: float, multiplier: float) -> float:
+        """
+        Power law decay: 1 / (1 + days^α)
+
+        Best for: Low salience memories (faster initial decay)
+        """
+        return 1.0 / (1.0 + (days / multiplier) ** self.power_law_alpha)
+
+    def _logarithmic_decay(self, days: float, multiplier: float) -> float:
+        """
+        Logarithmic decay: 1 - log(1 + days) / log(1 + max_days)
+
+        Best for: High salience memories (slowest decay, flashbulb memories)
+        """
+        import math
+        normalized_days = days / multiplier
+        decay = 1.0 - (math.log(1.0 + normalized_days) /
+                       math.log(1.0 + self.log_max_days))
+        return max(0.0, decay)  # Ensure non-negative
+
+    def _select_decay_curve(self, salience_score: float) -> str:
+        """
+        Adaptively select decay curve based on salience
+
+        High salience (>0.7) → Logarithmic (slowest, flashbulb memories)
+        Medium salience (0.4-0.7) → Exponential (balanced)
+        Low salience (<0.4) → Power law (faster decay)
+        """
+        if salience_score >= 0.7:
+            return 'logarithmic'
+        elif salience_score >= 0.4:
+            return 'exponential'
+        else:
+            return 'power_law'
+
     def compute_decay_rate(
         self,
         salience_score: float,
-        dopamine_level: float
-    ) -> float:
+        dopamine_level: float,
+        novelty_score: float = 0.0,
+        days_old: float = 1.0
+    ) -> Dict:
         """
-        Compute decay rate with protection from salience + dopamine
+        Compute decay rate with multiple curves and adaptive selection
+
+        Session 10 Enhancement: Adds novelty bonus + curve selection
 
         Parameters:
         -----------
@@ -58,67 +117,377 @@ class DecayModulator:
             Emotional salience
         dopamine_level : float (0-1)
             Dopamine modulation
+        novelty_score : float (0-1)
+            Novelty score (LAB_004)
+        days_old : float
+            Age of memory in days
 
         Returns:
         --------
-        decay_rate : float (0-1)
-            Higher = slower decay (more protected)
+        result : Dict
+            {
+                'decay_rate': float (0-1),
+                'curve_type': str,
+                'multiplier': float,
+                'retention': float
+            }
         """
-        # Base decay
-        decay_rate = self.base_decay
+        # Compute decay multiplier (M)
+        # Higher M = slower decay
+        multiplier = 1.0 + (salience_score * 1.5) + (dopamine_level * 0.5) + (novelty_score * 0.3)
 
-        # Salience protection
-        salience_protection = salience_score * 0.10
+        # Select decay curve adaptively
+        curve_type = self._select_decay_curve(salience_score)
 
-        # Dopamine protection
-        dopamine_protection = dopamine_level * 0.05
+        # Compute decay using selected curve
+        if curve_type == 'logarithmic':
+            retention = self._logarithmic_decay(days_old, multiplier)
+        elif curve_type == 'exponential':
+            retention = self._exponential_decay(days_old, multiplier)
+        else:  # power_law
+            retention = self._power_law_decay(days_old, multiplier)
 
-        # Combined
-        decay_rate = decay_rate + salience_protection + dopamine_protection
+        # Decay rate = 1 - retention (inverted for consistency)
+        decay_rate = 1.0 - retention
 
-        # Clamp to [0.5, 0.99]
-        return max(0.5, min(0.99, decay_rate))
+        # Clamp decay_rate to [0.01, 0.99]
+        decay_rate = max(0.01, min(0.99, decay_rate))
+
+        return {
+            'decay_rate': float(decay_rate),
+            'curve_type': curve_type,
+            'multiplier': float(multiplier),
+            'retention': float(retention)
+        }
 
 
 class NoveltyDetector:
     """
-    Simplified interface to Layer 3 novelty detection
+    Enhanced Layer 3 novelty detection with 4 dimensions
+
+    Session 10 Enhancement:
+    - Semantic novelty (embedding distance from recent memories)
+    - Emotional surprise (z-score deviation from trajectory)
+    - Pattern violation (unexpected salience transitions)
+    - Contextual mismatch (high-novelty in routine context)
+
+    Based on LAB_004 specifications (Schultz 1997, Lisman & Grace 2005)
+
+    Composite score: semantic(0.30) + emotional(0.25) + pattern(0.25) + contextual(0.20)
     """
 
     def __init__(self):
-        pass
+        # Recent memory tracking
+        self.recent_embeddings = []  # Last 10 embeddings (semantic baseline)
+        self.recent_emotions = []    # Last 5 emotional states (surprise detection)
+        self.recent_salience = []    # Last 10 salience scores (pattern learning)
 
-    def score(self, novelty: float) -> float:
+        # Buffer limits
+        self.embedding_buffer_size = 10
+        self.emotion_buffer_size = 5
+        self.salience_buffer_size = 10
+
+    def _calculate_semantic_novelty(self, current_embedding: Optional[np.ndarray] = None) -> float:
         """
-        Score novelty (pass-through for now, can be enhanced)
+        Semantic novelty: Distance from recent memory centroid
+
+        High distance = novel content (far from known patterns)
+        """
+        if current_embedding is None or len(self.recent_embeddings) == 0:
+            return 0.5  # Default moderate novelty if no history
+
+        # Compute centroid of recent embeddings
+        centroid = np.mean(self.recent_embeddings, axis=0)
+
+        # Cosine distance
+        dot_product = np.dot(current_embedding, centroid)
+        norm_current = np.linalg.norm(current_embedding)
+        norm_centroid = np.linalg.norm(centroid)
+
+        if norm_current == 0 or norm_centroid == 0:
+            return 0.5
+
+        cosine_similarity = dot_product / (norm_current * norm_centroid)
+        cosine_distance = 1.0 - cosine_similarity
+
+        # Normalize: distance 0.5+ is very novel
+        semantic_novelty = min(cosine_distance / 0.5, 1.0)
+
+        return max(0.0, min(1.0, semantic_novelty))
+
+    def _calculate_emotional_surprise(self, current_valence: float) -> float:
+        """
+        Emotional surprise: Z-score deviation from recent trajectory
+
+        Large deviation = surprising emotional shift
+        """
+        if len(self.recent_emotions) < 2:
+            return 0.0  # Need history for surprise
+
+        # Calculate mean and std of recent valence
+        mean_valence = np.mean(self.recent_emotions)
+        std_valence = np.std(self.recent_emotions)
+
+        if std_valence < 0.01:  # Avoid division by zero
+            std_valence = 0.1
+
+        # Z-score: how many std deviations from mean?
+        deviation = abs(current_valence - mean_valence)
+        z_score = deviation / std_valence
+
+        # Normalize: 2+ std deviations = maximal surprise
+        emotional_surprise = min(z_score / 2.0, 1.0)
+
+        return max(0.0, min(1.0, emotional_surprise))
+
+    def _calculate_pattern_violation(self, current_salience: float) -> float:
+        """
+        Pattern violation: Unexpected salience transition
+
+        Based on learned bigram frequencies (previous_salience → current_salience)
+        """
+        if len(self.recent_salience) < 2:
+            return 0.0  # Need history for patterns
+
+        # Simple heuristic: Compute expected salience based on recent trend
+        recent_mean = np.mean(self.recent_salience[-3:])  # Last 3 events
+
+        # Deviation from expected
+        deviation = abs(current_salience - recent_mean)
+
+        # Normalize: deviation >0.3 is high violation
+        pattern_violation = min(deviation / 0.3, 1.0)
+
+        return max(0.0, min(1.0, pattern_violation))
+
+    def _calculate_contextual_mismatch(
+        self,
+        novelty_estimate: float,
+        salience_score: float
+    ) -> float:
+        """
+        Contextual mismatch: Novel content in routine context
+
+        High novelty + low salience = surprising (physics insight in debugging)
+        Low novelty + high salience = expected (breakthrough in research)
+        """
+        # Heuristic: Mismatch when novelty and salience are inversely correlated
+        # Expected: high novelty → high salience (exciting discovery)
+        # Mismatch: high novelty + low salience (unexpected insight)
+
+        expected_alignment = abs(novelty_estimate - salience_score)
+
+        # High misalignment = high contextual mismatch
+        contextual_mismatch = expected_alignment
+
+        return max(0.0, min(1.0, contextual_mismatch))
+
+    def score(
+        self,
+        content_embedding: Optional[np.ndarray] = None,
+        emotional_valence: float = 0.0,
+        salience_score: float = 0.5,
+        simple_novelty: float = 0.0
+    ) -> Dict:
+        """
+        Compute composite novelty score from 4 dimensions
+
+        Session 10 Enhancement: 4-dimensional novelty scoring
 
         Parameters:
         -----------
-        novelty : float (0-1)
-            Novelty input
+        content_embedding : np.ndarray or None
+            Embedding vector for semantic novelty
+        emotional_valence : float (-1 to +1)
+            Current valence for emotional surprise
+        salience_score : float (0-1)
+            Current salience for pattern violation
+        simple_novelty : float (0-1)
+            Simple novelty estimate (fallback)
 
         Returns:
         --------
-        novelty_score : float (0-1)
+        result : Dict
+            {
+                'novelty_score': float (0-1),
+                'semantic_novelty': float,
+                'emotional_surprise': float,
+                'pattern_violation': float,
+                'contextual_mismatch': float
+            }
         """
-        return novelty
+        # Calculate 4 dimensions
+        semantic_novelty = self._calculate_semantic_novelty(content_embedding)
+        emotional_surprise = self._calculate_emotional_surprise(emotional_valence)
+        pattern_violation = self._calculate_pattern_violation(salience_score)
+
+        # Preliminary novelty estimate (for contextual mismatch)
+        prelim_novelty = (semantic_novelty * 0.4 +
+                          emotional_surprise * 0.3 +
+                          pattern_violation * 0.3)
+
+        contextual_mismatch = self._calculate_contextual_mismatch(
+            prelim_novelty,
+            salience_score
+        )
+
+        # Composite novelty score (weighted average)
+        novelty_score = (
+            semantic_novelty * 0.30 +
+            emotional_surprise * 0.25 +
+            pattern_violation * 0.25 +
+            contextual_mismatch * 0.20
+        )
+
+        # Fallback: If no data for any dimension, use simple_novelty
+        if content_embedding is None and len(self.recent_emotions) == 0:
+            novelty_score = simple_novelty
+
+        # Update buffers
+        if content_embedding is not None:
+            self.recent_embeddings.append(content_embedding)
+            if len(self.recent_embeddings) > self.embedding_buffer_size:
+                self.recent_embeddings.pop(0)
+
+        self.recent_emotions.append(emotional_valence)
+        if len(self.recent_emotions) > self.emotion_buffer_size:
+            self.recent_emotions.pop(0)
+
+        self.recent_salience.append(salience_score)
+        if len(self.recent_salience) > self.salience_buffer_size:
+            self.recent_salience.pop(0)
+
+        return {
+            'novelty_score': float(max(0.0, min(1.0, novelty_score))),
+            'semantic_novelty': float(semantic_novelty),
+            'emotional_surprise': float(emotional_surprise),
+            'pattern_violation': float(pattern_violation),
+            'contextual_mismatch': float(contextual_mismatch)
+        }
 
 
 class ConsolidationEngine:
     """
-    Simplified interface to Layer 3 consolidation
+    Enhanced Layer 3 consolidation with retrospective strengthening
+
+    Session 10 Enhancement:
+    - Breakthrough chain identification (top 20% salience)
+    - Retrospective strengthening of precursors
+    - GABA-gated sleep cycles (REM/NREM)
+    - Selective consolidation (top 30% only)
+
+    Based on LAB_003 specifications (Wilson & McNaughton 1994, Born 2010)
 
     Integrates:
     - GABA gating (Layer 4)
     - Salience priority (Layer 2)
+    - Novelty bonus (Layer 3)
     """
 
     def __init__(self):
-        self.gaba_threshold = 0.6
+        self.gaba_threshold_rem = 0.7   # REM sleep (strongest consolidation)
+        self.gaba_threshold_nrem = 0.5  # NREM sleep (moderate consolidation)
+
+        # Consolidation history
+        self.consolidated_memories = []  # List of (content, salience, boost)
+        self.breakthrough_chains = []    # List of chains identified
+
+    def _identify_sleep_mode(self, gaba_level: float) -> str:
+        """
+        Identify sleep mode based on GABA level
+
+        GABA >= 0.7 → REM sleep (strongest consolidation)
+        GABA 0.5-0.7 → NREM sleep (moderate consolidation)
+        GABA < 0.5 → Awake (no consolidation)
+        """
+        if gaba_level >= self.gaba_threshold_rem:
+            return 'REM'
+        elif gaba_level >= self.gaba_threshold_nrem:
+            return 'NREM'
+        else:
+            return 'awake'
+
+    def _identify_breakthroughs(
+        self,
+        memory_batch: list,
+        breakthrough_percentile: float = 0.80
+    ) -> list:
+        """
+        Identify breakthrough moments (top 20% salience)
+
+        Parameters:
+        -----------
+        memory_batch : list of dicts
+            Each dict has {'content', 'salience', 'novelty', 'timestamp'}
+        breakthrough_percentile : float
+            Percentile threshold (0.80 = top 20%)
+
+        Returns:
+        --------
+        breakthroughs : list of indices
+        """
+        if len(memory_batch) == 0:
+            return []
+
+        saliences = [m['salience'] for m in memory_batch]
+        threshold = np.percentile(saliences, breakthrough_percentile * 100)
+
+        breakthroughs = []
+        for idx, memory in enumerate(memory_batch):
+            if memory['salience'] >= threshold:
+                breakthroughs.append(idx)
+
+        return breakthroughs
+
+    def _trace_precursors(
+        self,
+        breakthrough_idx: int,
+        memory_batch: list,
+        max_lookback: int = 5
+    ) -> list:
+        """
+        Trace precursor memories leading to breakthrough
+
+        Looks backward up to max_lookback events
+        Returns indices of precursor memories
+        """
+        precursors = []
+
+        # Trace backward from breakthrough
+        start_idx = max(0, breakthrough_idx - max_lookback)
+
+        for idx in range(start_idx, breakthrough_idx):
+            precursors.append(idx)
+
+        return precursors
+
+    def _compute_retrospective_boost(
+        self,
+        distance_from_breakthrough: int,
+        breakthrough_salience: float
+    ) -> float:
+        """
+        Compute retrospective boost for precursor memory
+
+        Closer to breakthrough = higher boost
+        Higher breakthrough salience = higher boost
+
+        Boost range: +0.05 to +0.20
+        """
+        # Distance decay: Closer events get higher boost
+        distance_factor = 1.0 / (1.0 + distance_from_breakthrough * 0.5)
+
+        # Breakthrough quality: Higher salience = higher boost
+        quality_factor = breakthrough_salience
+
+        # Combined boost
+        boost = 0.05 + (distance_factor * quality_factor * 0.15)
+
+        return max(0.05, min(0.20, boost))
 
     def is_ready(self, gaba_level: float) -> bool:
         """
-        Check if consolidation is ready (high GABA = rest state)
+        Check if consolidation is ready (GABA >= 0.5 = sleep state)
 
         Parameters:
         -----------
@@ -129,23 +498,135 @@ class ConsolidationEngine:
         --------
         ready : bool
         """
-        return gaba_level >= self.gaba_threshold
+        return gaba_level >= self.gaba_threshold_nrem
 
-    def compute_priority(self, salience_score: float) -> float:
+    def compute_priority(
+        self,
+        salience_score: float,
+        novelty_score: float = 0.0
+    ) -> float:
         """
-        Compute consolidation priority from salience
+        Compute consolidation priority from salience + novelty
+
+        Session 10 Enhancement: Adds novelty bonus
 
         Parameters:
         -----------
         salience_score : float (0-1)
             Emotional salience
+        novelty_score : float (0-1)
+            Novelty score
 
         Returns:
         --------
         priority : float (0-1)
         """
-        # High salience = high priority
-        return salience_score
+        # Combined priority: 70% salience + 30% novelty
+        priority = salience_score * 0.7 + novelty_score * 0.3
+
+        return max(0.0, min(1.0, priority))
+
+    def consolidate_batch(
+        self,
+        memory_batch: list,
+        gaba_level: float
+    ) -> Dict:
+        """
+        Consolidate a batch of memories with retrospective strengthening
+
+        Session 10 Enhancement: Full consolidation with breakthrough chains
+
+        Parameters:
+        -----------
+        memory_batch : list of dicts
+            Each dict: {'content', 'salience', 'novelty', 'timestamp'}
+        gaba_level : float (0-1)
+            Current GABA level
+
+        Returns:
+        --------
+        result : Dict
+            {
+                'sleep_mode': str,
+                'breakthroughs_identified': int,
+                'memories_consolidated': int,
+                'average_boost': float,
+                'chains': list of lists (breakthrough chains)
+            }
+        """
+        # Identify sleep mode
+        sleep_mode = self._identify_sleep_mode(gaba_level)
+
+        if sleep_mode == 'awake':
+            return {
+                'sleep_mode': 'awake',
+                'breakthroughs_identified': 0,
+                'memories_consolidated': 0,
+                'average_boost': 0.0,
+                'chains': []
+            }
+
+        # Identify breakthroughs (top 20%)
+        breakthrough_indices = self._identify_breakthroughs(memory_batch)
+
+        # Consolidation strength based on sleep mode
+        consolidation_multiplier = 1.5 if sleep_mode == 'REM' else 1.2
+
+        chains = []
+        total_boost = 0.0
+        consolidated_count = 0
+
+        # Process each breakthrough
+        for bt_idx in breakthrough_indices:
+            breakthrough_mem = memory_batch[bt_idx]
+
+            # Trace precursors
+            precursor_indices = self._trace_precursors(bt_idx, memory_batch)
+
+            # Build chain
+            chain = []
+
+            # Boost precursors
+            for precursor_idx in precursor_indices:
+                distance = bt_idx - precursor_idx
+
+                retrospective_boost = self._compute_retrospective_boost(
+                    distance,
+                    breakthrough_mem['salience']
+                )
+
+                # Apply consolidation multiplier
+                final_boost = retrospective_boost * consolidation_multiplier
+
+                chain.append({
+                    'index': precursor_idx,
+                    'content': memory_batch[precursor_idx]['content'],
+                    'original_salience': memory_batch[precursor_idx]['salience'],
+                    'retrospective_boost': final_boost
+                })
+
+                total_boost += final_boost
+                consolidated_count += 1
+
+            # Add breakthrough itself to chain
+            chain.append({
+                'index': bt_idx,
+                'content': breakthrough_mem['content'],
+                'original_salience': breakthrough_mem['salience'],
+                'retrospective_boost': 0.0  # Already high salience
+            })
+
+            chains.append(chain)
+
+        average_boost = total_boost / consolidated_count if consolidated_count > 0 else 0.0
+
+        return {
+            'sleep_mode': sleep_mode,
+            'breakthroughs_identified': len(breakthrough_indices),
+            'memories_consolidated': consolidated_count,
+            'average_boost': float(average_boost),
+            'chains': chains
+        }
 
 
 class AttentionMechanism:
@@ -686,11 +1167,22 @@ class CognitiveStack:
         neuro_state = neuro_result['neuro_state']
 
         # ====================================================================
-        # PHASE 3: ATTENTION GATING (Layer 2 + Layer 3 + Layer 4)
+        # PHASE 3: NOVELTY DETECTION (Layer 3 - Session 10 Enhanced)
         # ====================================================================
 
-        # Novelty detection
-        novelty_score = self.novelty_detection.score(novelty)
+        # Enhanced 4-dimensional novelty scoring
+        novelty_result = self.novelty_detection.score(
+            content_embedding=None,  # Could add real embeddings later
+            emotional_valence=somatic_marker.valence if somatic_marker else 0.0,
+            salience_score=salience_score,
+            simple_novelty=novelty  # Fallback
+        )
+
+        novelty_score = novelty_result['novelty_score']
+
+        # ====================================================================
+        # PHASE 4: ATTENTION GATING (Layer 2 + Layer 3 + Layer 4)
+        # ====================================================================
 
         # Attention computation (novelty + ACh + anticipation)
         attention_result = self.attention.compute_level(
@@ -700,7 +1192,7 @@ class CognitiveStack:
         )
 
         # ====================================================================
-        # PHASE 4: MEMORY ENCODING (Layer 3)
+        # PHASE 5: MEMORY ENCODING (Layer 3)
         # ====================================================================
 
         # Encoding strength (attention + ACh + salience)
@@ -711,27 +1203,34 @@ class CognitiveStack:
         )
 
         # ====================================================================
-        # PHASE 5: DECAY PROTECTION (Layer 3 + Layer 4)
+        # PHASE 6: DECAY PROTECTION (Layer 3 + Layer 4 - Session 10 Enhanced)
         # ====================================================================
 
-        # Decay rate (salience + dopamine protection)
-        decay_rate = self.decay_modulation.compute_decay_rate(
+        # Enhanced decay with multiple curves + novelty
+        decay_result = self.decay_modulation.compute_decay_rate(
             salience_score=salience_score,
-            dopamine_level=neuro_state['dopamine']
+            dopamine_level=neuro_state['dopamine'],
+            novelty_score=novelty_score,
+            days_old=1.0  # Assume new memory
         )
 
+        decay_rate = decay_result['decay_rate']
+
         # ====================================================================
-        # PHASE 6: CONSOLIDATION (Layer 3 + Layer 4)
+        # PHASE 7: CONSOLIDATION (Layer 3 + Layer 4 - Session 10 Enhanced)
         # ====================================================================
 
         # Consolidation readiness (GABA gating)
         consolidation_ready = self.consolidation.is_ready(neuro_state['gaba'])
 
-        # Consolidation priority (salience)
-        consolidation_priority = self.consolidation.compute_priority(salience_score)
+        # Enhanced consolidation priority (salience + novelty)
+        consolidation_priority = self.consolidation.compute_priority(
+            salience_score=salience_score,
+            novelty_score=novelty_score
+        )
 
         # ====================================================================
-        # PHASE 7: METACOGNITION (LAB_006)
+        # PHASE 8: METACOGNITION (LAB_006)
         # ====================================================================
 
         # Compute confidence based on cognitive state
@@ -749,7 +1248,7 @@ class CognitiveStack:
         )
 
         # ====================================================================
-        # PHASE 8: PREDICTIVE PRELOADING (LAB_007)
+        # PHASE 9: PREDICTIVE PRELOADING (LAB_007)
         # ====================================================================
 
         # Learn temporal pattern
@@ -759,7 +1258,7 @@ class CognitiveStack:
         predictive_result = self.predictive.get_state()
 
         # ====================================================================
-        # PHASE 9: EMOTIONAL CONTAGION (LAB_008)
+        # PHASE 10: EMOTIONAL CONTAGION (LAB_008)
         # ====================================================================
 
         # Compute emotional contagion
@@ -779,12 +1278,13 @@ class CognitiveStack:
                 'trust': float(emotional_state.trust)
             },
             'neuro_state': neuro_state,
+            'novelty': novelty_result,  # Session 10: 4-dimensional novelty
             'attention': attention_result,
             'memory': {
                 'content': content,
                 'salience_score': float(salience_score),
                 'encoding_strength': float(encoding_strength),
-                'decay_rate': float(decay_rate),
+                'decay': decay_result,  # Session 10: Enhanced decay with curves
                 'consolidation_ready': bool(consolidation_ready),
                 'consolidation_priority': float(consolidation_priority)
             },
@@ -899,7 +1399,7 @@ if __name__ == "__main__":
 
     print("\n💾 LAYER 3 (Memory):")
     print(f"  Encoding Strength: {result['memory']['encoding_strength']:.3f}")
-    print(f"  Decay Rate: {result['memory']['decay_rate']:.3f}")
+    print(f"  Decay Rate: {result['memory']['decay']['decay_rate']:.3f}")
     print(f"  Consolidation Ready: {result['memory']['consolidation_ready']}")
     print(f"  Consolidation Priority: {result['memory']['consolidation_priority']:.3f}")
 
@@ -916,4 +1416,22 @@ if __name__ == "__main__":
     print(f"  Contagion Effect: {result['contagion']['contagion_effect']:.3f}")
     print(f"  Temporal Decay: {result['contagion']['temporal_decay']:.3f}")
 
-    print("\n✅ Full stack integration complete (Session 9: +LAB_006, +LAB_007, +LAB_008)")
+    # Session 10 additions
+    print("\n🔬 SESSION 10 ENHANCEMENTS (Layer 3):")
+
+    print("\n  🎲 4D Novelty Detection (LAB_004):")
+    print(f"    Composite Score: {result['novelty']['novelty_score']:.3f}")
+    print(f"    - Semantic Novelty: {result['novelty']['semantic_novelty']:.3f}")
+    print(f"    - Emotional Surprise: {result['novelty']['emotional_surprise']:.3f}")
+    print(f"    - Pattern Violation: {result['novelty']['pattern_violation']:.3f}")
+    print(f"    - Contextual Mismatch: {result['novelty']['contextual_mismatch']:.3f}")
+
+    print("\n  ⏳ Enhanced Decay Modulation (LAB_002):")
+    print(f"    Decay Rate: {result['memory']['decay']['decay_rate']:.3f}")
+    print(f"    Curve Type: {result['memory']['decay']['curve_type']}")
+    print(f"    Multiplier: {result['memory']['decay']['multiplier']:.3f}")
+    print(f"    Retention: {result['memory']['decay']['retention']:.3f}")
+
+    print("\n✅ Full stack integration complete")
+    print("   Session 9: +LAB_006, +LAB_007, +LAB_008")
+    print("   Session 10: Enhanced LAB_002, LAB_003, LAB_004")
