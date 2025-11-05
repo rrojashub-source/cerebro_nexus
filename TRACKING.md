@@ -358,6 +358,102 @@
 
 ---
 
+### Session 13 - Brain Monitor V2 Integration (Nov 5, 2025) ✅
+
+**Duration:** ~1.5 hours
+**Goal:** Integrate CognitiveStack endpoints with Brain Monitor V2 for real-time visualization
+
+**Completed:**
+
+1. ✅ **TypeScript Types** (monitoring/web_v2/lib/types.ts - +96 lines)
+   - EmotionalState8D (8D Plutchik model)
+   - SomaticMarker3D (3D Damasio model)
+   - ProcessEventRequest, ProcessEventResponse
+   - ConsciousnessStateResponse
+   - SimulateEventRequest, SimulateEventResponse
+   - Match exact with Python Pydantic models from Session 12
+
+2. ✅ **API Client Functions** (monitoring/web_v2/lib/api.ts - +42 lines)
+   - `processEvent()` → POST /consciousness/process_event
+   - `getConsciousnessState()` → GET /consciousness/state
+   - `simulateEvent()` → POST /consciousness/simulate
+   - Axios integration with 10s timeout
+   - Type-safe request/response handling
+
+3. ✅ **CognitiveCascade Component** (monitoring/web_v2/components/CognitiveCascade.tsx - 190 lines)
+   - D3.js flow visualization (Emotion → Neuro → Attention → Memory → Higher Cognition)
+   - Dynamic node sizing based on values
+   - Flow lines with variable width
+   - Real-time timestamp display
+   - Color-coded by layer (Layer 2: #FF3864, Layer 4: #9B59B6, etc.)
+   - Legend with 5 layers
+
+4. ✅ **NeurotransmitterPanel Component** (monitoring/web_v2/components/NeurotransmitterPanel.tsx - 164 lines)
+   - 5D neurochemical state display (Dopamine, Serotonin, Norepinephrine, Acetylcholine, GABA)
+   - Progress bars with color-coded gradients
+   - Icons per neurotransmitter (🎯 Dopamine, 😌 Serotonin, ⚡ Norepinephrine, 🧠 ACh, 🌊 GABA)
+   - Overall neurochemical balance indicator
+   - Real-time updates with timestamp
+
+5. ✅ **useConsciousness Hook** (monitoring/web_v2/hooks/useConsciousness.ts - 94 lines)
+   - React custom hook for consciousness state management
+   - Auto-fetch state with configurable polling interval (default 3s)
+   - `processEvent()` function for sending events
+   - `refreshState()` function for manual refresh
+   - Loading and error state management
+   - Type-safe return values
+
+6. ✅ **Git Commits**
+   - Commit 1b77090 (feat(monitoring): Add consciousness endpoints integration to Brain Monitor V2) - in web_v2 submodule
+   - Commit 12ea6d1 (chore(monitoring): Update web_v2 submodule pointer to Session 13 commit) - in main repo
+
+**Metrics:**
+
+| Metric | Value |
+|--------|-------|
+| Total lines code | 586 (96 types + 42 API + 190 cascade + 164 neuro + 94 hook) |
+| Components created | 3 (CognitiveCascade, NeurotransmitterPanel, useConsciousness hook) |
+| TypeScript interfaces | 8 (match Pydantic models) |
+| API functions | 3 (processEvent, getConsciousnessState, simulateEvent) |
+| Git commits | 2 (1b77090 submodule + 12ea6d1 main repo) |
+| Integration points | 3 endpoints (Session 12) → 3 visualizations (Session 13) |
+
+**Key Decisions:**
+
+1. **D3.js for flow visualization** - Better for dynamic data-driven visualization vs static SVG
+2. **Custom hook pattern** - Simplifies state management and polling for consciousness data
+3. **Component modularity** - Separate components (CognitiveCascade, NeurotransmitterPanel) can be composed independently
+4. **Color coding by layer** - Visual consistency with existing Brain Monitor V2 LAB colors
+5. **Real-time polling** - 3s interval balances freshness vs API load
+
+**Learnings:**
+
+1. **Submodule workflow** - Commit in submodule first (1b77090), then update pointer in main repo (12ea6d1)
+2. **TypeScript strict typing** - Enforces API contract between backend (Python Pydantic) and frontend (TypeScript interfaces)
+3. **D3.js in React** - useRef + useEffect pattern for D3 integration
+4. **Hook composition** - useConsciousness hook encapsulates all consciousness API logic (polling, error handling)
+5. **Visual hierarchy** - Flow visualization (Cascade) + detailed panel (Neurotransmitter) provides both overview and drill-down
+
+**Git Commits:**
+- 1b77090 (feat(monitoring): Add consciousness endpoints integration to Brain Monitor V2)
+- 12ea6d1 (chore(monitoring): Update web_v2 submodule pointer to Session 13 commit)
+
+**Next Steps:**
+- Integrate components into main Brain Monitor V2 page
+- Add event input form for testing processEvent()
+- Connect 3D brain visualization to show active regions based on CognitiveStack data
+- Performance testing with real API calls
+- Smoke test with API running (carry over from Session 12)
+
+**Related Files Created:**
+- monitoring/web_v2/lib/types.ts (MODIFIED - +96 lines)
+- monitoring/web_v2/lib/api.ts (MODIFIED - +42 lines)
+- monitoring/web_v2/components/CognitiveCascade.tsx (NEW - 190 lines)
+- monitoring/web_v2/components/NeurotransmitterPanel.tsx (NEW - 164 lines)
+- monitoring/web_v2/hooks/useConsciousness.ts (NEW - 94 lines)
+
+---
+
 ## 📈 CUMULATIVE METRICS
 
 ### System Health (As of Nov 4, 2025 - Post Session 2)
