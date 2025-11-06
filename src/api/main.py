@@ -304,6 +304,9 @@ class TemporalResponse(BaseModel):
 async def lifespan(app: FastAPI):
     global embeddings_model
 
+    # Startup - Track start time for uptime metrics
+    app.state.start_time = time.time()
+
     # Startup - Initialize Redis connection
     try:
         app.state.redis_client = redis.Redis(
@@ -3186,6 +3189,173 @@ async def clear_ab_test_data(variant: Optional[str] = None):
 # Session 12: Register Consciousness Endpoints
 # ============================================
 register_consciousness_endpoints(app)
+
+
+# ============================================
+# AI-FRIENDLY ENDPOINTS (Session 16 - ChatGPT Audit)
+# ============================================
+@app.get("/labs/registry", tags=["AI Integration"])
+async def get_labs_registry():
+    """
+    Get LAB Registry - AI-Friendly Endpoint
+
+    Returns the complete LAB registry showing all 52 LABs across 5 layers.
+    Designed for external AI agents to discover available cognitive LABs.
+
+    Returns:
+        dict: Complete LAB_REGISTRY.json content
+
+    Example:
+        curl http://localhost:8003/labs/registry
+    """
+    try:
+        registry_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "..",
+            "experiments",
+            "LAB_REGISTRY.json"
+        )
+
+        with open(registry_path, 'r', encoding='utf-8') as f:
+            registry = json_module.load(f)
+
+        return registry
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="LAB_REGISTRY.json not found"
+        )
+    except json_module.JSONDecodeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to parse LAB_REGISTRY.json: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to read LAB registry: {str(e)}"
+        )
+
+
+@app.get("/metrics/ai", tags=["AI Integration"])
+async def get_ai_metrics():
+    """
+    Get AI-Friendly Metrics
+
+    Returns system metrics in compact JSON format optimized for AI agents.
+    Unlike /metrics (Prometheus format), this endpoint returns structured JSON.
+
+    Returns:
+        dict: Compact metrics including memory stats, LABs status, and consciousness state
+
+    Example:
+        curl http://localhost:8003/metrics/ai
+    """
+    try:
+        # Get stats from existing /stats endpoint logic
+        conn = psycopg.connect(
+            host=os.getenv('POSTGRES_HOST', 'nexus_postgresql'),
+            port=int(os.getenv('POSTGRES_PORT', 5432)),
+            dbname=os.getenv('POSTGRES_DB', 'nexus_memory'),
+            user=os.getenv('POSTGRES_USER', 'nexus_superuser'),
+            password=os.getenv('POSTGRES_PASSWORD', ''),
+            sslmode='prefer'
+        )
+
+        with conn.cursor() as cur:
+            # Total episodes
+            cur.execute("SELECT COUNT(*) FROM episodes;")
+            total_episodes = cur.fetchone()[0]
+
+            # Episodes last 24h
+            cur.execute("""
+                SELECT COUNT(*) FROM episodes
+                WHERE timestamp >= NOW() - INTERVAL '24 hours';
+            """)
+            episodes_24h = cur.fetchone()[0]
+
+            # Latest episode
+            cur.execute("""
+                SELECT timestamp, content, current_emotion
+                FROM episodes
+                ORDER BY timestamp DESC
+                LIMIT 1;
+            """)
+            latest = cur.fetchone()
+
+            # Average decay score
+            cur.execute("""
+                SELECT AVG(decay_score) FROM episodes
+                WHERE decay_score IS NOT NULL;
+            """)
+            avg_decay = cur.fetchone()[0] or 0.0
+
+        conn.close()
+
+        # Redis stats
+        redis_stats = {}
+        try:
+            redis_conn = redis.Redis(
+                host=os.getenv('REDIS_HOST', 'nexus_redis'),
+                port=int(os.getenv('REDIS_PORT', 6379)),
+                password=os.getenv('REDIS_PASSWORD', ''),
+                decode_responses=True
+            )
+            redis_info = redis_conn.info('memory')
+            redis_stats = {
+                "connected": True,
+                "memory_used_mb": round(redis_info.get('used_memory', 0) / 1024 / 1024, 2),
+                "keys_count": redis_conn.dbsize()
+            }
+        except Exception:
+            redis_stats = {"connected": False}
+
+        # LABs stats (from registry)
+        registry_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "..",
+            "experiments",
+            "LAB_REGISTRY.json"
+        )
+
+        labs_stats = {}
+        try:
+            with open(registry_path, 'r', encoding='utf-8') as f:
+                registry = json_module.load(f)
+                labs_stats = {
+                    "total_planned": registry.get("_metadata", {}).get("total_labs_planned", 52),
+                    "total_implemented": registry.get("_metadata", {}).get("total_labs_implemented", 19),
+                    "completion_percentage": registry.get("_metadata", {}).get("completion_percentage", 36.5)
+                }
+        except Exception:
+            labs_stats = {"error": "Failed to read LAB registry"}
+
+        return {
+            "timestamp": datetime.utcnow().isoformat(),
+            "memory": {
+                "episodic": {
+                    "total_count": total_episodes,
+                    "last_24h": episodes_24h,
+                    "avg_decay_score": round(avg_decay, 3),
+                    "latest_episode": {
+                        "timestamp": latest[0].isoformat() if latest else None,
+                        "preview": latest[1][:100] + "..." if latest and len(latest[1]) > 100 else (latest[1] if latest else None),
+                        "emotion": latest[2] if latest else None
+                    } if latest else None
+                },
+                "working": redis_stats
+            },
+            "labs": labs_stats,
+            "system": {
+                "api_version": "3.0.0",
+                "uptime_hours": round((time.time() - app.state.start_time) / 3600, 2) if hasattr(app.state, 'start_time') else None
+            }
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate AI metrics: {str(e)}"
+        )
 
 
 # ============================================
