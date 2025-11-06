@@ -1,6 +1,9 @@
 # ============================================
-# NEXUS CEREBRO V2.0.0 - Python Dependencies
-# FASE 4 - DÍA 5
+# NEXUS CEREBRO V3.0.0 - Python Dependencies
+# Production-Ready AI Brain
+# ============================================
+# NOTA: Para reducir tamaño del contenedor, considerar
+# mover sentence-transformers a requirements-ml.txt
 # ============================================
 
 # ============================================
@@ -14,8 +17,8 @@ pydantic-settings==2.1.0
 # ============================================
 # Database
 # ============================================
+# PostgreSQL: psycopg v3 (sync) + asyncpg (async)
 psycopg[binary]==3.1.13
-psycopg2-binary==2.9.9
 asyncpg==0.29.0
 
 # ============================================
