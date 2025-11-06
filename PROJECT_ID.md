@@ -39,7 +39,7 @@
 - **Status:** Operational with LAB_011 integration
 
 **Graph Knowledge (Neo4j):**
-- **Database:** Neo4j 4.4.46 Community (port 7474/7687)
+- **Database:** Neo4j 5.26-community (port 7474/7687)
 - **Episodes:** 18,663 nodes (to be verified)
 - **Relationships:** 1.85M edges (to be verified)
 - **Purpose:** Semantic relationships, memory chains, consolidation
