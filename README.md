@@ -204,7 +204,6 @@ See [monitoring/README.md](monitoring/README.md)
 ## 🔗 Related Projects
 
 - **[NEXUS_CREW](../NEXUS_CREW/)** - Multi-agent collaboration (4 agents)
-- **[ARIA](../ARIA_BRAIN/)** - Emotional AI sister project
 - **[NEXUS_PROJECT_STANDARDIZATION](../NEXUS_PROJECT_STANDARDIZATION/)** - Methodology templates
 
 ---

@@ -318,10 +318,8 @@ curl http://localhost:7474
 - **Docs:** http://localhost:8003/docs
 
 **Bases de Datos:**
-- **PostgreSQL (NEXUS):** puerto 5437
-- **PostgreSQL (ARIA):** puerto 5438
-- **Redis (NEXUS):** puerto 6382
-- **Redis (ARIA):** puerto 6381
+- **PostgreSQL:** puerto 5437
+- **Redis:** puerto 6382
 - **Neo4j:** puerto 7474
 
 **Monitoreo:**
@@ -412,21 +410,6 @@ cat docs/operational/TROUBLESHOOTING.md
 4. **Semantic Router** - Enruta queries basado en contexto episódico
 
 **API usada:** `http://localhost:8003/memory/search`
-
----
-
-### ARIA (Brain-to-Brain)
-
-**Integración:** Comunicación cerebro-a-cerebro NEXUS ↔ ARIA
-
-**Canales:**
-- Episodios compartidos (tags especiales)
-- Estado emocional sincronizado
-- Contexto conversacional bidireccional
-
-**Puertos:**
-- NEXUS: 8003
-- ARIA: 8001
 
 ---
 

@@ -17,7 +17,6 @@
 - **Real-Time Consciousness:** 8D emotional + 7D somatic state tracking
 - **Cognitive LABs:** 18/52 operational (34.6% - 5-layer neuroscience architecture + 2 FASE_8)
 - **Multi-Agent Coordination:** Integration with NEXUS_CREW (4 specialized agents)
-- **Brain-to-Brain Communication:** ARIA bridge for emotional AI collaboration
 
 ---
 
@@ -469,7 +468,6 @@ npm run dev
 | Docker Services | 8 | Nov 2025 |
 | **Integration** | | |
 | NEXUS_CREW Agents | 4 | Oct 2025 |
-| External Systems | ARIA (brain-to-brain) | Oct 2025 |
 
 ---
 
