@@ -78,7 +78,7 @@ services:
       - -c
       - 'redis-server --appendonly yes --requirepass "$$(cat /run/secrets/redis_password)" --maxmemory 512mb --maxmemory-policy allkeys-lru'
     ports:
-      - "6385:6379"
+      - "6382:6379"
     volumes:
       - redis_data:/data
     networks:
@@ -283,7 +283,7 @@ services:
   # NEO4J - Knowledge Graph Database
   # ============================================
   nexus_neo4j:
-    image: neo4j:4.4-community
+    image: neo4j:5.26-community
     container_name: nexus_neo4j
     environment:
       NEO4J_AUTH: neo4j/password123

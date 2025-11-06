@@ -481,10 +481,6 @@ npm run dev
   - Document Reconciler
   - Semantic Router
 
-- **[ARIA](../ARIA_BRAIN/)** - Emotional AI sister project
-  - Brain-to-brain communication bridge
-  - Complementary consciousness architecture
-
 - **[NEXUS_PROJECT_STANDARDIZATION](../NEXUS_PROJECT_STANDARDIZATION/)** - Methodology standardization
   - Project unification initiative
   - NEXUS methodology templates
