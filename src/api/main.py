@@ -344,8 +344,8 @@ async def lifespan(app: FastAPI):
 # ============================================
 app = FastAPI(
     title="NEXUS Cerebro API",
-    description="Memory System API - V2.0.0",
-    version="2.0.0",
+    description="Memory System API - V3.0.0",
+    version="3.0.0",
     lifespan=lifespan
 )
 
@@ -633,7 +633,7 @@ async def health_check():
 
     return HealthResponse(
         status=overall_status,
-        version="2.0.0",
+        version="3.0.0",
         agent_id="nexus",
         database=db_status,
         redis=redis_status,

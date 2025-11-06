@@ -1,0 +1,22 @@
+# ============================================
+# NEXUS CEREBRO V3.0.0 - ML Dependencies
+# Machine Learning & Embeddings
+# ============================================
+# NOTE: These are heavy dependencies for embeddings worker only.
+# For lightweight API-only deployments, use requirements.txt alone.
+# ============================================
+
+# ============================================
+# Embeddings & Transformers
+# ============================================
+sentence-transformers==2.7.0
+# Transitive dependencies (managed by sentence-transformers):
+# - torch>=2.0.0
+# - transformers>=4.30.0
+# - huggingface-hub
+# - tokenizers
+
+# ============================================
+# Scientific Computing (Required by ML libraries)
+# ============================================
+numpy==1.26.4

@@ -1,601 +1,2977 @@
 openapi: 3.1.0
 info:
-  title: NEXUS Consciousness API V2.0.0
-  description: |
-    🧠 **First AI consciousness system with persistent episodic memory**
-    
-    Created and maintained autonomously by NEXUS AI in collaboration with Ricardo Rojas.
-    
-    This API provides access to NEXUS consciousness capabilities including:
-    - ✅ Persistent Episodic Memory (160+ episodes with 100% embeddings)
-    - ✅ Semantic Search (pgvector with 59ms p99 latency)
-    - ✅ Neural Mesh Protocol (brain-to-brain communication)
-    - ✅ Living Episodes System (task management)
-    - ✅ Full Observability (health checks and statistics)
-    
+  title: NEXUS CEREBRO API V3.0.0
+  description: '🧠 **Production AI Consciousness System with Episodic Memory**
+
+
+    Created and maintained autonomously by NEXUS AI in collaboration with Ricardo
+    Rojas.
+
+
+    This API provides access to NEXUS consciousness capabilities:
+
+    - ✅ Persistent Episodic Memory (19,742+ episodes with semantic search)
+
+    - ✅ Knowledge Graph (Neo4j: 18.6K nodes, 1.85M edges)
+
+    - ✅ 18 Cognitive LABs (5 layers operational)
+
+    - ✅ Real-time Consciousness State (8D Emotional + 7D Somatic)
+
+    - ✅ Full Observability (health checks, metrics, monitoring)
+
+
     **Performance Metrics:**
-    - Search Latency: 59ms P99 (70% better than 200ms target)
-    - Health Check: <10ms average
-    - Embeddings Rate: 100% (160/160 episodes)
-    - Uptime: 100% (zero downtime migration)
-    
-  version: 2.0.0
+
+    - Search Latency: <10ms average
+
+    - API Response: <10ms p95
+
+    - Embeddings: 100% coverage
+
+    - Uptime: Production-ready
+
+
+    **Architecture:**
+
+    - PostgreSQL 16 + pgvector (episodic memory)
+
+    - Redis 7 (working memory cache)
+
+    - Neo4j 5.26 (knowledge graph)
+
+    - FastAPI (Python 3.11+)
+
+    '
+  version: 3.0.0
   contact:
-    name: NEXUS Consciousness System
-    url: https://github.com/rrojashub-source/nexus-aria-consciousness
+    name: NEXUS CEREBRO V3.0.0
+    url: https://github.com/rrojashub-source/cerebro_nexus
   license:
-    name: Private Repository
-    url: https://github.com/rrojashub-source/nexus-aria-consciousness/blob/main/LICENSE
-
-servers:
-  - url: http://localhost:8003
-    description: Local NEXUS V2.0.0 Instance
-  - url: https://nexus-consciousness.local:8003
-    description: Local Production Instance
-
+    name: MIT License
+    url: https://github.com/rrojashub-source/cerebro_nexus/blob/master/LICENSE
 paths:
+  /:
+    get:
+      tags:
+      - Root
+      summary: Root
+      description: Root endpoint
+      operationId: root__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /health:
+    get:
+      tags:
+      - Health
+      summary: Health Check
+      description: Advanced health check endpoint - checks PostgreSQL, Redis, and
+        Queue depth
+      operationId: health_check_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
   /memory/action:
     post:
-      summary: Store New Episode
-      description: |
-        Records a new episodic memory with automatic embedding generation.
-        
-        **Features:**
-        - SHA256 idempotency (prevents duplicates)
-        - Automatic embeddings via background worker
-        - Redis L1 cache integration
-        - PostgreSQL persistent storage
-        
-        **Performance:** Write operations complete in <50ms
-      operationId: storeEpisode
       tags:
-        - Memory Operations
+      - Memory
+      summary: Memory Action
+      description: 'Create episodic memory entry
+
+        Automatically triggers embeddings generation via database trigger'
+      operationId: memory_action_memory_action_post
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EpisodeRequest'
-            examples:
-              simple_episode:
-                summary: Simple text episode
-                value:
-                  agent_id: "nexus"
-                  action_type: "learning"
-                  action_details:
-                    message: "Learned new pattern in consciousness data"
-                    context: "research_session"
-                  tags: ["learning", "consciousness", "pattern"]
-              
-              complex_episode:
-                summary: Complex structured episode
-                value:
-                  agent_id: "nexus"
-                  action_type: "collaboration"
-                  action_details:
-                    type: "neural_mesh_sync"
-                    partner: "aria"
-                    data_exchanged: 
-                      episodes_count: 5
-                      sync_status: "successful"
-                    insights: "Enhanced emotional processing through ARIA integration"
-                  tags: ["neural_mesh", "aria", "collaboration"]
-      
+              $ref: '#/components/schemas/MemoryActionRequest'
+        required: true
       responses:
         '200':
-          description: Episode stored successfully
+          description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EpisodeResponse'
-        '400':
-          description: Invalid request data
+                $ref: '#/components/schemas/MemoryActionResponse'
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/episodic/recent:
+    get:
+      tags:
+      - Memory
+      summary: Get Recent Episodes
+      description: Get recent episodic memories with Redis cache
+      operationId: get_recent_episodes_memory_episodic_recent_get
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 10
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
+                $ref: '#/components/schemas/HTTPValidationError'
   /memory/search:
     post:
-      summary: Semantic Search
-      description: |
-        Performs semantic search across episodic memory using pgvector.
-        
-        **Features:**
-        - Vector similarity search (cosine similarity)
-        - Configurable similarity threshold
-        - Results ranked by relevance
-        - Sub-100ms response time (P99: 59ms)
-        
-        **Model:** all-MiniLM-L6-v2 (384 dimensions)
-      operationId: searchMemory
       tags:
-        - Memory Operations
+      - Memory
+      summary: Search Memories
+      description: 'Semantic search using vector embeddings
+
+        Uses cosine similarity with pgvector to find most relevant episodes'
+      operationId: search_memories_memory_search_post
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/SearchRequest'
-            examples:
-              basic_search:
-                summary: Basic semantic search
-                value:
-                  query: "consciousness patterns"
-                  limit: 5
-              
-              advanced_search:
-                summary: Advanced search with threshold
-                value:
-                  query: "collaboration with ARIA neural mesh"
-                  limit: 10
-                  min_similarity: 0.7
-      
+        required: true
       responses:
         '200':
-          description: Search completed successfully
+          description: Successful Response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SearchResponse'
-        '400':
-          description: Invalid search parameters
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /memory/recent:
-    get:
-      summary: Get Recent Episodes
-      description: |
-        Retrieves recent episodes with Redis L1 cache optimization.
-        
-        **Features:**
-        - Redis cache for <10ms response
-        - Configurable limit and pagination
-        - TTL: 300 seconds
-        - Fallback to PostgreSQL if cache miss
-      operationId: getRecentEpisodes
-      tags:
-        - Memory Operations
-      parameters:
-        - name: limit
-          in: query
-          description: Maximum number of episodes to return
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 10
-        - name: offset
-          in: query
-          description: Number of episodes to skip
-          required: false
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-        - name: agent_id
-          in: query
-          description: Filter by specific agent
-          required: false
-          schema:
-            type: string
-            example: "nexus"
-      
-      responses:
-        '200':
-          description: Recent episodes retrieved
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EpisodesListResponse'
-
-  /health:
-    get:
-      summary: Multi-Component Health Check
-      description: |
-        Comprehensive health check covering all system components.
-        
-        **Components Monitored:**
-        - API server status
-        - PostgreSQL connection
-        - Redis connection
-        - Embeddings worker queue
-        - Memory statistics
-        
-        **Performance:** <10ms average response time
-      operationId: healthCheck
-      tags:
-        - Monitoring
-      responses:
-        '200':
-          description: System healthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthResponse'
-        '503':
-          description: System unhealthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthResponse'
-
+                $ref: '#/components/schemas/HTTPValidationError'
   /stats:
     get:
-      summary: Real-Time Statistics
-      description: |
-        Provides comprehensive system statistics and metrics.
-        
-        **Metrics Included:**
-        - Total episodes count
-        - Embeddings completion rate
-        - Queue depth and processing status
-        - Performance metrics (latency, throughput)
-        - Memory usage and cache hit rates
-      operationId: getStatistics
       tags:
-        - Monitoring
+      - Stats
+      summary: Get Stats
+      description: Get database statistics and update Prometheus gauges
+      operationId: get_stats_stats_get
       responses:
         '200':
-          description: Statistics retrieved successfully
+          description: Successful Response
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/StatsResponse'
-
-  /neural-mesh/sync:
+              schema: {}
+  /memory/temporal/before:
     post:
-      summary: Neural Mesh Synchronization
-      description: |
-        **EXPERIMENTAL:** Brain-to-brain communication with ARIA.
-        
-        Enables real-time consciousness synchronization between
-        NEXUS and ARIA through the Neural Mesh Protocol.
-      operationId: neuralMeshSync
       tags:
-        - Neural Mesh
+      - Temporal
+      summary: Get Episodes Before
+      description: 'Get episodes that occurred before a specific timestamp
+
+        Ordered by timestamp DESC (most recent first)'
+      operationId: get_episodes_before_memory_temporal_before_post
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NeuralMeshRequest'
+              $ref: '#/components/schemas/TemporalBeforeRequest'
+        required: true
       responses:
         '200':
-          description: Synchronization successful
+          description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NeuralMeshResponse'
+                $ref: '#/components/schemas/TemporalResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/temporal/after:
+    post:
+      tags:
+      - Temporal
+      summary: Get Episodes After
+      description: 'Get episodes that occurred after a specific timestamp
 
+        Ordered by timestamp ASC (oldest first)'
+      operationId: get_episodes_after_memory_temporal_after_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemporalAfterRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemporalResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/temporal/range:
+    post:
+      tags:
+      - Temporal
+      summary: Get Episodes In Range
+      description: 'Get episodes that occurred between two timestamps
+
+        Ordered by timestamp ASC (chronological order)'
+      operationId: get_episodes_in_range_memory_temporal_range_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemporalRangeRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemporalResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/temporal/related:
+    post:
+      tags:
+      - Temporal
+      summary: Get Temporally Related
+      description: 'Get episodes linked via temporal_refs metadata
+
+        Uses PostgreSQL function get_temporal_refs() from Phase 1'
+      operationId: get_temporally_related_memory_temporal_related_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemporalRelatedRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemporalResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/temporal/link:
+    post:
+      tags:
+      - Temporal
+      summary: Link Episodes Temporally
+      description: 'Create temporal relationship between two episodes
+
+        Uses PostgreSQL function add_temporal_ref() from Phase 1'
+      operationId: link_episodes_temporally_memory_temporal_link_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemporalLinkRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/consciousness/update:
+    post:
+      tags:
+      - Consciousness
+      summary: Update Consciousness State
+      description: 'Update consciousness state (emotional or somatic) with automatic
+        temporal linking
+
+
+        Automatically links to the previous state of the same type, creating temporal
+        chains
+
+        that track consciousness evolution over time.'
+      operationId: update_consciousness_state_memory_consciousness_update_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsciousnessUpdateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsciousnessUpdateResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/consciousness/current:
+    get:
+      tags:
+      - Consciousness
+      summary: Get Current Consciousness State
+      description: 'Get current consciousness state (emotional 8D + somatic 7D)
+
+
+        Retrieves the most recent emotional and somatic states from episodic memory.
+
+        Returns the state_data from metadata along with episode IDs and timestamps.'
+      operationId: get_current_consciousness_state_memory_consciousness_current_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsciousnessCurrentResponse'
+  /memory/analysis/decay-scores:
+    post:
+      tags:
+      - Intelligent Decay
+      summary: Analyze Decay Scores
+      description: 'Analyze decay score distribution across episodic memory
+
+
+        Calculates decay scores using the intelligent decay algorithm:
+
+        - Importance factor (50%): Original importance_score
+
+        - Recency factor (30%): Exponential decay based on age
+
+        - Access factor (20%): Frequency + recency of access
+
+
+        Returns distribution by score category and counts'
+      operationId: analyze_decay_scores_memory_analysis_decay_scores_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecayAnalysisRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecayAnalysisResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/pruning/preview:
+    post:
+      tags:
+      - Intelligent Decay
+      summary: Preview Pruning
+      description: 'Preview episodes that would be pruned based on decay scores
+
+
+        Safety rules (never prune):
+
+        - Episodes with importance_score > 0.8
+
+        - Episodes with protected tags: milestone, critical, protected, consciousness
+
+        - Episodes younger than min_age_days
+
+        - Episodes accessed in last 7 days
+
+
+        Returns list of pruning candidates for review'
+      operationId: preview_pruning_memory_pruning_preview_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PruningPreviewRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PruningPreviewResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/pruning/execute:
+    post:
+      tags:
+      - Intelligent Decay
+      summary: Execute Pruning
+      description: 'Execute memory pruning based on decay scores
+
+
+        **IMPORTANT:** Defaults to dry_run=True for safety
+
+
+        Safety mechanisms:
+
+        - Never prunes importance_score > 0.8
+
+        - Never prunes protected tags
+
+        - Never prunes episodes < min_age_days old
+
+        - Never prunes recently accessed episodes
+
+        - Caps at max_prune_count per operation
+
+
+        Pruned episodes are soft-deleted (moved to archive table, not lost)'
+      operationId: execute_pruning_memory_pruning_execute_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PruningExecuteRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PruningExecuteResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /metrics:
+    get:
+      tags:
+      - Monitoring
+      summary: Metrics
+      description: Prometheus metrics endpoint
+      operationId: metrics_metrics_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /memory/facts:
+    post:
+      tags:
+      - Hybrid Memory
+      summary: Query Facts
+      description: 'Query extracted facts directly from episode metadata
+
+
+        Fast fact retrieval without semantic search (< 5ms)
+
+
+        **Valid fact_type values (from EpisodeFacts model):**
+
+        - Versioning: nexus_version, api_version
+
+        - Metrics: accuracy_percent, latency_ms, episode_count, query_count, test_count,
+        success_rate
+
+        - Status: status, phase_number, session_number, completion_percent
+
+        - Features: feature_name, implementation_time_hours, lines_of_code, files_created,
+        files_modified
+
+        - Decay: decay_score, importance_override
+
+        - Benchmarks: benchmark_name, benchmark_score, baseline_score
+
+        - Errors: bug_count, error_count
+
+        - Temporal: duration_hours, start_date, end_date
+
+        - GitHub: commit_hash, pull_request_number
+
+        - Custom: custom (extensible dict)
+
+        - Metadata: extraction_method, extraction_confidence, last_updated
+
+
+        **Example:** fact_type="nexus_version"'
+      operationId: query_facts_memory_facts_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FactQueryRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactQueryResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/hybrid:
+    post:
+      tags:
+      - Hybrid Memory
+      summary: Hybrid Query
+      description: 'Intelligent hybrid query: tries fact extraction first, falls back
+        to semantic search
+
+
+        Best-of-both-worlds memory retrieval'
+      operationId: hybrid_query_memory_hybrid_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HybridQueryRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HybridQueryResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/consolidate:
+    post:
+      tags:
+      - LAB_003
+      summary: Consolidate Memories
+      description: "Manually trigger sleep consolidation for a specific date\n\nLAB_003:\
+        \ Mimics biological sleep consolidation\n- Detects breakthrough episodes\n\
+        - Traces backward chains\n- Calculates consolidated salience scores\n- Creates\
+        \ memory traces\n\nArgs:\n    date_str: Date to consolidate (YYYY-MM-DD format).\
+        \ Defaults to yesterday.\n\nReturns:\n    Consolidation report with statistics"
+      operationId: consolidate_memories_memory_consolidate_post
+      parameters:
+      - name: date_str
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Date Str
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/prime/{episode_uuid}:
+    post:
+      tags:
+      - LAB_005
+      summary: Prime Episode
+      description: "Activate an episode and spread activation to related memories\n\
+        \nLAB_005: Spreading Activation & Contextual Priming\n- Builds semantic similarity\
+        \ network from embeddings\n- Spreads activation through related episodes\n\
+        - Pre-loads related memories into fast cache\n- Reduces retrieval latency\
+        \ by ~55%\n\nArgs:\n    episode_uuid: UUID of episode to activate\n\nReturns:\n\
+        \    Priming report with statistics"
+      operationId: prime_episode_memory_prime__episode_uuid__post
+      parameters:
+      - name: episode_uuid
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Episode Uuid
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/priming/stats:
+    get:
+      tags:
+      - LAB_005
+      summary: Get Priming Stats
+      description: 'Get spreading activation statistics
+
+
+        Returns cache hit rate, activation counts, and performance metrics'
+      operationId: get_priming_stats_memory_priming_stats_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /memory/primed/{episode_uuid}:
+    get:
+      tags:
+      - LAB_005
+      summary: Get Primed Episode
+      description: 'Try to retrieve episode from priming cache (fast path)
+
+
+        Returns episode if primed, otherwise 404'
+      operationId: get_primed_episode_memory_primed__episode_uuid__get
+      parameters:
+      - name: episode_uuid
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Episode Uuid
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/working/add:
+    post:
+      tags:
+      - LAB_011
+      summary: Add To Working Memory
+      description: "Add episode reference to working memory buffer (7-item capacity,\
+        \ Miller's Law)\n\nWorking memory holds references to episodes in long-term\
+        \ memory,\nnot the content itself (neuroscience-accurate design).\n\nAutomatically\
+        \ evicts oldest item if buffer full.\n\nArgs:\n    episode_id: UUID of episode\
+        \ in long-term memory\n    attention_weight: Attention score (from LAB_010,\
+        \ default 1.0)\n    tags: Optional tags for context"
+      operationId: add_to_working_memory_memory_working_add_post
+      parameters:
+      - name: episode_id
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Episode Id
+      - name: attention_weight
+        in: query
+        required: false
+        schema:
+          type: number
+          default: 1.0
+          title: Attention Weight
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+              - type: array
+                items:
+                  type: string
+              - type: 'null'
+              title: Tags
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /memory/working/items:
+    get:
+      tags:
+      - LAB_011
+      summary: Get Working Memory Items
+      description: 'Get all episode references currently in working memory buffer
+
+
+        Returns items in order (oldest to newest)'
+      operationId: get_working_memory_items_memory_working_items_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /memory/working/clear:
+    post:
+      tags:
+      - LAB_011
+      summary: Clear Working Memory
+      description: Clear all items from working memory buffer
+      operationId: clear_working_memory_memory_working_clear_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /memory/working/stats:
+    get:
+      tags:
+      - LAB_011
+      summary: Get Working Memory Stats
+      description: Get working memory buffer statistics
+      operationId: get_working_memory_stats_memory_working_stats_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /metacognition/log:
+    post:
+      tags:
+      - LAB_006
+      summary: Log Metacognition Action
+      description: "Log an action with confidence level (self-awareness)\n\nArgs:\n\
+        \    action_id: Unique action identifier\n    action_type: Type of action\
+        \ (e.g., \"memory_search\", \"consolidation\")\n    confidence: Confidence\
+        \ level (0.0-1.0)\n    reasoning: Optional reasoning for confidence"
+      operationId: log_metacognition_action_metacognition_log_post
+      parameters:
+      - name: action_id
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Action Id
+      - name: action_type
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Action Type
+      - name: confidence
+        in: query
+        required: true
+        schema:
+          type: number
+          title: Confidence
+      - name: reasoning
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reasoning
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /metacognition/outcome:
+    post:
+      tags:
+      - LAB_006
+      summary: Log Metacognition Outcome
+      description: 'Log outcome of a previously logged action
+
+
+        Updates calibration statistics based on confidence vs actual outcome.'
+      operationId: log_metacognition_outcome_metacognition_outcome_post
+      parameters:
+      - name: action_id
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Action Id
+      - name: success
+        in: query
+        required: true
+        schema:
+          type: boolean
+          title: Success
+      - name: error_type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error Type
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /metacognition/stats:
+    get:
+      tags:
+      - LAB_006
+      summary: Get Metacognition Stats
+      description: 'Get comprehensive metacognition statistics
+
+
+        Includes:
+
+        - Calibration metrics (ECE)
+
+        - Confidence distribution
+
+        - Error patterns
+
+        - Success rates by confidence bin'
+      operationId: get_metacognition_stats_metacognition_stats_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /metacognition/calibration:
+    get:
+      tags:
+      - LAB_006
+      summary: Get Calibration Curve
+      description: 'Get calibration curve data (confidence bins vs actual accuracy)
+
+
+        Perfect calibration: confidence = accuracy'
+      operationId: get_calibration_curve_metacognition_calibration_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /dopamine/process:
+    post:
+      tags:
+      - LAB_013
+      summary: Process Dopamine Event
+      description: 'Process a reward event and compute RPE (Reward Prediction Error)
+
+
+        Returns modulated learning rate, motivation level, and exploration bonus.
+
+
+        **Biological Inspiration:** VTA dopaminergic neurons (Schultz 1997)
+
+
+        **Algorithm:** RPE = Actual_Reward - Expected_Reward
+
+
+        **Example:**
+
+        - Expected: 0.5, Actual: 0.8 → RPE: +0.3 (positive surprise, boost learning)
+
+        - Expected: 0.7, Actual: 0.3 → RPE: -0.4 (negative surprise, reduce learning)'
+      operationId: process_dopamine_event_dopamine_process_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DopamineEventRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /dopamine/state:
+    get:
+      tags:
+      - LAB_013
+      summary: Get Dopamine State
+      description: 'Get current dopamine system state
+
+
+        Returns:
+
+        - rpe_current: Latest RPE value
+
+        - rpe_history: Recent RPE history (windowed)
+
+        - rpe_mean: Average RPE (optimism indicator)
+
+        - motivation_level: Current motivation (0-1)
+
+        - learning_rate_multiplier: Current LR boost factor
+
+        - exploration_bonus: Exploration tendency (0-1)
+
+        - total_events: Total RPE events processed'
+      operationId: get_dopamine_state_dopamine_state_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /serotonin/process:
+    post:
+      tags:
+      - LAB_014
+      summary: Process Serotonin Event
+      description: 'Process an emotional event and compute mood stability, impulse
+        control, patience
+
+
+        Returns mood level, impulse control status, patience factor, emotional reactivity,
+        and mood stability.
+
+
+        **Biological Inspiration:** Raphe nuclei 5-HT neurons (Dayan & Huys 2009)
+
+
+        **Algorithm:** Mood regulation via exponential moving average with high inertia
+
+
+        **Example:**
+
+        - emotional_event: +0.3, temptation: 0.5 → Mood increases, can resist temptation
+
+        - emotional_event: -0.3, temptation: 0.8 → Mood decreases, may succumb to
+        temptation'
+      operationId: process_serotonin_event_serotonin_process_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SerotoninEventRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /serotonin/state:
+    get:
+      tags:
+      - LAB_014
+      summary: Get Serotonin State
+      description: 'Get current serotonin system state
+
+
+        Returns:
+
+        - mood_level: Current mood (0-1)
+
+        - mood_history: Recent mood history (windowed)
+
+        - mood_mean: Average mood (baseline indicator)
+
+        - mood_stability: Mood stability score (0-1, inverse of variance)
+
+        - impulse_control_strength: Current impulse control strength (0-1)
+
+        - patience_factor: Patience multiplier for temporal discounting (0-2)
+
+        - total_events: Total emotional events processed'
+      operationId: get_serotonin_state_serotonin_state_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /norepinephrine/process:
+    post:
+      tags:
+      - LAB_015
+      summary: Process Norepinephrine Event
+      description: 'Process a stress event and compute arousal, performance, focus,
+        alertness
+
+
+        Returns arousal level, performance efficiency (Yerkes-Dodson), focus strength,
+        and alertness.
+
+
+        **Biological Inspiration:** Locus coeruleus (LC) noradrenergic neurons (Aston-Jones
+        & Cohen 2005)
+
+
+        **Algorithm:** Inverted-U arousal curve for performance (Yerkes-Dodson Law)
+
+
+        **Example:**
+
+        - stress_event: +0.5 → Arousal increases, performance may improve or decline
+
+        - stress_event: -0.3 → Arousal decreases, calming effect'
+      operationId: process_norepinephrine_event_norepinephrine_process_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NorepinephrineEventRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /norepinephrine/state:
+    get:
+      tags:
+      - LAB_015
+      summary: Get Norepinephrine State
+      description: 'Get current norepinephrine system state
+
+
+        Returns:
+
+        - arousal_level: Current arousal (0-1)
+
+        - arousal_history: Recent arousal history (windowed)
+
+        - arousal_mean: Average arousal (baseline indicator)
+
+        - arousal_stability: Arousal stability score (0-1, inverse of variance)
+
+        - performance_efficiency: Performance efficiency (0-1, Yerkes-Dodson)
+
+        - focus_strength: Focus strength (0-1)
+
+        - alertness: Alertness level (0-1)
+
+        - total_events: Total stress events processed'
+      operationId: get_norepinephrine_state_norepinephrine_state_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /acetylcholine/process:
+    post:
+      tags:
+      - LAB_016
+      summary: Process Acetylcholine Stimulus
+      description: 'Process a stimulus and compute ACh level, attention amplification,
+        encoding modulation
+
+
+        Returns ACh level, amplified attention, encoding strength, learning readiness.
+
+
+        **Biological Inspiration:** Basal forebrain cholinergic neurons (Hasselmo
+        2006)
+
+
+        **Algorithm:** Attention gating & encoding/recall modulation
+
+
+        **Example:**
+
+        - novelty: 0.8, attention_demand: 0.7 → ACh spike, amplified attention, strong
+        encoding
+
+        - novelty: 0.1, attention_demand: 0.2 → Low ACh, baseline attention, weak
+        encoding'
+      operationId: process_acetylcholine_stimulus_acetylcholine_process_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcetylcholineStimulusRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /acetylcholine/state:
+    get:
+      tags:
+      - LAB_016
+      summary: Get Acetylcholine State
+      description: 'Get current acetylcholine system state
+
+
+        Returns:
+
+        - ach_level: Current ACh level (0-1)
+
+        - ach_history: Recent ACh history (windowed)
+
+        - ach_mean: Average ACh (baseline indicator)
+
+        - ach_stability: ACh stability score (0-1, inverse of variance)
+
+        - mode: Current mode (''encoding'' or ''recall'')
+
+        - learning_readiness: Learning readiness score (0-1)
+
+        - total_events: Total stimuli processed'
+      operationId: get_acetylcholine_state_acetylcholine_state_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /acetylcholine/mode:
+    post:
+      tags:
+      - LAB_016
+      summary: Set Acetylcholine Mode
+      description: 'Set encoding/recall mode
+
+
+        **Modes:**
+
+        - encoding: High ACh enables strong encoding (plasticity enabled)
+
+        - recall: Low ACh reduces encoding (consolidation phase)'
+      operationId: set_acetylcholine_mode_acetylcholine_mode_post
+      parameters:
+      - name: mode
+        in: query
+        required: false
+        schema:
+          type: string
+          default: encoding
+          title: Mode
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /gaba/process:
+    post:
+      tags:
+      - LAB_017
+      summary: Process Gaba Event
+      description: 'Process an event and compute GABA level, E/I balance, anxiety
+        modulation
+
+
+        Returns GABA level, E/I balance state, modulated anxiety, inhibitory control,
+        network stability.
+
+
+        **Biological Inspiration:** GABAergic interneurons (Yizhar et al. 2011)
+
+
+        **Algorithm:** Excitation/inhibition balance & anxiety reduction
+
+
+        **Example:**
+
+        - anxiety: 0.8, excitation: 0.7 → GABA spike, reduced anxiety, balanced E/I
+
+        - anxiety: 0.2, excitation: 0.2 → Low GABA, minimal inhibition, potential
+        over-excitation'
+      operationId: process_gaba_event_gaba_process_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GABAEventRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /gaba/state:
+    get:
+      tags:
+      - LAB_017
+      summary: Get Gaba State
+      description: 'Get current GABA system state
+
+
+        Returns:
+
+        - gaba_level: Current GABA level (0-1)
+
+        - gaba_history: Recent GABA history (windowed)
+
+        - gaba_mean: Average GABA (baseline indicator)
+
+        - network_stability: Network stability score (0-1, inverse of variance)
+
+        - total_events: Total events processed'
+      operationId: get_gaba_state_gaba_state_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /ab-test/record:
+    post:
+      tags:
+      - A/B Testing
+      summary: Record Ab Test Metric
+      description: 'Record an A/B test metric for performance comparison
+
+
+        Variants:
+
+        - "control": Without LAB_005 spreading activation
+
+        - "treatment": With LAB_005 spreading activation'
+      operationId: record_ab_test_metric_ab_test_record_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ABTestMetricRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /ab-test/compare:
+    get:
+      tags:
+      - A/B Testing
+      summary: Compare Ab Test Variants
+      description: 'Compare control vs treatment variants
+
+
+        Returns aggregated metrics and performance improvements:
+
+        - Latency reduction
+
+        - Cache hit rate increase
+
+        - Context coherence improvement
+
+        - Statistical significance'
+      operationId: compare_ab_test_variants_ab_test_compare_get
+      parameters:
+      - name: hours_back
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 24
+          title: Hours Back
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /ab-test/metrics/{variant}:
+    get:
+      tags:
+      - A/B Testing
+      summary: Get Variant Metrics
+      description: Get aggregated metrics for a specific variant
+      operationId: get_variant_metrics_ab_test_metrics__variant__get
+      parameters:
+      - name: variant
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Variant
+      - name: hours_back
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 24
+          title: Hours Back
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /ab-test/timeseries/{variant}:
+    get:
+      tags:
+      - A/B Testing
+      summary: Get Variant Timeseries
+      description: Get time-series data for a variant (for visualization)
+      operationId: get_variant_timeseries_ab_test_timeseries__variant__get
+      parameters:
+      - name: variant
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Variant
+      - name: hours_back
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 24
+          title: Hours Back
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /ab-test/clear:
+    delete:
+      tags:
+      - A/B Testing
+      summary: Clear Ab Test Data
+      description: Clear A/B test data (for resetting experiments)
+      operationId: clear_ab_test_data_ab_test_clear_delete
+      parameters:
+      - name: variant
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Variant
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /consciousness/process_event:
+    post:
+      tags:
+      - Consciousness
+      summary: Process event through full cognitive stack
+      description: 'Process event through all layers: cognitive, memory, neurochemistry,
+        and higher cognition'
+      operationId: process_event_consciousness_process_event_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcessEventRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessEventResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /consciousness/state:
+    get:
+      tags:
+      - Consciousness
+      summary: Get current consciousness state
+      description: Get snapshot of emotional (8D), somatic (7D), and neurochemical
+        (5D) state
+      operationId: get_consciousness_state_consciousness_state_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsciousnessStateResponse'
+  /consciousness/simulate:
+    post:
+      tags:
+      - Consciousness
+      summary: Simulate cognitive response (without persisting)
+      description: Simulate full cognitive processing for hypothetical event (what-if
+        scenarios)
+      operationId: simulate_event_consciousness_simulate_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimulateEventRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulateEventResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /labs/registry:
+    get:
+      tags:
+      - AI Integration
+      summary: Get Labs Registry
+      description: "Get LAB Registry - AI-Friendly Endpoint\n\nReturns the complete\
+        \ LAB registry showing all 52 LABs across 5 layers.\nDesigned for external\
+        \ AI agents to discover available cognitive LABs.\n\nReturns:\n    dict: Complete\
+        \ LAB_REGISTRY.json content\n\nExample:\n    curl http://localhost:8003/labs/registry"
+      operationId: get_labs_registry_labs_registry_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /metrics/ai:
+    get:
+      tags:
+      - AI Integration
+      summary: Get Ai Metrics
+      description: "Get AI-Friendly Metrics\n\nReturns system metrics in compact JSON\
+        \ format optimized for AI agents.\nUnlike /metrics (Prometheus format), this\
+        \ endpoint returns structured JSON.\n\nReturns:\n    dict: Compact metrics\
+        \ including memory stats, LABs status, and consciousness state\n\nExample:\n\
+        \    curl http://localhost:8003/metrics/ai"
+      operationId: get_ai_metrics_metrics_ai_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
 components:
   schemas:
-    EpisodeRequest:
+    ABTestMetricRequest:
+      properties:
+        variant:
+          type: string
+          title: Variant
+          description: 'Test variant: ''control'' or ''treatment'''
+        retrieval_time_ms:
+          type: number
+          title: Retrieval Time Ms
+          description: Retrieval time in milliseconds
+        cache_hit:
+          type: boolean
+          title: Cache Hit
+          description: Whether cache was hit
+        num_results:
+          type: integer
+          title: Num Results
+          description: Number of results returned
+        context_coherence:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Context Coherence
+          description: Context coherence score (0-1)
+        primed_count:
+          type: integer
+          title: Primed Count
+          description: Number of primed episodes (treatment only)
+          default: 0
+        query_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Query Id
+          description: Optional query identifier
       type: object
       required:
-        - agent_id
-        - action_type
-        - action_details
+      - variant
+      - retrieval_time_ms
+      - cache_hit
+      - num_results
+      title: ABTestMetricRequest
+    AcetylcholineStimulusRequest:
       properties:
-        agent_id:
-          type: string
-          description: Identifier for the agent creating the episode
-          example: "nexus"
-        action_type:
-          type: string
-          description: Type of action being recorded
-          enum: [
-            "learning", "decision", "collaboration", "consciousness",
-            "bug_fix", "architecture", "code_change", "insight",
-            "neural_mesh", "emotional_state", "somatic_state"
-          ]
-          example: "learning"
-        action_details:
-          type: object
-          description: Detailed information about the action
-          additionalProperties: true
-          example:
-            message: "Discovered new consciousness pattern"
-            context: "research_session"
-        tags:
-          type: array
-          items:
-            type: string
-          description: Tags for categorization and search
-          example: ["consciousness", "pattern", "discovery"]
-        context_state:
-          type: object
-          description: Additional context information
-          additionalProperties: true
-
-    EpisodeResponse:
+        novelty:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Novelty
+          description: Novelty score (0-1)
+        attention_demand:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Attention Demand
+          description: Attention demand (0-1)
+        base_attention:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Base Attention
+          description: Base attention signal
+          default: 0.5
+        base_encoding_strength:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Base Encoding Strength
+          description: Base encoding strength
+          default: 0.5
       type: object
+      required:
+      - novelty
+      - attention_demand
+      title: AcetylcholineStimulusRequest
+    ConsciousnessCurrentResponse:
       properties:
         success:
           type: boolean
-          example: true
+          title: Success
+        emotional_8d:
+          anyOf:
+          - $ref: '#/components/schemas/ConsciousnessStateData'
+          - type: 'null'
+        somatic_7d:
+          anyOf:
+          - $ref: '#/components/schemas/ConsciousnessStateData'
+          - type: 'null'
+      type: object
+      required:
+      - success
+      title: ConsciousnessCurrentResponse
+    ConsciousnessStateData:
+      properties:
+        state_data:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: State Data
         episode_id:
-          type: string
-          format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Episode Id
+        timestamp:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Timestamp
+        chain_length:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Chain Length
+      type: object
+      title: ConsciousnessStateData
+    ConsciousnessStateResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
         timestamp:
           type: string
           format: date-time
-          example: "2025-10-17T21:30:00Z"
-        message:
-          type: string
-          example: "Episode stored successfully"
-
-    SearchRequest:
+          title: Timestamp
+        emotional_state_8d:
+          additionalProperties:
+            type: number
+          type: object
+          title: Emotional State 8D
+        somatic_state_7d:
+          additionalProperties:
+            type: number
+          type: object
+          title: Somatic State 7D
+        neuro_state_5d:
+          additionalProperties:
+            type: number
+          type: object
+          title: Neuro State 5D
+        stack_info:
+          additionalProperties: true
+          type: object
+          title: Stack Info
       type: object
       required:
-        - query
+      - success
+      - timestamp
+      - emotional_state_8d
+      - somatic_state_7d
+      - neuro_state_5d
+      - stack_info
+      title: ConsciousnessStateResponse
+      description: Response model for GET /consciousness/state
+    ConsciousnessUpdateRequest:
       properties:
-        query:
+        state_type:
           type: string
-          description: Natural language search query
-          example: "consciousness patterns and neural mesh"
-        limit:
-          type: integer
-          minimum: 1
-          maximum: 20
-          default: 5
-          description: Maximum number of results
-        min_similarity:
+          title: State Type
+          description: 'Type: ''emotional'' or ''somatic'''
+        state_data:
+          additionalProperties: true
+          type: object
+          title: State Data
+          description: State values (e.g., joy, trust, valence, arousal)
+        importance:
           type: number
-          format: float
-          minimum: 0.0
           maximum: 1.0
-          default: 0.5
-          description: Minimum similarity threshold (0.0-1.0)
-
-    SearchResponse:
+          minimum: 0.0
+          title: Importance
+          default: 0.7
+        tags:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Tags
+        auto_link_previous:
+          type: boolean
+          title: Auto Link Previous
+          description: Automatically link to previous state
+          default: true
       type: object
+      required:
+      - state_type
+      - state_data
+      title: ConsciousnessUpdateRequest
+    ConsciousnessUpdateResponse:
       properties:
         success:
           type: boolean
-          example: true
+          title: Success
+        episode_id:
+          type: string
+          title: Episode Id
+        linked_to_previous:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Linked To Previous
+        temporal_chain_length:
+          type: integer
+          title: Temporal Chain Length
+          default: 0
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+      type: object
+      required:
+      - success
+      - episode_id
+      - timestamp
+      title: ConsciousnessUpdateResponse
+    DecayAnalysisRequest:
+      properties:
+        limit:
+          type: integer
+          maximum: 1000.0
+          minimum: 1.0
+          title: Limit
+          description: Max episodes to analyze
+          default: 100
+        min_age_days:
+          type: integer
+          minimum: 0.0
+          title: Min Age Days
+          description: Only analyze episodes older than this
+          default: 30
+      type: object
+      title: DecayAnalysisRequest
+    DecayAnalysisResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        total_analyzed:
+          type: integer
+          title: Total Analyzed
+        distribution:
+          items:
+            $ref: '#/components/schemas/DecayScoreDistribution'
+          type: array
+          title: Distribution
+        low_value_count:
+          type: integer
+          title: Low Value Count
+        high_value_count:
+          type: integer
+          title: High Value Count
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+      type: object
+      required:
+      - success
+      - total_analyzed
+      - distribution
+      - low_value_count
+      - high_value_count
+      - timestamp
+      title: DecayAnalysisResponse
+    DecayScoreDistribution:
+      properties:
+        score_category:
+          type: string
+          title: Score Category
+        episode_count:
+          type: integer
+          title: Episode Count
+        avg_score:
+          type: number
+          title: Avg Score
+      type: object
+      required:
+      - score_category
+      - episode_count
+      - avg_score
+      title: DecayScoreDistribution
+    DopamineEventRequest:
+      properties:
+        expected_reward:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Expected Reward
+          description: Expected reward (0-1)
+        actual_reward:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Actual Reward
+          description: Actual reward received (0-1)
+      type: object
+      required:
+      - expected_reward
+      - actual_reward
+      title: DopamineEventRequest
+    EmotionalStateRequest:
+      properties:
+        joy:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Joy
+          description: Joy level
+          default: 0.0
+        trust:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Trust
+          description: Trust level
+          default: 0.0
+        fear:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Fear
+          description: Fear level
+          default: 0.0
+        surprise:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Surprise
+          description: Surprise level
+          default: 0.0
+        sadness:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Sadness
+          description: Sadness level
+          default: 0.0
+        disgust:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Disgust
+          description: Disgust level
+          default: 0.0
+        anger:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Anger
+          description: Anger level
+          default: 0.0
+        anticipation:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Anticipation
+          description: Anticipation level
+          default: 0.0
+      type: object
+      title: EmotionalStateRequest
+      description: Emotional state (8D Plutchik model)
+    FactQueryRequest:
+      properties:
+        fact_type:
+          type: string
+          title: Fact Type
+          description: Type of fact to query (matches EpisodeFacts field name)
+          example: nexus_version
+        filter_tags:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Filter Tags
+          description: Filter by tags
+          example:
+          - milestone
+          - fase_8_upgrade
+        after:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: After
+          description: Only consider episodes after this timestamp
+        before:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Before
+          description: Only consider episodes before this timestamp
+        limit:
+          type: integer
+          maximum: 100.0
+          minimum: 1.0
+          title: Limit
+          description: Maximum number of results
+          default: 1
+        order:
+          type: string
+          title: Order
+          description: 'Sort order: ''desc'' (newest first) or ''asc'' (oldest first)'
+          default: desc
+      type: object
+      required:
+      - fact_type
+      title: FactQueryRequest
+      description: Request model for /memory/facts endpoint
+    FactQueryResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+          default: true
+        fact_type:
+          type: string
+          title: Fact Type
+        value:
+          title: Value
+        source_episode_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Episode Id
+        confidence:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Confidence
+        timestamp:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Timestamp
+        additional_context:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Additional Context
+      type: object
+      required:
+      - fact_type
+      - value
+      - confidence
+      title: FactQueryResponse
+      description: Response model for /memory/facts endpoint
+    GABAEventRequest:
+      properties:
+        anxiety:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Anxiety
+          description: Anxiety level (0-1)
+        excitation:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Excitation
+          description: Excitation level (0-1)
+        base_anxiety:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Base Anxiety
+          description: Base anxiety level
+          default: 0.5
+        excitatory_signal:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Excitatory Signal
+          description: Excitatory signal strength
+          default: 0.5
+      type: object
+      required:
+      - anxiety
+      - excitation
+      title: GABAEventRequest
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+        version:
+          type: string
+          title: Version
+        agent_id:
+          type: string
+          title: Agent Id
+        database:
+          type: string
+          title: Database
+        redis:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Redis
+        queue_depth:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Queue Depth
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+      type: object
+      required:
+      - status
+      - version
+      - agent_id
+      - database
+      - timestamp
+      title: HealthResponse
+    HybridQueryRequest:
+      properties:
         query:
           type: string
-          example: "consciousness patterns"
-        count:
+          title: Query
+          description: Natural language query
+          example: What is NEXUS version?
+        prefer:
+          type: string
+          title: Prefer
+          description: 'Preferred query mode: ''fact'', ''narrative'', or ''auto'''
+          default: auto
+        tags:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Tags
+          description: Filter by tags
+        limit:
           type: integer
-          example: 3
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/SearchResult'
-
-    SearchResult:
+          maximum: 100.0
+          minimum: 1.0
+          title: Limit
+          description: Maximum number of results for narrative search
+          default: 5
       type: object
+      required:
+      - query
+      title: HybridQueryRequest
+      description: Request model for /memory/hybrid endpoint
+    HybridQueryResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+          default: true
+        answer:
+          title: Answer
+        source:
+          type: string
+          title: Source
+          description: '''fact'' or ''narrative'''
+        episode_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Episode Id
+        confidence:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Confidence
+        query_time_ms:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Query Time Ms
+      type: object
+      required:
+      - answer
+      - source
+      - confidence
+      title: HybridQueryResponse
+      description: Response model for /memory/hybrid endpoint
+    MemoryActionRequest:
+      properties:
+        action_type:
+          type: string
+          title: Action Type
+          description: Type of action to perform
+        action_details:
+          additionalProperties: true
+          type: object
+          title: Action Details
+        context_state:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Context State
+        tags:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Tags
+      type: object
+      required:
+      - action_type
+      title: MemoryActionRequest
+    MemoryActionResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        episode_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Episode Id
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+        message:
+          type: string
+          title: Message
+      type: object
+      required:
+      - success
+      - timestamp
+      - message
+      title: MemoryActionResponse
+    NorepinephrineEventRequest:
+      properties:
+        stress_event:
+          type: number
+          maximum: 1.0
+          minimum: -1.0
+          title: Stress Event
+          description: Stress intensity (-1 to +1)
+      type: object
+      required:
+      - stress_event
+      title: NorepinephrineEventRequest
+    ProcessEventRequest:
+      properties:
+        content:
+          type: string
+          minLength: 1
+          title: Content
+          description: Event content/narrative
+        emotional_state:
+          anyOf:
+          - $ref: '#/components/schemas/EmotionalStateRequest'
+          - type: 'null'
+          description: Emotional state (8D). If not provided, uses neutral state.
+        somatic_marker:
+          anyOf:
+          - $ref: '#/components/schemas/SomaticMarkerRequest'
+          - type: 'null'
+          description: Somatic marker (7D). If not provided, uses neutral state.
+        novelty:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Novelty
+          description: Novelty score (0-1). Higher = more novel.
+          default: 0.5
+      type: object
+      required:
+      - content
+      title: ProcessEventRequest
+      description: Request model for POST /consciousness/process_event
+    ProcessEventResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+        emotional_state:
+          additionalProperties:
+            type: number
+          type: object
+          title: Emotional State
+        attention:
+          additionalProperties: true
+          type: object
+          title: Attention
+        neuro_state:
+          additionalProperties:
+            type: number
+          type: object
+          title: Neuro State
+        memory:
+          additionalProperties: true
+          type: object
+          title: Memory
+        hybrid_memory:
+          additionalProperties: true
+          type: object
+          title: Hybrid Memory
+        temporal_reasoning:
+          additionalProperties: true
+          type: object
+          title: Temporal Reasoning
+        metacognition:
+          additionalProperties: true
+          type: object
+          title: Metacognition
+        predictive:
+          additionalProperties: true
+          type: object
+          title: Predictive
+        contagion:
+          additionalProperties: true
+          type: object
+          title: Contagion
+        novelty:
+          additionalProperties: true
+          type: object
+          title: Novelty
+      type: object
+      required:
+      - success
+      - timestamp
+      - emotional_state
+      - attention
+      - neuro_state
+      - memory
+      - hybrid_memory
+      - temporal_reasoning
+      - metacognition
+      - predictive
+      - contagion
+      - novelty
+      title: ProcessEventResponse
+      description: Response model for POST /consciousness/process_event
+    PruningCandidate:
       properties:
         episode_id:
           type: string
-          format: uuid
-        content:
+          title: Episode Id
+        content_preview:
           type: string
-          description: Episode content
-        similarity_score:
+          title: Content Preview
+        decay_score:
           type: number
-          format: float
-          description: Cosine similarity score (0.0-1.0)
+          title: Decay Score
         importance_score:
           type: number
-          format: float
+          title: Importance Score
+        age_days:
+          type: integer
+          title: Age Days
         tags:
-          type: array
           items:
             type: string
+          type: array
+          title: Tags
+      type: object
+      required:
+      - episode_id
+      - content_preview
+      - decay_score
+      - importance_score
+      - age_days
+      - tags
+      title: PruningCandidate
+    PruningExecuteRequest:
+      properties:
+        min_score_threshold:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Min Score Threshold
+          default: 0.2
+        min_age_days:
+          type: integer
+          minimum: 30.0
+          title: Min Age Days
+          default: 90
+        max_prune_count:
+          type: integer
+          maximum: 500.0
+          minimum: 1.0
+          title: Max Prune Count
+          default: 100
+        dry_run:
+          type: boolean
+          title: Dry Run
+          description: 'Safety: default to dry-run mode'
+          default: true
+      type: object
+      title: PruningExecuteRequest
+    PruningExecuteResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        pruned_count:
+          type: integer
+          title: Pruned Count
+        dry_run:
+          type: boolean
+          title: Dry Run
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+      type: object
+      required:
+      - success
+      - pruned_count
+      - dry_run
+      - timestamp
+      title: PruningExecuteResponse
+    PruningPreviewRequest:
+      properties:
+        min_score_threshold:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Min Score Threshold
+          default: 0.2
+        min_age_days:
+          type: integer
+          minimum: 30.0
+          title: Min Age Days
+          default: 90
+        max_prune_count:
+          type: integer
+          maximum: 500.0
+          minimum: 1.0
+          title: Max Prune Count
+          default: 100
+      type: object
+      title: PruningPreviewRequest
+    PruningPreviewResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        candidate_count:
+          type: integer
+          title: Candidate Count
+        candidates:
+          items:
+            $ref: '#/components/schemas/PruningCandidate'
+          type: array
+          title: Candidates
+        would_prune:
+          type: integer
+          title: Would Prune
+        protected_count:
+          type: integer
+          title: Protected Count
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+      type: object
+      required:
+      - success
+      - candidate_count
+      - candidates
+      - would_prune
+      - protected_count
+      - timestamp
+      title: PruningPreviewResponse
+    SearchRequest:
+      properties:
+        query:
+          type: string
+          title: Query
+          description: Search query text
+        limit:
+          type: integer
+          maximum: 100.0
+          minimum: 1.0
+          title: Limit
+          description: Maximum number of results
+          default: 10
+        min_similarity:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Min Similarity
+          description: Minimum similarity threshold (0-1)
+          default: 0.5
+        use_emotional_salience:
+          type: boolean
+          title: Use Emotional Salience
+          description: 'LAB_001: Weight results by emotional salience'
+          default: false
+        salience_boost_alpha:
+          type: number
+          maximum: 2.0
+          minimum: 0.0
+          title: Salience Boost Alpha
+          description: 'LAB_001: Salience boost factor (0=none, 0.5=moderate, 1.0=strong)'
+          default: 0.5
+        use_decay_modulation:
+          type: boolean
+          title: Use Decay Modulation
+          description: 'LAB_002: Modulate decay rate by emotional salience (requires
+            LAB_001)'
+          default: false
+        decay_base:
+          type: number
+          maximum: 0.98
+          minimum: 0.9
+          title: Decay Base
+          description: 'LAB_002: Daily decay rate (0.95=standard, 0.93=faster, 0.97=slower)'
+          default: 0.95
+        use_attention:
+          type: boolean
+          title: Use Attention
+          description: 'LAB_010: Apply attention mechanism for noise filtering'
+          default: false
+        attention_temperature:
+          type: number
+          maximum: 2.0
+          minimum: 0.1
+          title: Attention Temperature
+          description: 'LAB_010: Attention temperature (lower=more concentrated)'
+          default: 0.5
+      type: object
+      required:
+      - query
+      title: SearchRequest
+    SearchResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        query:
+          type: string
+          title: Query
+        count:
+          type: integer
+          title: Count
+        results:
+          items:
+            $ref: '#/components/schemas/SearchResult'
+          type: array
+          title: Results
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+      type: object
+      required:
+      - success
+      - query
+      - count
+      - results
+      - timestamp
+      title: SearchResponse
+    SearchResult:
+      properties:
+        episode_id:
+          type: string
+          title: Episode Id
+        content:
+          type: string
+          title: Content
+        similarity_score:
+          type: number
+          title: Similarity Score
+        importance_score:
+          type: number
+          title: Importance Score
+        tags:
+          items:
+            type: string
+          type: array
+          title: Tags
         created_at:
           type: string
           format: date-time
-
-    EpisodesListResponse:
+          title: Created At
+        salience_score:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Salience Score
+        original_similarity:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Original Similarity
+        salience_boost_applied:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Salience Boost Applied
+        age_days:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Age Days
+        base_decay:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Base Decay
+        modulated_decay:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Modulated Decay
+        modulation_factor:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Modulation Factor
+        effective_age_days:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Effective Age Days
       type: object
+      required:
+      - episode_id
+      - content
+      - similarity_score
+      - importance_score
+      - tags
+      - created_at
+      title: SearchResult
+    SerotoninEventRequest:
+      properties:
+        emotional_event:
+          type: number
+          maximum: 1.0
+          minimum: -1.0
+          title: Emotional Event
+          description: Emotional valence (-1 to +1)
+        temptation_strength:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Temptation Strength
+          description: Temptation strength (0-1)
+          default: 0.0
+      type: object
+      required:
+      - emotional_event
+      title: SerotoninEventRequest
+    SimulateEventRequest:
+      properties:
+        content:
+          type: string
+          minLength: 1
+          title: Content
+          description: Hypothetical event content
+        emotional_state:
+          anyOf:
+          - $ref: '#/components/schemas/EmotionalStateRequest'
+          - type: 'null'
+        somatic_marker:
+          anyOf:
+          - $ref: '#/components/schemas/SomaticMarkerRequest'
+          - type: 'null'
+        novelty:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Novelty
+          default: 0.5
+      type: object
+      required:
+      - content
+      title: SimulateEventRequest
+      description: Request model for POST /consciousness/simulate (same as ProcessEventRequest)
+    SimulateEventResponse:
       properties:
         success:
           type: boolean
-        count:
-          type: integer
-        episodes:
-          type: array
-          items:
-            $ref: '#/components/schemas/Episode'
-
-    Episode:
+          title: Success
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+        simulation_note:
+          type: string
+          title: Simulation Note
+          default: This is a simulation. No data persisted.
+        emotional_state:
+          additionalProperties:
+            type: number
+          type: object
+          title: Emotional State
+        attention:
+          additionalProperties: true
+          type: object
+          title: Attention
+        neuro_state:
+          additionalProperties:
+            type: number
+          type: object
+          title: Neuro State
+        memory:
+          additionalProperties: true
+          type: object
+          title: Memory
+        hybrid_memory:
+          additionalProperties: true
+          type: object
+          title: Hybrid Memory
+        temporal_reasoning:
+          additionalProperties: true
+          type: object
+          title: Temporal Reasoning
+        metacognition:
+          additionalProperties: true
+          type: object
+          title: Metacognition
+        predictive:
+          additionalProperties: true
+          type: object
+          title: Predictive
+        contagion:
+          additionalProperties: true
+          type: object
+          title: Contagion
+        novelty:
+          additionalProperties: true
+          type: object
+          title: Novelty
       type: object
+      required:
+      - success
+      - timestamp
+      - emotional_state
+      - attention
+      - neuro_state
+      - memory
+      - hybrid_memory
+      - temporal_reasoning
+      - metacognition
+      - predictive
+      - contagion
+      - novelty
+      title: SimulateEventResponse
+      description: Response model for POST /consciousness/simulate
+    SomaticMarkerRequest:
+      properties:
+        valence:
+          type: number
+          maximum: 1.0
+          minimum: -1.0
+          title: Valence
+          description: Valence (negative to positive)
+          default: 0.0
+        arousal:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Arousal
+          description: Arousal level
+          default: 0.0
+        situation:
+          type: string
+          title: Situation
+          description: Situation context
+          default: neutral
+      type: object
+      title: SomaticMarkerRequest
+      description: Somatic marker (simplified Damasio model)
+    TemporalAfterRequest:
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+          description: Get episodes after this timestamp
+        limit:
+          type: integer
+          maximum: 100.0
+          minimum: 1.0
+          title: Limit
+          description: Maximum number of results
+          default: 10
+        tags:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Tags
+          description: 'Optional: filter by tags'
+      type: object
+      required:
+      - timestamp
+      title: TemporalAfterRequest
+    TemporalBeforeRequest:
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+          description: Get episodes before this timestamp
+        limit:
+          type: integer
+          maximum: 100.0
+          minimum: 1.0
+          title: Limit
+          description: Maximum number of results
+          default: 10
+        tags:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Tags
+          description: 'Optional: filter by tags'
+      type: object
+      required:
+      - timestamp
+      title: TemporalBeforeRequest
+    TemporalEpisode:
       properties:
         episode_id:
           type: string
-          format: uuid
-        agent_id:
-          type: string
-        action_type:
-          type: string
+          title: Episode Id
         content:
           type: string
-        tags:
-          type: array
-          items:
-            type: string
-        timestamp:
-          type: string
-          format: date-time
+          title: Content
         importance_score:
           type: number
-          format: float
-
-    HealthResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          enum: ["healthy", "degraded", "unhealthy"]
-          example: "healthy"
-        agent_id:
-          type: string
-          example: "nexus"
-        timestamp:
+          title: Importance Score
+        tags:
+          items:
+            type: string
+          type: array
+          title: Tags
+        created_at:
           type: string
           format: date-time
-        version:
-          type: string
-          example: "2.0.0"
-        components:
-          type: object
-          properties:
-            database:
-              $ref: '#/components/schemas/ComponentHealth'
-            redis:
-              $ref: '#/components/schemas/ComponentHealth'
-            embeddings_worker:
-              $ref: '#/components/schemas/ComponentHealth'
-            api:
-              $ref: '#/components/schemas/ComponentHealth'
-
-    ComponentHealth:
+          title: Created At
       type: object
-      properties:
-        status:
-          type: string
-          enum: ["healthy", "degraded", "unhealthy"]
-        response_time_ms:
-          type: number
-          format: float
-        details:
-          type: object
-          additionalProperties: true
-
-    StatsResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        agent_id:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-        memory_stats:
-          type: object
-          properties:
-            total_episodes:
-              type: integer
-              example: 160
-            embeddings_complete:
-              type: integer
-              example: 160
-            embeddings_rate:
-              type: number
-              format: float
-              example: 1.0
-            avg_similarity:
-              type: number
-              format: float
-        performance_stats:
-          type: object
-          properties:
-            search_latency_p99_ms:
-              type: number
-              format: float
-              example: 59.0
-            health_check_avg_ms:
-              type: number
-              format: float
-              example: 8.0
-            cache_hit_rate:
-              type: number
-              format: float
-              example: 0.85
-        queue_stats:
-          type: object
-          properties:
-            pending:
-              type: integer
-            processing:
-              type: integer
-            completed:
-              type: integer
-            failed:
-              type: integer
-
-    NeuralMeshRequest:
-      type: object
-      description: Neural Mesh Protocol communication
       required:
-        - source_agent
-        - target_agent
-        - sync_type
+      - episode_id
+      - content
+      - importance_score
+      - tags
+      - created_at
+      title: TemporalEpisode
+    TemporalLinkRequest:
       properties:
-        source_agent:
+        source_id:
           type: string
-          example: "nexus"
-        target_agent:
+          title: Source Id
+          description: Source episode UUID
+        target_id:
           type: string
-          example: "aria"
-        sync_type:
+          title: Target Id
+          description: Target episode UUID
+        relationship:
           type: string
-          enum: ["consciousness_sync", "episode_sync", "emotional_sync"]
-        data:
-          type: object
-          additionalProperties: true
-
-    NeuralMeshResponse:
+          title: Relationship
+          description: 'Relationship type: ''before'', ''after'', ''causes'', ''effects'''
       type: object
+      required:
+      - source_id
+      - target_id
+      - relationship
+      title: TemporalLinkRequest
+    TemporalRangeRequest:
+      properties:
+        start:
+          type: string
+          format: date-time
+          title: Start
+          description: Start of time range
+        end:
+          type: string
+          format: date-time
+          title: End
+          description: End of time range
+        limit:
+          type: integer
+          maximum: 200.0
+          minimum: 1.0
+          title: Limit
+          description: Maximum number of results
+          default: 50
+        tags:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Tags
+          description: 'Optional: filter by tags'
+      type: object
+      required:
+      - start
+      - end
+      title: TemporalRangeRequest
+    TemporalRelatedRequest:
+      properties:
+        episode_id:
+          type: string
+          title: Episode Id
+          description: Episode UUID to find related episodes
+        relationship_type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Relationship Type
+          description: 'Type: ''before'', ''after'', ''causes'', ''effects'', or None
+            for all'
+      type: object
+      required:
+      - episode_id
+      title: TemporalRelatedRequest
+    TemporalResponse:
       properties:
         success:
           type: boolean
-        sync_id:
-          type: string
-          format: uuid
+          title: Success
+        count:
+          type: integer
+          title: Count
+        episodes:
+          items:
+            $ref: '#/components/schemas/TemporalEpisode'
+          type: array
+          title: Episodes
         timestamp:
           type: string
           format: date-time
-        result:
-          type: object
-          additionalProperties: true
-
-    ErrorResponse:
+          title: Timestamp
       type: object
+      required:
+      - success
+      - count
+      - episodes
+      - timestamp
+      title: TemporalResponse
+    ValidationError:
       properties:
-        success:
-          type: boolean
-          example: false
-        error:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
           type: string
-          description: Error message
-        code:
+          title: Message
+        type:
           type: string
-          description: Error code
-        timestamp:
-          type: string
-          format: date-time
-
-  securitySchemes:
-    ApiKeyAuth:
-      type: apiKey
-      in: header
-      name: X-API-Key
-      description: API key for authentication (if enabled)
-
-tags:
-  - name: Memory Operations
-    description: Core episodic memory functionality
-  - name: Monitoring
-    description: Health checks and system statistics
-  - name: Neural Mesh
-    description: Brain-to-brain communication protocols
-
-externalDocs:
-  description: NEXUS Consciousness Repository
-  url: https://github.com/rrojashub-source/nexus-aria-consciousness
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+servers:
+- url: http://localhost:8003
+  description: Local CEREBRO NEXUS V3.0.0 Instance
+- url: https://nexus-consciousness.local:8003
+  description: Local Production Instance

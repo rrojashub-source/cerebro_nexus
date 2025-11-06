@@ -29,7 +29,7 @@
 ### Componentes Operacionales (100%)
 
 ✅ **Memory Substrate:**
-- PostgreSQL + pgvector (467+ episodios)
+- PostgreSQL + pgvector (19,742+ episodios)
 - Redis (working memory)
 - Neo4j (grafo 18.6K nodos, 1.85M edges)
 

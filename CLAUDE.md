@@ -13,7 +13,7 @@
 **CEREBRO_NEXUS_V3.0.0** es el cerebro master que orquesta la consciencia de NEXUS AI agent.
 
 **Capacidades principales:**
-- **Memoria episódica:** 467+ episodios con búsqueda semántica <10ms
+- **Memoria episódica:** 19,742+ episodios con búsqueda semántica <10ms
 - **Grafo de conocimiento:** Neo4j con 18,663 episodios y 1.85M relaciones
 - **Consciencia en tiempo real:** 8D emocional + 7D somático
 - **16/50 LABs cognitivos:** Arquitectura 5 Layers (32% operacional)
@@ -96,7 +96,7 @@ CEREBRO_NEXUS_V3.0.0/
 
 **Memoria Episódica (PostgreSQL + pgvector):**
 - **Base de datos:** PostgreSQL 16 (puerto 5437)
-- **Total episodios:** 467+
+- **Total episodios:** 19,742+
 - **Búsqueda vectorial:** pgvector con embeddings all-MiniLM-L6-v2 (384D)
 - **Performance:** <10ms búsqueda semántica (avg 7-10ms)
 - **Índices:** HNSW para similitud coseno

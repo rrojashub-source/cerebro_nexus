@@ -2,8 +2,12 @@
 # NEXUS CEREBRO V3.0.0 - Python Dependencies
 # Production-Ready AI Brain
 # ============================================
-# NOTA: Para reducir tamaño del contenedor, considerar
-# mover sentence-transformers a requirements-ml.txt
+# NOTA: ML dependencies (sentence-transformers, torch, etc.)
+# están en requirements-ml.txt para deployments ligeros de API
+#
+# Install:
+#   pip install -r requirements.txt              # API only
+#   pip install -r requirements-ml.txt           # + Embeddings worker
 # ============================================
 
 # ============================================
@@ -28,11 +32,11 @@ redis==5.0.1
 hiredis==2.2.3
 
 # ============================================
-# Embeddings
+# Embeddings (MOVED to requirements-ml.txt)
 # ============================================
-sentence-transformers==2.7.0
-# torch y transformers manejados por sentence-transformers
-numpy==1.26.4
+# sentence-transformers==2.7.0  → requirements-ml.txt
+# numpy==1.26.4                  → requirements-ml.txt
+# For embeddings worker: pip install -r requirements-ml.txt
 
 # ============================================
 # Utilities
