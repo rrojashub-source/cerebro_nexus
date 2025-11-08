@@ -1,7 +1,25 @@
 """
 LAB_014: Serotonin System - Test Suite
 
-TDD (Test-Driven Development) approach
+TDD (Test-Driven Development) approach:
+1. RED: Write failing tests first
+2. GREEN: Implement code to pass tests
+3. REFACTOR: Optimize while keeping tests passing
+
+Biological Inspiration:
+- Raphe nuclei (serotonergic neurons)
+- Dayan & Huys (2009) - "Serotonin in Affective Control"
+
+Core Functions:
+- Mood stability (buffer against fluctuations)
+- Impulse control (patience vs impulsivity)
+- Temporal discounting (valuation of delayed rewards)
+- Social sensitivity (social reward modulation)
+
+Test Phases:
+- Phase 1: Core Serotonin Tests (basic functionality)
+- Phase 2: Integration Tests (with other LABs)
+- Phase 3: Edge Cases & Performance
 """
 
 import pytest
@@ -16,147 +34,218 @@ from LAYER_4_Neurochemistry_Full.LAB_014_Serotonin_System import SerotoninSystem
 
 
 # ============================================================================
-# PHASE 1: CORE FUNCTIONALITY TESTS
+# PHASE 1: CORE SEROTONIN TESTS
 # ============================================================================
 
-class TestMoodUpdate:
-    """Test 1: Mood Update Mechanism"""
+class TestBasicSerotoninLevel:
+    """Test 1: Basic Serotonin Level Management"""
 
-    def test_mood_increases_with_positive_events(self):
-        """Positive emotional events should increase mood"""
-        serotonin = SerotoninSystem(baseline_mood=0.5, mood_inertia=0.9)
+    def test_baseline_level(self):
+        """Serotonin should start at baseline (neutral mood)"""
+        serotonin = SerotoninSystem(baseline_level=0.5)
+        assert serotonin.current_level == pytest.approx(0.5)
 
+    def test_level_increases_with_positive_outcomes(self):
+        """Positive outcomes should increase serotonin"""
+        serotonin = SerotoninSystem(baseline_level=0.5)
+        initial_level = serotonin.current_level
+
+        serotonin.update_level(outcome=0.8, social_context=0.5)
+
+        assert serotonin.current_level > initial_level
+
+    def test_level_decreases_with_negative_outcomes(self):
+        """Negative outcomes should decrease serotonin"""
+        serotonin = SerotoninSystem(baseline_level=0.5)
+        initial_level = serotonin.current_level
+
+        serotonin.update_level(outcome=0.2, social_context=0.5)
+
+        assert serotonin.current_level < initial_level
+
+    def test_level_bounds(self):
+        """Serotonin level should be clamped between 0 and 1"""
+        serotonin = SerotoninSystem()
+
+        # Test upper bound (many positive outcomes)
         for _ in range(20):
-            serotonin.update_mood(emotional_event=0.3)
+            serotonin.update_level(outcome=1.0, social_context=1.0)
 
-        assert serotonin.mood_level > 0.5  # Mood increased
+        assert 0.0 <= serotonin.current_level <= 1.0
 
-    def test_mood_decreases_with_negative_events(self):
-        """Negative emotional events should decrease mood"""
-        serotonin = SerotoninSystem(baseline_mood=0.7)
+        # Reset and test lower bound
+        serotonin = SerotoninSystem()
+        for _ in range(20):
+            serotonin.update_level(outcome=0.0, social_context=0.0)
 
-        for _ in range(10):
-            serotonin.update_mood(emotional_event=-0.3)
+        assert 0.0 <= serotonin.current_level <= 1.0
 
-        assert serotonin.mood_level < 0.7  # Mood decreased
 
-    def test_mood_has_inertia(self):
-        """Mood should change slowly (high inertia)"""
-        serotonin = SerotoninSystem(baseline_mood=0.5, mood_inertia=0.95)
+class TestMoodStabilization:
+    """Test 2: Mood Stability & Buffering"""
 
-        # Single strong positive event
-        mood_before = serotonin.mood_level
-        serotonin.update_mood(emotional_event=1.0)
-        mood_after = serotonin.mood_level
+    def test_high_serotonin_buffers_negative_mood(self):
+        """High serotonin should buffer against negative mood swings"""
+        serotonin = SerotoninSystem(baseline_level=0.8, stability_factor=0.8)
 
-        # Change should be small due to inertia
-        change = mood_after - mood_before
-        assert change < 0.1  # Small change despite strong event
+        # Apply negative event
+        initial_mood = 0.7
+        buffered_mood = serotonin.modulate_mood(
+            current_mood=initial_mood,
+            event_valence=-0.5
+        )
+
+        # Mood should decrease less due to high serotonin buffering
+        # Without buffer: 0.7 + (-0.5) = 0.2
+        # With buffer: should be > 0.2
+        assert buffered_mood > 0.2
+        assert buffered_mood < initial_mood  # But still decrease
+
+    def test_low_serotonin_amplifies_mood_swings(self):
+        """Low serotonin should allow larger mood fluctuations"""
+        serotonin_high = SerotoninSystem(baseline_level=0.8, stability_factor=0.9)
+        serotonin_low = SerotoninSystem(baseline_level=0.2, stability_factor=0.9)
+
+        initial_mood = 0.5
+        event_valence = -0.3
+
+        mood_high_serotonin = serotonin_high.modulate_mood(initial_mood, event_valence)
+        mood_low_serotonin = serotonin_low.modulate_mood(initial_mood, event_valence)
+
+        # Low serotonin should produce larger mood change (less buffering)
+        change_high = abs(mood_high_serotonin - initial_mood)
+        change_low = abs(mood_low_serotonin - initial_mood)
+
+        assert change_low > change_high
+
+    def test_mood_stability_over_time(self):
+        """Serotonin should create mood stability over multiple events"""
+        serotonin = SerotoninSystem(baseline_level=0.7, stability_factor=0.8)
+
+        mood = 0.6
+        mood_changes = []
+
+        # Apply alternating positive/negative events
+        for i in range(10):
+            event_valence = 0.3 if i % 2 == 0 else -0.3
+            new_mood = serotonin.modulate_mood(mood, event_valence)
+            mood_changes.append(abs(new_mood - mood))
+            mood = new_mood
+
+        # Mood changes should be smaller than raw event valence
+        avg_change = sum(mood_changes) / len(mood_changes)
+        assert avg_change < 0.3  # Buffered compared to raw ±0.3
 
 
 class TestImpulseControl:
-    """Test 2: Impulse Control"""
+    """Test 3: Impulse Control & Patience"""
 
-    def test_high_mood_resists_temptation(self):
-        """High mood (high serotonin) should resist temptation"""
-        serotonin = SerotoninSystem(baseline_mood=0.9, impulse_threshold=0.7)
+    def test_high_serotonin_increases_patience(self):
+        """High serotonin should increase impulse control"""
+        serotonin = SerotoninSystem(
+            baseline_level=0.8,
+            patience_multiplier=1.5
+        )
 
-        temptation = 0.5
-        result = serotonin.compute_impulse_control(temptation_strength=temptation)
+        patience = serotonin.compute_impulse_control()
 
-        assert result["can_resist"] is True
-        assert result["control_strength"] > temptation
+        # High serotonin → high patience
+        assert patience > 0.7
 
-    def test_low_mood_succumbs_to_temptation(self):
-        """Low mood (low serotonin) should succumb to temptation"""
-        serotonin = SerotoninSystem(baseline_mood=0.3, impulse_threshold=0.7)
+    def test_low_serotonin_decreases_patience(self):
+        """Low serotonin should decrease impulse control (impulsive)"""
+        serotonin = SerotoninSystem(baseline_level=0.2)
 
-        temptation = 0.5
-        result = serotonin.compute_impulse_control(temptation_strength=temptation)
+        patience = serotonin.compute_impulse_control()
 
-        assert result["can_resist"] is False
-        assert result["control_strength"] < temptation
+        # Low serotonin → low patience (impulsive)
+        assert patience < 0.4
 
-    def test_resistance_margin_correct(self):
-        """Resistance margin should = control - temptation"""
-        serotonin = SerotoninSystem(baseline_mood=0.8, impulse_threshold=0.7)
+    def test_impulse_control_scaling(self):
+        """Impulse control should scale with serotonin level"""
+        serotonin_low = SerotoninSystem(baseline_level=0.3)
+        serotonin_mid = SerotoninSystem(baseline_level=0.5)
+        serotonin_high = SerotoninSystem(baseline_level=0.8)
 
-        temptation = 0.4
-        result = serotonin.compute_impulse_control(temptation_strength=temptation)
+        patience_low = serotonin_low.compute_impulse_control()
+        patience_mid = serotonin_mid.compute_impulse_control()
+        patience_high = serotonin_high.compute_impulse_control()
 
-        expected_control = 0.8 * 0.7
-        expected_margin = expected_control - temptation
-
-        assert result["resistance_margin"] == pytest.approx(expected_margin, abs=0.01)
-
-
-class TestPatienceFactor:
-    """Test 3: Patience Factor (Temporal Discounting)"""
-
-    def test_high_mood_increases_patience(self):
-        """High mood should increase patience (lower temporal discounting)"""
-        serotonin = SerotoninSystem(baseline_mood=0.9, patience_factor=1.0)
-
-        patience = serotonin.get_patience_factor()
-
-        assert patience > 1.0  # More patient than baseline
-
-    def test_low_mood_decreases_patience(self):
-        """Low mood should decrease patience (higher temporal discounting)"""
-        serotonin = SerotoninSystem(baseline_mood=0.3, patience_factor=1.0)
-
-        patience = serotonin.get_patience_factor()
-
-        assert patience < 1.0  # Less patient than baseline
+        assert patience_low < patience_mid < patience_high
 
 
-class TestEmotionalReactivity:
-    """Test 4: Emotional Reactivity Dampening"""
+class TestTemporalDiscounting:
+    """Test 4: Temporal Discounting & Future Valuation"""
 
-    def test_high_mood_dampens_reactivity(self):
-        """High mood should dampen emotional reactivity"""
-        serotonin = SerotoninSystem(baseline_mood=0.9, reactivity_dampening=0.5)
+    def test_high_serotonin_values_future_more(self):
+        """High serotonin should reduce temporal discounting (value future)"""
+        serotonin = SerotoninSystem(baseline_level=0.8)
 
-        reactivity = serotonin.modulate_reactivity(emotional_intensity=1.0)
+        # Discount rate for delayed reward
+        discount_rate = serotonin.compute_temporal_discount(delay=10.0)
 
-        assert reactivity < 1.0  # Dampened
+        # High serotonin → low discount rate (values future)
+        assert discount_rate < 0.5
 
-    def test_low_mood_preserves_reactivity(self):
-        """Low mood should preserve emotional reactivity"""
-        serotonin = SerotoninSystem(baseline_mood=0.2, reactivity_dampening=0.5)
+    def test_low_serotonin_devalues_future(self):
+        """Low serotonin should increase temporal discounting (impulsive)"""
+        serotonin = SerotoninSystem(baseline_level=0.2)
 
-        reactivity = serotonin.modulate_reactivity(emotional_intensity=1.0)
+        discount_rate = serotonin.compute_temporal_discount(delay=10.0)
 
-        assert reactivity > 0.8  # Less dampened
+        # Low serotonin → high discount rate (devalues future)
+        assert discount_rate > 0.6
+
+    def test_discount_increases_with_delay(self):
+        """Longer delays should increase discounting (standard hyperbolic)"""
+        serotonin = SerotoninSystem(baseline_level=0.5)
+
+        discount_short = serotonin.compute_temporal_discount(delay=1.0)
+        discount_medium = serotonin.compute_temporal_discount(delay=10.0)
+        discount_long = serotonin.compute_temporal_discount(delay=100.0)
+
+        # Longer delay → higher discount
+        assert discount_short < discount_medium < discount_long
 
 
-class TestMoodStability:
-    """Test 5: Mood Stability"""
+class TestSocialContextModulation:
+    """Test 5: Social Context Effects"""
 
-    def test_stable_mood_has_high_stability(self):
-        """Consistent mood should have high stability score"""
-        serotonin = SerotoninSystem()
+    def test_positive_social_boosts_serotonin(self):
+        """Positive social context should increase serotonin"""
+        serotonin = SerotoninSystem(baseline_level=0.5)
 
-        # Many events with same valence
-        for _ in range(20):
-            serotonin.update_mood(emotional_event=0.5)
+        initial_level = serotonin.current_level
 
-        stability = serotonin.get_mood_stability()
+        # Positive social context
+        serotonin.update_level(outcome=0.6, social_context=0.9)
 
-        assert stability > 0.8  # High stability
+        assert serotonin.current_level > initial_level
 
-    def test_volatile_mood_has_low_stability(self):
-        """Volatile mood should have low stability score"""
-        serotonin = SerotoninSystem(mood_inertia=0.5)  # Much lower inertia for volatility
+    def test_negative_social_lowers_serotonin(self):
+        """Negative social context should decrease serotonin"""
+        serotonin = SerotoninSystem(baseline_level=0.5)
 
-        # Alternating positive/negative events
-        for i in range(40):
-            event = 1.0 if i % 2 == 0 else -1.0
-            serotonin.update_mood(emotional_event=event)
+        initial_level = serotonin.current_level
 
-        stability = serotonin.get_mood_stability()
+        # Negative social context (isolation, conflict)
+        serotonin.update_level(outcome=0.6, social_context=0.1)
 
-        assert stability < 0.95  # Lower than stable mood (which is typically > 0.98)
+        # Should increase less than with positive social
+        # (social context moderates outcome effect)
+        serotonin_positive = SerotoninSystem(baseline_level=0.5)
+        serotonin_positive.update_level(outcome=0.6, social_context=0.9)
+
+        assert serotonin.current_level < serotonin_positive.current_level
+
+    def test_social_sensitivity(self):
+        """Serotonin should modulate social reward sensitivity"""
+        serotonin = SerotoninSystem(baseline_level=0.5)
+
+        # Social reward valuation should depend on serotonin
+        social_sensitivity = serotonin.compute_social_sensitivity()
+
+        assert 0.0 <= social_sensitivity <= 1.0
 
 
 class TestFullEventProcessing:
@@ -167,176 +256,339 @@ class TestFullEventProcessing:
         serotonin = SerotoninSystem()
 
         result = serotonin.process_event(
-            emotional_event=0.3,
-            temptation_strength=0.5
+            outcome=0.7,
+            social_context=0.6
         )
 
-        assert "mood_level" in result
+        # Verify all expected keys
+        assert "serotonin_level" in result
         assert "impulse_control" in result
-        assert "patience_factor" in result
-        assert "emotional_reactivity" in result
         assert "mood_stability" in result
+        assert "temporal_discount_rate" in result
+        assert "social_sensitivity" in result
 
-    def test_mood_history_window_maintained(self):
-        """Mood history should maintain fixed window size"""
-        serotonin = SerotoninSystem(history_window=10)
+    def test_history_tracking(self):
+        """Serotonin should maintain history window"""
+        serotonin = SerotoninSystem(history_window=5)
 
-        for i in range(25):
-            serotonin.process_event(emotional_event=0.2)
+        for i in range(10):
+            serotonin.process_event(outcome=0.6, social_context=0.5)
 
-        assert len(serotonin.mood_history) == 10  # Window maintained
+        # History should be limited to window size
+        assert len(serotonin.level_history) == 5
 
-    def test_total_events_counter(self):
+    def test_event_counter(self):
         """Should correctly count total events"""
         serotonin = SerotoninSystem()
 
-        for i in range(15):
-            serotonin.process_event(emotional_event=0.1)
+        for i in range(7):
+            serotonin.process_event(outcome=0.5, social_context=0.5)
 
-        assert serotonin.total_events == 15
+        assert serotonin.total_events == 7
 
 
 # ============================================================================
 # PHASE 2: INTEGRATION TESTS
 # ============================================================================
 
-class TestDopamineSerotoninInteraction:
+class TestIntegrationWithDopamine:
     """Test 7: Integration with LAB_013 (Dopamine)"""
 
-    def test_high_dopamine_low_serotonin_impulsive(self):
+    def test_dopamine_serotonin_balance(self):
         """
-        High dopamine (high RPE) + Low serotonin (low mood) = Impulsive behavior
+        Test the critical dopamine-serotonin balance
 
-        Simulates reward-seeking without patience
+        - High dopamine + low serotonin = impulsive reward-seeking
+        - High serotonin + low dopamine = patient but unmotivated
+        - Balanced = optimal (patient + motivated)
         """
-        # Low serotonin (low mood)
-        serotonin = SerotoninSystem(baseline_mood=0.3)
+        # Scenario 1: High dopamine, low serotonin (impulsive)
+        serotonin_low = SerotoninSystem(baseline_level=0.2)
+        patience_impulsive = serotonin_low.compute_impulse_control()
 
-        # Strong temptation (simulating high dopamine RPE)
-        result = serotonin.compute_impulse_control(temptation_strength=0.8)
+        # Scenario 2: Low dopamine, high serotonin (patient but sluggish)
+        serotonin_high = SerotoninSystem(baseline_level=0.9)
+        patience_high = serotonin_high.compute_impulse_control()
 
-        # Should NOT resist (impulsive)
-        assert result["can_resist"] is False
+        # Scenario 3: Balanced
+        serotonin_balanced = SerotoninSystem(baseline_level=0.6)
+        patience_balanced = serotonin_balanced.compute_impulse_control()
 
-    def test_balanced_dopamine_serotonin_optimal(self):
+        # High serotonin should have highest patience
+        assert patience_high > patience_balanced > patience_impulsive
+
+    def test_reward_timing_interaction(self):
         """
-        Balanced dopamine + serotonin = Optimal decision making
+        Dopamine RPE + Serotonin temporal discount interaction
 
-        Can pursue rewards but with patience
+        Serotonin affects how much future rewards are valued
         """
-        # Balanced serotonin
-        serotonin = SerotoninSystem(baseline_mood=0.6)
+        serotonin = SerotoninSystem(baseline_level=0.7)
 
-        # Moderate temptation
-        result = serotonin.compute_impulse_control(temptation_strength=0.3)
+        # High serotonin → patient → values delayed rewards more
+        discount_rate = serotonin.compute_temporal_discount(delay=10.0)
 
-        # Should resist moderate temptation
-        assert result["can_resist"] is True
+        # Should be willing to wait (low discount)
+        assert discount_rate < 0.6
 
-        # Should have reasonable patience
-        patience = serotonin.get_patience_factor()
-        assert 0.5 < patience < 1.5
+
+class TestIntegrationWithNorepinephrine:
+    """Test 8: Integration with LAB_015 (Norepinephrine - future)"""
+
+    def test_stress_buffering(self):
+        """
+        High serotonin should buffer stress-induced arousal
+
+        This simulates serotonin dampening NE stress response
+        """
+        serotonin_high = SerotoninSystem(baseline_level=0.8)
+        serotonin_low = SerotoninSystem(baseline_level=0.3)
+
+        # Apply stressful event
+        stress_event = -0.6
+
+        mood_high_serotonin = serotonin_high.modulate_mood(0.5, stress_event)
+        mood_low_serotonin = serotonin_low.modulate_mood(0.5, stress_event)
+
+        # High serotonin should buffer more (smaller mood drop)
+        drop_high = abs(mood_high_serotonin - 0.5)
+        drop_low = abs(mood_low_serotonin - 0.5)
+
+        assert drop_high < drop_low
+
+
+class TestIntegrationWithEmotionalSalience:
+    """Test 9: Integration with LAB_001 (Emotional Salience)"""
+
+    def test_mood_affects_salience_weighting(self):
+        """
+        Serotonin level should modulate emotional salience
+
+        Low serotonin → negative bias (depressive)
+        High serotonin → balanced emotional processing
+        """
+        serotonin_low = SerotoninSystem(baseline_level=0.2)
+        serotonin_high = SerotoninSystem(baseline_level=0.8)
+
+        # Low serotonin should show mood instability
+        mood_low = serotonin_low.modulate_mood(0.5, -0.2)
+        mood_high = serotonin_high.modulate_mood(0.5, -0.2)
+
+        # High serotonin buffers better
+        assert mood_high > mood_low
+
+
+class TestIntegrationWithDecayModulation:
+    """Test 10: Integration with LAB_002 (Decay Modulation)"""
+
+    def test_mood_affects_memory_consolidation(self):
+        """
+        Serotonin mood state should affect memory importance
+
+        Low serotonin → negative memories more salient
+        High serotonin → balanced memory formation
+        """
+        serotonin = SerotoninSystem(baseline_level=0.6)
+
+        # Get mood stability index
+        result = serotonin.process_event(outcome=0.6, social_context=0.5)
+        mood_stability = result["mood_stability"]
+
+        # Stable mood should support balanced memory formation
+        assert 0.0 <= mood_stability <= 1.0
 
 
 # ============================================================================
-# PHASE 3: EDGE CASES
+# PHASE 3: EDGE CASES & PERFORMANCE
 # ============================================================================
 
 class TestEdgeCases:
-    """Test 8: Edge Cases"""
+    """Test 11: Edge Cases"""
 
-    def test_extreme_positive_events_clamped(self):
-        """Extreme positive events should not exceed mood bounds"""
-        serotonin = SerotoninSystem(baseline_mood=0.5)
+    def test_extreme_outcomes(self):
+        """System should handle extreme outcome values"""
+        serotonin = SerotoninSystem()
 
-        # Many extremely positive events
-        for _ in range(100):
-            serotonin.update_mood(emotional_event=1.0)
+        # Maximum positive outcome
+        result_max = serotonin.process_event(outcome=1.0, social_context=1.0)
+        assert 0.0 <= result_max["serotonin_level"] <= 1.0
 
-        # Mood should not exceed 1.0
-        assert serotonin.mood_level <= 1.0
+        # Maximum negative outcome
+        serotonin_negative = SerotoninSystem()
+        result_min = serotonin_negative.process_event(outcome=0.0, social_context=0.0)
+        assert 0.0 <= result_min["serotonin_level"] <= 1.0
 
-    def test_extreme_negative_events_clamped(self):
-        """Extreme negative events should not go below mood bounds"""
-        serotonin = SerotoninSystem(baseline_mood=0.5)
+    def test_rapid_fluctuations(self):
+        """System should handle rapid outcome changes"""
+        serotonin = SerotoninSystem()
 
-        # Many extremely negative events
-        for _ in range(100):
-            serotonin.update_mood(emotional_event=-1.0)
+        # Rapid alternating outcomes
+        for i in range(20):
+            outcome = 1.0 if i % 2 == 0 else 0.0
+            result = serotonin.process_event(outcome, social_context=0.5)
 
-        # Mood should not go below 0.0
-        assert serotonin.mood_level >= 0.0
+        # Should remain stable (not crash or diverge)
+        assert 0.0 <= serotonin.current_level <= 1.0
 
-    def test_zero_temptation_always_resists(self):
-        """With zero temptation, should always resist"""
-        serotonin = SerotoninSystem(baseline_mood=0.1)  # Very low mood
+    def test_zero_stability_factor(self):
+        """Zero stability factor should allow full mood swings"""
+        serotonin = SerotoninSystem(
+            baseline_level=0.5,
+            stability_factor=0.0
+        )
 
-        result = serotonin.compute_impulse_control(temptation_strength=0.0)
+        # With zero buffering, mood should change drastically
+        mood = serotonin.modulate_mood(0.5, -0.5)
 
-        assert result["can_resist"] is True  # Even low mood resists zero temptation
+        # Should allow large change (no buffering)
+        assert abs(mood - 0.5) > 0.3
+
+    def test_maximum_stability_factor(self):
+        """Maximum stability factor should heavily buffer mood"""
+        serotonin = SerotoninSystem(
+            baseline_level=0.8,
+            stability_factor=1.0
+        )
+
+        # With max buffering, mood should barely change
+        mood = serotonin.modulate_mood(0.5, -0.5)
+
+        # Should buffer significantly
+        assert abs(mood - 0.5) < 0.3
 
 
 class TestStatePersistence:
-    """Test 9: State Persistence"""
+    """Test 12: State Persistence"""
 
     def test_get_state_returns_complete_state(self):
         """get_state should return all state variables"""
         serotonin = SerotoninSystem()
 
         # Generate some history
-        for i in range(10):
-            serotonin.process_event(emotional_event=0.2)
+        for i in range(5):
+            serotonin.process_event(outcome=0.6, social_context=0.5)
 
         state = serotonin.get_state()
 
         # Verify all expected keys
-        assert "mood_level" in state
-        assert "mood_history" in state
-        assert "mood_mean" in state
-        assert "mood_stability" in state
-        assert "impulse_control_strength" in state
-        assert "patience_factor" in state
+        assert "serotonin_level" in state
+        assert "level_history" in state
+        assert "level_mean" in state
+        assert "impulse_control" in state
+        assert "mood_stability_index" in state
+        assert "temporal_discount_baseline" in state
+        assert "social_sensitivity" in state
         assert "total_events" in state
 
     def test_state_consistency(self):
         """State should be consistent across calls"""
         serotonin = SerotoninSystem()
 
-        serotonin.process_event(emotional_event=0.3)
+        serotonin.process_event(outcome=0.7, social_context=0.6)
 
         state1 = serotonin.get_state()
         state2 = serotonin.get_state()
 
         # State should be identical if no new events
         assert state1["total_events"] == state2["total_events"]
-        assert state1["mood_level"] == state2["mood_level"]
+        assert state1["serotonin_level"] == state2["serotonin_level"]
+
+    def test_history_window_management(self):
+        """History window should maintain fixed size"""
+        serotonin = SerotoninSystem(history_window=7)
+
+        # Generate more events than window size
+        for i in range(15):
+            serotonin.process_event(outcome=0.5, social_context=0.5)
+
+        # History should be capped at window size
+        assert len(serotonin.level_history) == 7
+
+
+class TestLongTermDynamics:
+    """Test 13: Long-term System Dynamics"""
+
+    def test_homeostatic_regulation(self):
+        """Serotonin should regulate toward baseline over time"""
+        serotonin = SerotoninSystem(baseline_level=0.5)
+
+        # Spike serotonin high
+        for _ in range(10):
+            serotonin.process_event(outcome=1.0, social_context=1.0)
+
+        serotonin_high = serotonin.current_level
+
+        # Apply neutral events (should drift toward baseline)
+        for _ in range(20):
+            serotonin.process_event(outcome=0.5, social_context=0.5)
+
+        # Should be closer to baseline than peak
+        assert abs(serotonin.current_level - 0.5) < abs(serotonin_high - 0.5)
+
+    def test_sustained_low_mood(self):
+        """Prolonged negative outcomes should create sustained low serotonin"""
+        serotonin = SerotoninSystem(baseline_level=0.5)
+
+        # Sustained negative outcomes (depression model)
+        for _ in range(15):
+            serotonin.process_event(outcome=0.2, social_context=0.3)
+
+        # Serotonin should be chronically low
+        assert serotonin.current_level < 0.4
+
+    def test_recovery_dynamics(self):
+        """Recovery from low serotonin should be gradual"""
+        serotonin = SerotoninSystem(baseline_level=0.5)
+
+        # Create low serotonin state
+        for _ in range(10):
+            serotonin.process_event(outcome=0.1, social_context=0.2)
+
+        low_level = serotonin.current_level
+
+        # Apply single positive event
+        serotonin.process_event(outcome=0.9, social_context=0.8)
+
+        # Should improve, but not instantly recover
+        assert serotonin.current_level > low_level
+        assert serotonin.current_level < 0.7  # Gradual recovery
 
 
 # ============================================================================
-# FIXTURES
+# FIXTURES & UTILITIES
 # ============================================================================
 
 @pytest.fixture
 def fresh_serotonin():
     """Fixture: Fresh SerotoninSystem instance"""
     return SerotoninSystem(
-        baseline_mood=0.5,
-        impulse_threshold=0.7,
-        patience_factor=1.0,
-        reactivity_dampening=0.5,
-        mood_inertia=0.95,
+        baseline_level=0.5,
+        stability_factor=0.7,
+        patience_multiplier=1.5,
         history_window=20
     )
 
 
 @pytest.fixture
 def serotonin_with_history():
-    """Fixture: SerotoninSystem with mood history"""
+    """Fixture: SerotoninSystem with some history"""
     serotonin = SerotoninSystem()
 
-    # Generate 15 positive events
+    # Generate 10 positive events
+    for _ in range(10):
+        serotonin.process_event(outcome=0.7, social_context=0.6)
+
+    return serotonin
+
+
+@pytest.fixture
+def serotonin_depleted():
+    """Fixture: SerotoninSystem in depleted state (depression model)"""
+    serotonin = SerotoninSystem(baseline_level=0.5)
+
+    # Create depletion via sustained negative outcomes
     for _ in range(15):
-        serotonin.process_event(emotional_event=0.3)
+        serotonin.process_event(outcome=0.2, social_context=0.3)
 
     return serotonin
 

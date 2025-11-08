@@ -1,7 +1,25 @@
 """
 LAB_016: Acetylcholine System - Test Suite
 
-TDD (Test-Driven Development) approach
+TDD (Test-Driven Development) approach:
+1. RED: Write failing tests first
+2. GREEN: Implement code to pass tests
+3. REFACTOR: Optimize while keeping tests passing
+
+Biological Inspiration:
+- Basal forebrain cholinergic neurons
+- Hasselmo (2006) - "The role of acetylcholine in learning and memory"
+
+Core Functions:
+- Attention amplification (enhances signal-to-noise)
+- Encoding strength (high ACh → strong memory formation)
+- Learning rate modulation (ACh gates plasticity)
+- Stimulus selectivity (enhances relevant, suppresses irrelevant)
+
+Test Phases:
+- Phase 1: Core ACh Tests (basic functionality)
+- Phase 2: Integration Tests (with other LABs)
+- Phase 3: Edge Cases & Performance
 """
 
 import pytest
@@ -16,323 +34,394 @@ from LAYER_4_Neurochemistry_Full.LAB_016_Acetylcholine_System import Acetylcholi
 
 
 # ============================================================================
-# PHASE 1: CORE FUNCTIONALITY TESTS
+# PHASE 1: CORE ACETYLCHOLINE TESTS
 # ============================================================================
 
-class TestAChUpdate:
-    """Test 1: ACh Update Mechanism"""
+class TestBasicACh:
+    """Test 1: Basic ACh Level Management"""
 
-    def test_novelty_increases_ach(self):
-        """Novel stimuli should increase ACh"""
-        ach = AcetylcholineSystem(baseline_ach=0.5)
-
-        for _ in range(10):
-            ach.update_ach(novelty=0.6, attention_demand=0.3)
-
-        assert ach.ach_level > 0.5  # ACh increased
+    def test_ach_baseline(self):
+        """ACh should start at baseline"""
+        ach = AcetylcholineSystem(baseline_level=0.5)
+        assert ach.current_level == pytest.approx(0.5)
 
     def test_attention_demand_increases_ach(self):
-        """High attention demand should increase ACh"""
-        ach = AcetylcholineSystem(baseline_ach=0.5)
+        """Attention demand should increase ACh"""
+        ach = AcetylcholineSystem(baseline_level=0.5)
+        initial = ach.current_level
 
-        for _ in range(15):
-            ach.update_ach(novelty=0.2, attention_demand=0.8)
+        ach.update_level(attention_demand=0.8, learning_context=False)
 
-        assert ach.ach_level > 0.5  # ACh increased
+        assert ach.current_level > initial
 
-    def test_ach_decays_toward_baseline(self):
-        """ACh should decay back toward baseline over time"""
-        ach = AcetylcholineSystem(baseline_ach=0.5, ach_decay=0.85)
+    def test_learning_context_activates_ach(self):
+        """Learning context should strongly activate ACh"""
+        ach = AcetylcholineSystem(baseline_level=0.5)
+        initial = ach.current_level
 
-        # Spike ACh high
-        ach.update_ach(novelty=1.0, attention_demand=1.0)
-        ach_after_spike = ach.ach_level
+        ach.update_level(attention_demand=0.5, learning_context=True)
 
-        # Let it decay (no novelty/attention)
+        assert ach.current_level > initial
+
+    def test_ach_level_bounds(self):
+        """ACh should be clamped between 0 and 1"""
+        ach = AcetylcholineSystem()
+
+        # Test upper bound
         for _ in range(20):
-            ach.update_ach(novelty=0.0, attention_demand=0.0)
+            ach.update_level(attention_demand=1.0, learning_context=True)
 
-        # Should have decayed toward baseline (0.5)
-        assert ach.ach_level < ach_after_spike
-        assert abs(ach.ach_level - 0.5) < abs(ach_after_spike - 0.5)
+        assert 0.0 <= ach.current_level <= 1.0
 
 
 class TestAttentionAmplification:
-    """Test 2: Attention Amplification"""
+    """Test 2: Attention Gain Modulation"""
 
     def test_high_ach_amplifies_attention(self):
         """High ACh should amplify attention signal"""
-        ach = AcetylcholineSystem(baseline_ach=0.9, amplification_gain=0.3)
+        ach = AcetylcholineSystem(baseline_level=0.5)
 
-        base_attention = 0.5
-        amplified = ach.amplify_attention(base_attention)
+        # Set high ACh
+        ach.current_level = 0.9
 
-        assert amplified > base_attention  # Amplified
+        attention_gain = ach.compute_attention_gain(stimulus_relevance=0.8)
 
-    def test_low_ach_baseline_attention(self):
-        """Low ACh should give baseline attention (minimal amplification)"""
-        ach = AcetylcholineSystem(baseline_ach=0.1, amplification_gain=0.3)
+        # High ACh + high relevance → strong amplification
+        assert attention_gain > 1.5
 
-        base_attention = 0.5
-        amplified = ach.amplify_attention(base_attention)
+    def test_low_ach_minimal_amplification(self):
+        """Low ACh should give minimal amplification"""
+        ach = AcetylcholineSystem(baseline_level=0.5)
 
-        assert amplified < base_attention * 1.1  # Minimal amplification
+        # Set low ACh
+        ach.current_level = 0.2
 
-    def test_amplification_clamped(self):
-        """Amplification should not exceed 1.0"""
-        ach = AcetylcholineSystem(baseline_ach=1.0, amplification_gain=0.5)
+        attention_gain = ach.compute_attention_gain(stimulus_relevance=0.5)
 
-        base_attention = 0.9
-        amplified = ach.amplify_attention(base_attention)
+        # Low ACh → minimal amplification (close to 1.0)
+        assert 1.0 <= attention_gain < 1.5
 
-        assert amplified <= 1.0  # Clamped
+    def test_irrelevant_stimuli_suppressed(self):
+        """Irrelevant stimuli should be suppressed"""
+        ach = AcetylcholineSystem(baseline_level=0.5)
 
+        # Set moderate ACh
+        ach.current_level = 0.7
 
-class TestEncodingModulation:
-    """Test 3: Encoding Modulation"""
+        # Low relevance should give low gain
+        gain_low = ach.compute_attention_gain(stimulus_relevance=0.2)
+        gain_high = ach.compute_attention_gain(stimulus_relevance=0.8)
 
-    def test_encoding_mode_strong_encoding(self):
-        """Encoding mode with high ACh should give strong encoding"""
-        ach = AcetylcholineSystem(baseline_ach=0.8, encoding_threshold=0.6)
-        ach.set_mode("encoding")
-
-        result = ach.modulate_encoding(base_encoding_strength=0.5)
-
-        assert result["is_strong_encoding"] is True
-        assert result["encoding_strength"] > 0.5  # Boosted
-
-    def test_recall_mode_weak_encoding(self):
-        """Recall mode should reduce encoding (consolidation phase)"""
-        ach = AcetylcholineSystem(baseline_ach=0.8)
-        ach.set_mode("recall")
-
-        result = ach.modulate_encoding(base_encoding_strength=0.5)
-
-        assert result["is_strong_encoding"] is False
-        assert result["encoding_strength"] < 0.5  # Reduced
-
-    def test_low_ach_weak_encoding(self):
-        """Low ACh should give weak encoding even in encoding mode"""
-        ach = AcetylcholineSystem(baseline_ach=0.3, encoding_threshold=0.6)
-        ach.set_mode("encoding")
-
-        result = ach.modulate_encoding(base_encoding_strength=0.5)
-
-        assert result["is_strong_encoding"] is False  # Below threshold
+        assert gain_low < gain_high
 
 
-class TestLearningReadiness:
-    """Test 4: Learning Readiness"""
+class TestEncodingStrength:
+    """Test 3: Memory Encoding Enhancement"""
 
-    def test_high_ach_ready_to_learn(self):
-        """High ACh should indicate readiness to learn"""
-        ach = AcetylcholineSystem(baseline_ach=0.8, encoding_threshold=0.6)
+    def test_high_ach_boosts_encoding(self):
+        """High ACh should boost memory encoding"""
+        ach = AcetylcholineSystem(baseline_level=0.5, encoding_boost=1.5)
 
-        result = ach.compute_learning_readiness()
+        # Set high ACh
+        ach.current_level = 0.9
 
-        assert result["is_ready_to_learn"] is True
-        assert result["plasticity_gate"] > 0.6  # High plasticity
+        base_strength = 0.5
+        boosted_strength = ach.compute_encoding_strength(base_strength)
 
-    def test_low_ach_not_ready(self):
-        """Low ACh should indicate not ready to learn (consolidation)"""
-        ach = AcetylcholineSystem(baseline_ach=0.3, encoding_threshold=0.6)
+        assert boosted_strength > base_strength
 
-        result = ach.compute_learning_readiness()
+    def test_low_ach_baseline_encoding(self):
+        """Low ACh should give near-baseline encoding"""
+        ach = AcetylcholineSystem(baseline_level=0.5, encoding_boost=1.5)
 
-        assert result["is_ready_to_learn"] is False
-        assert result["plasticity_gate"] < 0.6  # Low plasticity
+        # Set low ACh
+        ach.current_level = 0.2
+
+        base_strength = 0.5
+        boosted_strength = ach.compute_encoding_strength(base_strength)
+
+        # Should be close to base (minimal boost)
+        assert base_strength <= boosted_strength < base_strength * 1.3
+
+    def test_encoding_bounded(self):
+        """Encoding strength should not exceed 1.0"""
+        ach = AcetylcholineSystem(baseline_level=0.5, encoding_boost=2.0)
+
+        # Set max ACh
+        ach.current_level = 1.0
+
+        base_strength = 0.9
+        boosted_strength = ach.compute_encoding_strength(base_strength)
+
+        assert boosted_strength <= 1.0
 
 
-class TestModeSwitch:
-    """Test 5: Mode Switching"""
+class TestLearningRateModulation:
+    """Test 4: Learning Rate Gating"""
 
-    def test_set_encoding_mode(self):
-        """Should be able to set encoding mode"""
+    def test_high_ach_increases_learning_rate(self):
+        """High ACh should gate plasticity (increase LR)"""
+        ach = AcetylcholineSystem(baseline_level=0.5)
+
+        # Set high ACh (learning mode)
+        ach.current_level = 0.9
+
+        base_lr = 0.1
+        modulated_lr = ach.compute_learning_rate_modulation(base_lr)
+
+        assert modulated_lr > base_lr
+
+    def test_low_ach_reduces_learning_rate(self):
+        """Low ACh should reduce plasticity"""
+        ach = AcetylcholineSystem(baseline_level=0.5)
+
+        # Set low ACh
+        ach.current_level = 0.2
+
+        base_lr = 0.1
+        modulated_lr = ach.compute_learning_rate_modulation(base_lr)
+
+        # Should be close to or below base
+        assert modulated_lr <= base_lr * 1.2
+
+    def test_learning_rate_bounded(self):
+        """Learning rate should remain in reasonable bounds"""
+        ach = AcetylcholineSystem(baseline_level=0.5)
+
+        # Set max ACh
+        ach.current_level = 1.0
+
+        base_lr = 0.1
+        modulated_lr = ach.compute_learning_rate_modulation(base_lr)
+
+        # Should not explode (reasonable upper bound)
+        assert modulated_lr < base_lr * 3.0
+
+
+class TestSNREnhancement:
+    """Test 5: Signal-to-Noise Ratio Enhancement"""
+
+    def test_high_ach_improves_snr(self):
+        """High ACh should improve signal-to-noise ratio"""
+        ach = AcetylcholineSystem(baseline_level=0.5)
+
+        # Set high ACh
+        ach.current_level = 0.9
+
+        snr_enhancement = ach.compute_snr_enhancement()
+
+        # High ACh → strong SNR enhancement
+        assert snr_enhancement > 0.7
+
+    def test_low_ach_minimal_snr_enhancement(self):
+        """Low ACh should give minimal SNR enhancement"""
+        ach = AcetylcholineSystem(baseline_level=0.5)
+
+        # Set low ACh
+        ach.current_level = 0.2
+
+        snr_enhancement = ach.compute_snr_enhancement()
+
+        # Low ACh → minimal SNR enhancement
+        assert snr_enhancement < 0.5
+
+    def test_snr_scales_with_ach(self):
+        """SNR enhancement should scale with ACh level"""
+        ach = AcetylcholineSystem(baseline_level=0.5)
+
+        # Test multiple ACh levels
+        ach.current_level = 0.3
+        snr_low = ach.compute_snr_enhancement()
+
+        ach.current_level = 0.7
+        snr_high = ach.compute_snr_enhancement()
+
+        assert snr_high > snr_low
+
+
+class TestFullEventProcessing:
+    """Test 6: Full Event Processing"""
+
+    def test_process_event_returns_complete_state(self):
+        """process_event should return all ACh outputs"""
         ach = AcetylcholineSystem()
-        ach.set_mode("encoding")
 
-        assert ach.mode == "encoding"
-
-    def test_set_recall_mode(self):
-        """Should be able to set recall mode"""
-        ach = AcetylcholineSystem()
-        ach.set_mode("recall")
-
-        assert ach.mode == "recall"
-
-
-class TestAChStability:
-    """Test 6: ACh Stability"""
-
-    def test_stable_ach_has_high_stability(self):
-        """Consistent ACh should have high stability score"""
-        ach = AcetylcholineSystem()
-
-        # Many events with same intensity
-        for _ in range(20):
-            ach.update_ach(novelty=0.3, attention_demand=0.3)
-
-        stability = ach.get_ach_stability()
-
-        assert stability > 0.8  # High stability
-
-    def test_volatile_ach_has_low_stability(self):
-        """Volatile ACh should have low stability score"""
-        ach = AcetylcholineSystem(ach_decay=0.5, novelty_sensitivity=1.0)
-
-        # Alternating extreme novelty levels
-        for i in range(50):
-            novelty = 1.0 if i % 2 == 0 else 0.0
-            attention = 1.0 if i % 2 == 0 else 0.0
-            ach.update_ach(novelty=novelty, attention_demand=attention)
-
-        stability = ach.get_ach_stability()
-
-        assert stability < 0.99  # Lower than stable (which would be >0.99)
-
-
-class TestFullProcessing:
-    """Test 7: Full Stimulus Processing"""
-
-    def test_process_stimulus_returns_complete_state(self):
-        """process_stimulus should return all ACh outputs"""
-        ach = AcetylcholineSystem()
-
-        result = ach.process_stimulus(
-            novelty=0.5,
-            attention_demand=0.4,
-            base_attention=0.5,
-            base_encoding_strength=0.5
+        result = ach.process_event(
+            attention_demand=0.7,
+            learning=True
         )
 
+        # Verify all expected keys
         assert "ach_level" in result
-        assert "amplified_attention" in result
-        assert "encoding" in result
-        assert "learning_readiness" in result
-        assert "ach_stability" in result
+        assert "attention_gain" in result
+        assert "encoding_strength" in result
+        assert "learning_rate_modulation" in result
+        assert "snr_enhancement" in result
 
-    def test_ach_history_window_maintained(self):
-        """ACh history should maintain fixed window size"""
-        ach = AcetylcholineSystem(history_window=10)
+    def test_learning_mode_activates_ach(self):
+        """Learning mode should strongly activate ACh"""
+        ach = AcetylcholineSystem(baseline_level=0.5)
 
-        for i in range(25):
-            ach.process_stimulus(novelty=0.3, attention_demand=0.3)
+        # No learning
+        result_no_learning = ach.process_event(attention_demand=0.5, learning=False)
+        level_no_learning = result_no_learning["ach_level"]
 
-        assert len(ach.ach_history) == 10  # Window maintained
+        # With learning
+        ach2 = AcetylcholineSystem(baseline_level=0.5)
+        result_learning = ach2.process_event(attention_demand=0.5, learning=True)
+        level_learning = result_learning["ach_level"]
 
-    def test_total_events_counter(self):
+        assert level_learning > level_no_learning
+
+    def test_history_tracking(self):
+        """ACh should maintain level history"""
+        ach = AcetylcholineSystem(history_window=5)
+
+        for i in range(10):
+            ach.process_event(attention_demand=0.6, learning=(i % 2 == 0))
+
+        # History should be limited to window size
+        assert len(ach.level_history) == 5
+
+    def test_event_counter(self):
         """Should correctly count total events"""
         ach = AcetylcholineSystem()
 
-        for i in range(15):
-            ach.process_stimulus(novelty=0.2, attention_demand=0.2)
+        for i in range(7):
+            ach.process_event(attention_demand=0.5, learning=False)
 
-        assert ach.total_events == 15
+        assert ach.total_events == 7
 
 
 # ============================================================================
 # PHASE 2: INTEGRATION TESTS
 # ============================================================================
 
-class TestNoveltyAttentionInteraction:
-    """Test 8: Novelty + Attention Interaction"""
+class TestIntegrationWithNorepinephrine:
+    """Test 7: Integration with LAB_015 (Norepinephrine)"""
 
-    def test_high_novelty_high_attention_strong_effect(self):
+    def test_ach_ne_attention_synergy(self):
         """
-        High novelty + high attention = strong ACh spike
+        ACh selectivity + NE arousal = focused attention
+
+        High ACh enhances relevant stimuli
+        NE arousal provides energy/focus
+        Together = strong selective attention
         """
-        ach = AcetylcholineSystem(baseline_ach=0.5)
+        ach = AcetylcholineSystem(baseline_level=0.7)
 
-        result = ach.process_stimulus(
-            novelty=0.9,
-            attention_demand=0.9,
-            base_attention=0.5
-        )
+        # Simulate high ACh (attention amplification)
+        attention_gain = ach.compute_attention_gain(stimulus_relevance=0.9)
 
-        # ACh should spike significantly
-        assert result["ach_level"] > 0.7
-        # Attention should be amplified
-        assert result["amplified_attention"] > 0.5
+        # High ACh should give strong amplification
+        assert attention_gain > 1.5
 
-    def test_encoding_recall_cycle(self):
+
+class TestIntegrationWithDopamine:
+    """Test 8: Integration with LAB_013 (Dopamine)"""
+
+    def test_ach_dopamine_learning_synergy(self):
         """
-        Encoding mode (high ACh) → Recall mode (low ACh) cycle
+        ACh gates plasticity + dopamine RPE = effective learning
+
+        ACh opens learning gate (high LR)
+        Dopamine provides learning signal (RPE)
+        Together = strong learning
         """
-        ach = AcetylcholineSystem(baseline_ach=0.7, encoding_threshold=0.6)
+        ach = AcetylcholineSystem(baseline_level=0.8)
 
-        # Encoding mode
-        ach.set_mode("encoding")
-        result_encoding = ach.process_stimulus(novelty=0.5, attention_demand=0.5)
+        # Simulate learning mode (high ACh)
+        base_lr = 0.1
+        gated_lr = ach.compute_learning_rate_modulation(base_lr)
 
-        assert result_encoding["encoding"]["is_strong_encoding"] is True
+        # High ACh should increase learning rate
+        assert gated_lr > base_lr * 1.3
 
-        # Switch to recall mode
-        ach.set_mode("recall")
-        result_recall = ach.process_stimulus(novelty=0.1, attention_demand=0.1)
 
-        assert result_recall["encoding"]["is_strong_encoding"] is False
+class TestIntegrationWithNovelty:
+    """Test 9: Integration with LAB_004 (Novelty Detection)"""
+
+    def test_novelty_triggers_ach_spike(self):
+        """
+        Novel stimuli should trigger ACh spike (attention capture)
+
+        Novelty detected → ACh spike → attention amplification + encoding boost
+        """
+        ach = AcetylcholineSystem(baseline_level=0.5)
+
+        # Simulate novelty event (high attention demand)
+        result = ach.process_event(attention_demand=0.9, learning=False)
+
+        # Should increase ACh
+        assert result["ach_level"] > 0.5
 
 
 # ============================================================================
-# PHASE 3: EDGE CASES
+# PHASE 3: EDGE CASES & PERFORMANCE
 # ============================================================================
 
 class TestEdgeCases:
-    """Test 9: Edge Cases"""
+    """Test 10: Edge Cases"""
 
-    def test_extreme_novelty_clamped(self):
-        """Extreme novelty should not exceed ACh bounds"""
-        ach = AcetylcholineSystem(baseline_ach=0.5)
+    def test_extreme_attention_demand(self):
+        """System should handle extreme attention demand"""
+        ach = AcetylcholineSystem()
 
-        # Many extremely novel stimuli
-        for _ in range(50):
-            ach.update_ach(novelty=1.0, attention_demand=1.0)
+        result = ach.process_event(attention_demand=1.0, learning=True)
 
-        # ACh should not exceed 1.0
-        assert ach.ach_level <= 1.0
+        # Should remain bounded
+        assert 0.0 <= result["ach_level"] <= 1.0
 
-    def test_extreme_decay_clamped(self):
-        """Extreme decay should not go below ACh bounds"""
-        ach = AcetylcholineSystem(baseline_ach=0.5)
+    def test_zero_attention(self):
+        """System should handle zero attention"""
+        ach = AcetylcholineSystem()
 
-        # Spike high first
-        ach.update_ach(novelty=1.0, attention_demand=1.0)
+        result = ach.process_event(attention_demand=0.0, learning=False)
 
-        # Then many decay cycles
-        for _ in range(100):
-            ach.update_ach(novelty=0.0, attention_demand=0.0)
+        # Should work normally
+        assert 0.0 <= result["ach_level"] <= 1.0
 
-        # ACh should not go below 0.0
-        assert ach.ach_level >= 0.0
+    def test_rapid_context_switches(self):
+        """System should handle rapid learning/non-learning switches"""
+        ach = AcetylcholineSystem()
+
+        # Rapid alternating learning/non-learning
+        for i in range(20):
+            learning = (i % 2 == 0)
+            ach.process_event(attention_demand=0.5, learning=learning)
+
+        # Should remain stable
+        assert 0.0 <= ach.current_level <= 1.0
 
 
 class TestStatePersistence:
-    """Test 10: State Persistence"""
+    """Test 11: State Persistence"""
 
     def test_get_state_returns_complete_state(self):
         """get_state should return all state variables"""
         ach = AcetylcholineSystem()
 
         # Generate some history
-        for i in range(10):
-            ach.process_stimulus(novelty=0.3, attention_demand=0.3)
+        for i in range(5):
+            ach.process_event(attention_demand=0.6, learning=(i < 3))
 
         state = ach.get_state()
 
         # Verify all expected keys
         assert "ach_level" in state
-        assert "ach_history" in state
-        assert "ach_mean" in state
-        assert "ach_stability" in state
-        assert "mode" in state
-        assert "learning_readiness" in state
+        assert "level_history" in state
+        assert "level_mean" in state
+        assert "attention_gain" in state
+        assert "encoding_strength" in state
+        assert "learning_rate_modulation" in state
+        assert "snr_enhancement" in state
         assert "total_events" in state
 
     def test_state_consistency(self):
         """State should be consistent across calls"""
         ach = AcetylcholineSystem()
 
-        ach.process_stimulus(novelty=0.3, attention_demand=0.3)
+        ach.process_event(attention_demand=0.7, learning=True)
 
         state1 = ach.get_state()
         state2 = ach.get_state()
@@ -342,31 +431,62 @@ class TestStatePersistence:
         assert state1["ach_level"] == state2["ach_level"]
 
 
+class TestLongTermDynamics:
+    """Test 12: Long-term Dynamics"""
+
+    def test_sustained_learning_mode(self):
+        """Prolonged learning should maintain high ACh"""
+        ach = AcetylcholineSystem(baseline_level=0.5)
+
+        # Sustained learning
+        for _ in range(15):
+            ach.process_event(attention_demand=0.7, learning=True)
+
+        # ACh should be elevated
+        assert ach.current_level > 0.6
+
+    def test_ach_decays_without_demand(self):
+        """ACh should decay toward baseline without attention demand"""
+        ach = AcetylcholineSystem(baseline_level=0.5)
+
+        # Spike ACh high
+        for _ in range(10):
+            ach.process_event(attention_demand=0.9, learning=True)
+
+        high_level = ach.current_level
+
+        # Apply low-demand events
+        for _ in range(10):
+            ach.process_event(attention_demand=0.1, learning=False)
+
+        # Should decrease
+        assert ach.current_level < high_level
+
+
 # ============================================================================
-# FIXTURES
+# FIXTURES & UTILITIES
 # ============================================================================
 
 @pytest.fixture
 def fresh_acetylcholine():
     """Fixture: Fresh AcetylcholineSystem instance"""
     return AcetylcholineSystem(
-        baseline_ach=0.5,
-        amplification_gain=0.3,
-        encoding_threshold=0.6,
-        novelty_sensitivity=0.4,
-        ach_decay=0.9,
-        history_window=20
+        baseline_level=0.5,
+        attention_gain=2.0,
+        encoding_boost=1.5,
+        selectivity_factor=0.8,
+        history_window=10
     )
 
 
 @pytest.fixture
-def acetylcholine_with_history():
-    """Fixture: AcetylcholineSystem with ACh history"""
-    ach = AcetylcholineSystem()
+def ach_learning_mode():
+    """Fixture: AcetylcholineSystem in learning mode"""
+    ach = AcetylcholineSystem(baseline_level=0.5)
 
-    # Generate 15 stimuli
-    for _ in range(15):
-        ach.process_stimulus(novelty=0.4, attention_demand=0.4)
+    # Create learning mode (high ACh)
+    for _ in range(10):
+        ach.process_event(attention_demand=0.8, learning=True)
 
     return ach
 

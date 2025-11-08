@@ -4,14 +4,18 @@ LAB_016: Acetylcholine System
 Attention amplification, learning enhancement, and encoding strength.
 
 Biological Inspiration:
-- Basal forebrain (nucleus basalis)
-- Cholinergic projections to cortex/hippocampus
+- Basal forebrain cholinergic neurons (nucleus basalis)
+- Cholinergic projections to cortex and hippocampus
 
-Core Function: Attention gating & encoding/recall modulation
+Core Functions:
+- Attention amplification (enhances signal-to-noise)
+- Encoding strength (high ACh → strong memory formation)
+- Learning rate modulation (ACh gates plasticity)
+- Stimulus selectivity (enhances relevant, suppresses irrelevant)
 
 Key Papers:
-- Hasselmo, M. E. (2006). "The role of acetylcholine in learning and memory"
-- Sarter, M., Parikh, V., & Howe, W. M. (2009). "Phasic acetylcholine release and the volume transmission hypothesis"
+- Hasselmo (2006) - "The role of acetylcholine in learning and memory"
+- Sarter et al. (2009) - "Phasic acetylcholine release and the volume transmission hypothesis"
 """
 
 from typing import Dict, List
@@ -26,272 +30,222 @@ class AcetylcholineSystem:
 
     Parameters:
     -----------
-    baseline_ach : float
-        Initial ACh level (default: 0.5, medium)
-    amplification_gain : float
-        How much ACh amplifies attention (default: 0.3)
-    encoding_threshold : float
-        ACh threshold for strong encoding (default: 0.6)
-    novelty_sensitivity : float
-        How much novelty spikes ACh (default: 0.4)
-    ach_decay : float
-        Decay rate toward baseline (default: 0.9)
+    baseline_level : float
+        Baseline ACh level (default: 0.5, medium)
+    attention_gain : float
+        Attention amplification multiplier (default: 2.0)
+    encoding_boost : float
+        Encoding strength boost multiplier (default: 1.5)
+    selectivity_factor : float
+        Stimulus selectivity strength (default: 0.8)
     history_window : int
-        Size of ACh history buffer (default: 20)
+        Size of ACh history buffer (default: 10)
     """
 
     def __init__(
         self,
-        baseline_ach: float = 0.5,
-        amplification_gain: float = 0.3,
-        encoding_threshold: float = 0.6,
-        novelty_sensitivity: float = 0.4,
-        ach_decay: float = 0.9,
-        history_window: int = 20
+        baseline_level: float = 0.5,
+        attention_gain: float = 2.0,
+        encoding_boost: float = 1.5,
+        selectivity_factor: float = 0.8,
+        history_window: int = 10
     ):
         # Configuration
-        self.baseline_ach = baseline_ach
-        self.amplification_gain = amplification_gain
-        self.encoding_threshold = encoding_threshold
-        self.novelty_sensitivity = novelty_sensitivity
-        self.ach_decay = ach_decay
+        self.baseline_level = baseline_level
+        self.attention_gain = attention_gain
+        self.encoding_boost = encoding_boost
+        self.selectivity_factor = selectivity_factor
         self.history_window = history_window
 
         # State
-        self.ach_level: float = baseline_ach
-        self.ach_history: List[float] = []
-        self.mode: str = "encoding"  # "encoding" or "recall"
+        self.current_level: float = baseline_level
+        self.level_history: List[float] = []
         self.total_events: int = 0
 
-    def update_ach(self, novelty: float, attention_demand: float) -> float:
+    def update_level(self, attention_demand: float, learning_context: bool) -> float:
         """
-        Update ACh level from novelty and attention demand
-
-        ACh spikes rapidly for novel stimuli and high attention demands.
-        Decays slowly toward baseline.
+        Update ACh level from attention demand and learning context
 
         Parameters:
         -----------
-        novelty : float
-            Novelty score (0-1)
         attention_demand : float
-            Attention demand (0-1)
+            Attention demand level (0-1)
+        learning_context : bool
+            Whether in learning/encoding context (True) or not (False)
 
         Returns:
         --------
         ach_level : float
             Updated ACh level (0-1)
         """
-        # Decay toward baseline
-        decay_delta = (self.baseline_ach - self.ach_level) * (1.0 - self.ach_decay)
-        self.ach_level = self.ach_level + decay_delta
+        # Decay toward baseline (gradual return to baseline without stimulation)
+        decay_rate = 0.85
+        self.current_level = (self.current_level * decay_rate +
+                             self.baseline_level * (1.0 - decay_rate))
 
-        # ACh spike from novelty (novel stimuli trigger ACh release)
-        novelty_spike = novelty * self.novelty_sensitivity
-        self.ach_level = self.ach_level + novelty_spike
+        # Learning context strongly activates ACh
+        if learning_context:
+            learning_boost = 0.3
+            self.current_level += learning_boost
 
-        # ACh boost from attention demand
-        attention_boost = attention_demand * 0.2  # Smaller than novelty
-        self.ach_level = self.ach_level + attention_boost
+        # Attention demand moderately activates ACh
+        attention_boost = attention_demand * 0.2
+        self.current_level += attention_boost
 
         # Clamp to [0, 1]
-        self.ach_level = max(0.0, min(1.0, self.ach_level))
+        self.current_level = max(0.0, min(1.0, self.current_level))
 
-        # Add to history
-        self.ach_history.append(self.ach_level)
-        if len(self.ach_history) > self.history_window:
-            self.ach_history.pop(0)
+        # Update history
+        self.level_history.append(self.current_level)
+        if len(self.level_history) > self.history_window:
+            self.level_history.pop(0)
 
-        return self.ach_level
+        return self.current_level
 
-    def amplify_attention(self, base_attention: float) -> float:
+    def compute_encoding_strength(self, base_strength: float) -> float:
         """
-        Amplify attention signal based on ACh level
+        Compute memory encoding strength boost
 
-        High ACh = amplified attention (increased signal-to-noise ratio)
-        Low ACh = baseline attention
+        High ACh → strong memory formation
 
         Parameters:
         -----------
-        base_attention : float
-            Base attention signal (0-1)
-
-        Returns:
-        --------
-        amplified_attention : float
-            Amplified attention signal (0-1)
-        """
-        # ACh boosts attention signal
-        amplification = 1.0 + (self.ach_level * self.amplification_gain)
-        amplified_attention = base_attention * amplification
-
-        # Clamp to [0, 1]
-        amplified_attention = max(0.0, min(1.0, amplified_attention))
-
-        return float(amplified_attention)
-
-    def modulate_encoding(self, base_encoding_strength: float) -> Dict:
-        """
-        Modulate encoding strength based on ACh level and mode
-
-        High ACh during encoding mode = strong encoding
-        Low ACh during recall mode = consolidation (no new encoding)
-
-        Parameters:
-        -----------
-        base_encoding_strength : float
+        base_strength : float
             Base encoding strength (0-1)
 
         Returns:
         --------
-        result : Dict
-            {
-                "encoding_strength": float (0-1),
-                "is_strong_encoding": bool,
-                "mode": str
-            }
+        encoding_strength : float
+            Boosted encoding strength (0-1)
         """
-        if self.mode == "encoding":
-            # High ACh during encoding = strong encoding
-            encoding_multiplier = 1.0 + (self.ach_level * 0.5)
-            encoding_strength = base_encoding_strength * encoding_multiplier
-            encoding_strength = min(1.0, encoding_strength)
-        else:
-            # Recall mode: reduce encoding (consolidation phase)
-            encoding_strength = base_encoding_strength * 0.3
+        # Encoding boost with non-linear scaling (squared ACh for gentler low-ACh boost)
+        # At low ACh (0.2): boost_factor = 1.0 + 0.04 * 1.5 = 1.06 (minimal)
+        # At high ACh (0.9): boost_factor = 1.0 + 0.81 * 1.5 = 2.215 (strong)
+        boost_factor = 1.0 + (self.current_level ** 2) * self.encoding_boost
+        encoding_strength = base_strength * boost_factor
 
-        # Check if encoding is strong (above threshold)
-        is_strong_encoding = (self.ach_level >= self.encoding_threshold) and (self.mode == "encoding")
+        # Clamp to [0, 1]
+        encoding_strength = max(0.0, min(1.0, encoding_strength))
 
-        return {
-            "encoding_strength": float(encoding_strength),
-            "is_strong_encoding": bool(is_strong_encoding),
-            "mode": self.mode
-        }
+        return encoding_strength
 
-    def compute_learning_readiness(self) -> Dict:
+    def compute_attention_gain(self, stimulus_relevance: float) -> float:
         """
-        Compute learning readiness based on ACh level
+        Compute attention amplification gain
 
-        High ACh = ready to learn (plasticity enabled)
-        Low ACh = consolidation mode (plasticity reduced)
-
-        Returns:
-        --------
-        result : Dict
-            {
-                "learning_readiness": float (0-1),
-                "is_ready_to_learn": bool,
-                "plasticity_gate": float (0-1)
-            }
-        """
-        # Learning readiness = ACh level (direct relationship)
-        learning_readiness = self.ach_level
-
-        # Ready to learn if ACh above encoding threshold
-        is_ready_to_learn = self.ach_level >= self.encoding_threshold
-
-        # Plasticity gate (controls synaptic plasticity)
-        # High ACh = open gate (plasticity enabled)
-        plasticity_gate = self.ach_level
-
-        return {
-            "learning_readiness": float(learning_readiness),
-            "is_ready_to_learn": bool(is_ready_to_learn),
-            "plasticity_gate": float(plasticity_gate)
-        }
-
-    def set_mode(self, mode: str) -> None:
-        """
-        Set encoding/recall mode
+        High ACh + high relevance → strong amplification
+        High ACh + low relevance → suppression
 
         Parameters:
         -----------
-        mode : str
-            "encoding" or "recall"
-        """
-        if mode not in ["encoding", "recall"]:
-            raise ValueError(f"Invalid mode: {mode}. Must be 'encoding' or 'recall'.")
-        self.mode = mode
-
-    def get_ach_stability(self) -> float:
-        """
-        Compute ACh stability (inverse of ACh variance)
+        stimulus_relevance : float
+            Stimulus relevance (0-1, 0=irrelevant, 1=highly relevant)
 
         Returns:
         --------
-        stability : float
-            ACh stability score (0-1)
-            Higher = more stable ACh
+        attention_gain : float
+            Attention amplification gain (≥1.0)
         """
-        if len(self.ach_history) < 2:
-            return 1.0  # Maximally stable if no history
+        # Gain scales with both ACh and stimulus relevance
+        # Relevant stimuli amplified, irrelevant suppressed
+        relevance_modulation = stimulus_relevance * self.selectivity_factor
 
-        # Compute variance of ACh history
-        ach_variance = np.var(self.ach_history)
+        # Gain = 1.0 + (ach_level * relevance_modulation * attention_gain)
+        gain = 1.0 + (self.current_level * relevance_modulation * self.attention_gain)
 
-        # Stability = inverse of variance (normalized)
-        stability = 1.0 / (1.0 + ach_variance)
+        # Minimum gain of 1.0 (no suppression below baseline)
+        gain = max(1.0, gain)
 
-        return float(stability)
+        return gain
 
-    def process_stimulus(
-        self,
-        novelty: float,
-        attention_demand: float,
-        base_attention: float = 0.5,
-        base_encoding_strength: float = 0.5
-    ) -> Dict:
+    def compute_learning_rate_modulation(self, base_lr: float) -> float:
         """
-        Main processing: update ACh, amplify attention, modulate encoding
+        Compute learning rate modulation (plasticity gating)
+
+        High ACh → high plasticity (increased LR)
+        Low ACh → low plasticity (reduced LR)
 
         Parameters:
         -----------
-        novelty : float
-            Novelty score (0-1)
+        base_lr : float
+            Base learning rate
+
+        Returns:
+        --------
+        modulated_lr : float
+            ACh-modulated learning rate
+        """
+        # Learning rate scales with ACh level
+        # lr_modulation = base_lr * (0.5 + 1.5 * ach_level)
+        # This gives range [0.5x, 2.0x] of base_lr
+        modulation_factor = 0.5 + 1.5 * self.current_level
+        modulated_lr = base_lr * modulation_factor
+
+        return modulated_lr
+
+    def compute_snr_enhancement(self) -> float:
+        """
+        Compute signal-to-noise ratio enhancement
+
+        High ACh → improved SNR (noise suppression)
+
+        Returns:
+        --------
+        snr_enhancement : float
+            SNR enhancement factor (0-1)
+        """
+        # SNR enhancement directly proportional to ACh level
+        snr_enhancement = self.current_level
+
+        return snr_enhancement
+
+    def process_event(self, attention_demand: float, learning: bool) -> Dict:
+        """
+        Main processing: update ACh, compute modulations
+
+        Parameters:
+        -----------
         attention_demand : float
-            Attention demand (0-1)
-        base_attention : float
-            Base attention signal (default: 0.5)
-        base_encoding_strength : float
-            Base encoding strength (default: 0.5)
+            Attention demand level (0-1)
+        learning : bool
+            Whether in learning context (True) or not (False)
 
         Returns:
         --------
         result : Dict
             {
                 "ach_level": float,
-                "amplified_attention": float,
-                "encoding": Dict,
-                "learning_readiness": Dict,
-                "ach_stability": float
+                "attention_gain": float,
+                "encoding_strength": float,
+                "learning_rate_modulation": float,
+                "snr_enhancement": float
             }
         """
-        # 1. Update ACh from novelty and attention demand
-        self.update_ach(novelty, attention_demand)
+        # 1. Update ACh level
+        self.update_level(attention_demand, learning)
 
-        # 2. Amplify attention
-        amplified_attention = self.amplify_attention(base_attention)
+        # 2. Compute attention gain (using mid-relevance baseline)
+        attention_gain = self.compute_attention_gain(stimulus_relevance=0.5)
 
-        # 3. Modulate encoding
-        encoding = self.modulate_encoding(base_encoding_strength)
+        # 3. Compute encoding strength (using mid-strength baseline)
+        encoding_strength = self.compute_encoding_strength(base_strength=0.5)
 
-        # 4. Compute learning readiness
-        learning_readiness = self.compute_learning_readiness()
+        # 4. Compute learning rate modulation (using baseline LR=0.1)
+        learning_rate_modulation = self.compute_learning_rate_modulation(base_lr=0.1)
 
-        # 5. Get ACh stability
-        stability = self.get_ach_stability()
+        # 5. Compute SNR enhancement
+        snr_enhancement = self.compute_snr_enhancement()
 
         # 6. Update event counter
         self.total_events += 1
 
         # 7. Return complete result
         return {
-            "ach_level": float(self.ach_level),
-            "amplified_attention": float(amplified_attention),
-            "encoding": encoding,
-            "learning_readiness": learning_readiness,
-            "ach_stability": float(stability)
+            "ach_level": float(self.current_level),
+            "attention_gain": float(attention_gain),
+            "encoding_strength": float(encoding_strength),
+            "learning_rate_modulation": float(learning_rate_modulation),
+            "snr_enhancement": float(snr_enhancement)
         }
 
     def get_state(self) -> Dict:
@@ -303,30 +257,34 @@ class AcetylcholineSystem:
         state : Dict
             {
                 "ach_level": float,
-                "ach_history": List[float],
-                "ach_mean": float,
-                "ach_stability": float,
-                "mode": str,
-                "learning_readiness": float,
+                "level_history": List[float],
+                "level_mean": float,
+                "attention_gain": float,
+                "encoding_strength": float,
+                "learning_rate_modulation": float,
+                "snr_enhancement": float,
                 "total_events": int
             }
         """
-        # Current ACh
-        ach_current = self.ach_level
+        # Current level
+        ach_level = self.current_level
 
-        # ACh statistics
-        ach_mean = np.mean(self.ach_history) if self.ach_history else self.baseline_ach
-        ach_stability = self.get_ach_stability()
+        # Level statistics
+        level_mean = np.mean(self.level_history) if self.level_history else self.baseline_level
 
-        # Learning readiness
-        learning_readiness = self.compute_learning_readiness()
+        # Current modulations (using baseline values)
+        attention_gain = self.compute_attention_gain(stimulus_relevance=0.5)
+        encoding_strength = self.compute_encoding_strength(base_strength=0.5)
+        learning_rate_modulation = self.compute_learning_rate_modulation(base_lr=0.1)
+        snr_enhancement = self.compute_snr_enhancement()
 
         return {
-            "ach_level": float(ach_current),
-            "ach_history": self.ach_history.copy(),
-            "ach_mean": float(ach_mean),
-            "ach_stability": float(ach_stability),
-            "mode": self.mode,
-            "learning_readiness": float(learning_readiness["learning_readiness"]),
+            "ach_level": float(ach_level),
+            "level_history": self.level_history.copy(),
+            "level_mean": float(level_mean),
+            "attention_gain": float(attention_gain),
+            "encoding_strength": float(encoding_strength),
+            "learning_rate_modulation": float(learning_rate_modulation),
+            "snr_enhancement": float(snr_enhancement),
             "total_events": int(self.total_events)
         }

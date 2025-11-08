@@ -1,248 +1,265 @@
 """
 LAB_015: Norepinephrine System
 
-Arousal, stress response, and focus modulation.
+Arousal, stress response, focus width, and exploit-explore balance.
 
 Biological Inspiration:
-- Locus coeruleus (LC)
-- Noradrenergic projections
+- Locus coeruleus (LC) noradrenergic neurons
+- Noradrenergic projections to cortex, amygdala, hippocampus
 
-Core Function: Arousal regulation & performance optimization
+Core Functions:
+- Arousal modulation (inverted-U performance curve)
+- Stress response (fight-or-flight activation)
+- Focus width (narrow vs broad attention)
+- Exploit vs explore (optimal arousal → exploit, extremes → explore)
 
 Key Papers:
-- Aston-Jones & Cohen (2005) - "An integrative theory of locus coeruleus-norepinephrine function: adaptive gain and optimal performance"
+- Aston-Jones & Cohen (2005) - "An integrative theory of locus coeruleus-norepinephrine function"
 - Yerkes & Dodson (1908) - "The relation of strength of stimulus to rapidity of habit-formation"
 """
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import numpy as np
 
 
 class NorepinephrineSystem:
     """
-    LAB_015: Norepinephrine arousal and focus modulation
+    LAB_015: Norepinephrine arousal and performance modulation
 
-    Biological inspiration: Locus coeruleus noradrenergic neurons
+    Biological inspiration: Locus coeruleus NE neurons
 
     Parameters:
     -----------
     baseline_arousal : float
-        Initial arousal level (default: 0.5, medium)
+        Baseline arousal level (default: 0.5, medium)
+    optimal_range : Tuple[float, float]
+        Optimal arousal range for peak performance (default: (0.5, 0.7))
     stress_sensitivity : float
-        How much stress events affect arousal (default: 0.3)
-    arousal_decay : float
-        Decay rate toward baseline (default: 0.95)
-    optimal_arousal : float
-        Peak performance arousal level (default: 0.6)
-    focus_threshold : float
-        Arousal threshold for high focus (default: 0.5)
+        Stress response amplification (default: 0.8)
+    decay_rate : float
+        Arousal decay toward baseline (default: 0.92)
+    novelty_boost : float
+        Novelty-induced arousal boost (default: 0.3)
     history_window : int
-        Size of arousal history buffer (default: 20)
+        Size of arousal history buffer (default: 10)
     """
 
     def __init__(
         self,
         baseline_arousal: float = 0.5,
-        stress_sensitivity: float = 0.3,
-        arousal_decay: float = 0.95,
-        optimal_arousal: float = 0.6,
-        focus_threshold: float = 0.5,
-        history_window: int = 20
+        optimal_range: Tuple[float, float] = (0.5, 0.7),
+        stress_sensitivity: float = 0.8,
+        decay_rate: float = 0.92,
+        novelty_boost: float = 0.3,
+        history_window: int = 10
     ):
         # Configuration
         self.baseline_arousal = baseline_arousal
+        self.optimal_range = optimal_range
         self.stress_sensitivity = stress_sensitivity
-        self.arousal_decay = arousal_decay
-        self.optimal_arousal = optimal_arousal
-        self.focus_threshold = focus_threshold
+        self.decay_rate = decay_rate
+        self.novelty_boost = novelty_boost
         self.history_window = history_window
 
+        # Compute optimal center
+        self.optimal_center = (optimal_range[0] + optimal_range[1]) / 2.0
+
         # State
-        self.arousal_level: float = baseline_arousal
+        self.current_arousal: float = baseline_arousal
         self.arousal_history: List[float] = []
         self.total_events: int = 0
 
-    def update_arousal(self, stress_event: float) -> float:
+    def update_arousal(self, task_urgency: float, stress: float, novelty: float) -> float:
         """
-        Update arousal level from stress event
-
-        Arousal spikes quickly on stress, decays slowly toward baseline.
-        Norepinephrine provides rapid response to salient/stressful stimuli.
+        Update arousal from task urgency, stress, and novelty
 
         Parameters:
         -----------
-        stress_event : float
-            Stress intensity of event (-1 to +1)
-            Positive = stress/arousal increase
-            Negative = calming/arousal decrease
+        task_urgency : float
+            Task urgency level (0-1)
+        stress : float
+            Stress level (0-1)
+        novelty : float
+            Novelty level (0-1)
 
         Returns:
         --------
         arousal_level : float
             Updated arousal level (0-1)
         """
-        # Decay toward baseline (homeostatic regulation)
-        decay_delta = (self.baseline_arousal - self.arousal_level) * (1.0 - self.arousal_decay)
-        self.arousal_level = self.arousal_level + decay_delta
+        # Decay toward baseline (arousal naturally decays)
+        self.current_arousal = (self.current_arousal * self.decay_rate +
+                                self.baseline_arousal * (1.0 - self.decay_rate))
 
-        # Rapid arousal spike from stress event
-        arousal_spike = stress_event * self.stress_sensitivity
-        self.arousal_level = self.arousal_level + arousal_spike
+        # Only add boosts if inputs exceed baseline threshold
+        # Task urgency raises arousal (only if above baseline)
+        if task_urgency > self.baseline_arousal:
+            urgency_boost = (task_urgency - self.baseline_arousal) * 0.3
+            self.current_arousal += urgency_boost
+
+        # Stress strongly raises arousal
+        stress_boost = stress * self.stress_sensitivity * 0.2
+        self.current_arousal += stress_boost
+
+        # Novelty moderately raises arousal
+        novelty_boost_value = novelty * self.novelty_boost * 0.15
+        self.current_arousal += novelty_boost_value
 
         # Clamp to [0, 1]
-        self.arousal_level = max(0.0, min(1.0, self.arousal_level))
+        self.current_arousal = max(0.0, min(1.0, self.current_arousal))
 
-        # Add to history
-        self.arousal_history.append(self.arousal_level)
+        # Update history
+        self.arousal_history.append(self.current_arousal)
         if len(self.arousal_history) > self.history_window:
             self.arousal_history.pop(0)
 
-        return self.arousal_level
+        return self.current_arousal
 
-    def compute_performance(self) -> Dict:
+    def compute_performance_multiplier(self) -> float:
         """
-        Compute performance efficiency based on arousal (Yerkes-Dodson Law)
+        Compute performance multiplier (inverted-U curve)
 
-        Inverted-U relationship:
-        - Low arousal = poor performance (under-stimulated, distracted)
-        - Optimal arousal = best performance (focused, efficient)
-        - High arousal = poor performance (over-stimulated, anxious)
+        Optimal arousal → maximum performance
+        Too low/high arousal → degraded performance
 
         Returns:
         --------
-        result : Dict
-            {
-                "performance_efficiency": float (0-1),
-                "is_optimal": bool,
-                "deviation_from_optimal": float
-            }
+        performance_multiplier : float
+            Performance multiplier (0-1)
         """
-        # Inverted-U curve: performance peaks at optimal_arousal
-        # Use Gaussian-like function
-        deviation = abs(self.arousal_level - self.optimal_arousal)
+        # Distance from optimal center
+        optimal_distance = abs(self.current_arousal - self.optimal_center)
 
-        # Performance peaks at optimal, drops with deviation
-        # Max performance = 1.0 at optimal_arousal
-        # Performance drops off sharply as arousal deviates
-        performance_efficiency = np.exp(-6.0 * (deviation ** 2))
+        # Inverted-U: performance = 1 - distance^2 (parabola)
+        # Scale to make optimal range = 1.0
+        performance = 1.0 - (optimal_distance / 0.5) ** 2
 
-        # Check if within optimal zone (±0.1 of optimal)
-        is_optimal = deviation < 0.1
+        # Clamp to [0, 1]
+        performance = max(0.0, min(1.0, performance))
 
-        return {
-            "performance_efficiency": float(performance_efficiency),
-            "is_optimal": bool(is_optimal),
-            "deviation_from_optimal": float(deviation)
-        }
+        return performance
 
-    def modulate_focus(self) -> float:
+    def compute_focus_width(self) -> float:
         """
-        Modulate attentional focus based on arousal
+        Compute focus width (attention breadth)
 
-        Low arousal = low focus (distracted, drowsy)
-        Medium arousal = high focus (alert, concentrated)
-        High arousal = scattered focus (anxious, overwhelmed)
+        High arousal → narrow focus (tunnel vision)
+        Low arousal → broad focus (diffuse attention)
 
         Returns:
         --------
-        focus_strength : float
-            Focus strength (0-1)
+        focus_width : float
+            Focus width (0-1, 0=narrow, 1=broad)
         """
-        # Focus is highest at medium arousal, lower at extremes
-        # Similar to performance curve but less sensitive
-        deviation_from_medium = abs(self.arousal_level - 0.5)
+        # Focus width inversely proportional to arousal
+        # High arousal → narrow (low width)
+        # Low arousal → broad (high width)
+        focus_width = 1.0 - self.current_arousal
 
-        # Focus peaks at medium arousal (0.5), drops at extremes
-        focus_strength = 1.0 - (2.0 * deviation_from_medium)
-        focus_strength = max(0.0, focus_strength)
+        return focus_width
 
-        return float(focus_strength)
-
-    def get_alertness(self) -> float:
+    def get_exploit_vs_explore(self) -> float:
         """
-        Get alertness level (directly proportional to arousal)
+        Compute exploration tendency
 
-        High arousal = high alertness
-        Low arousal = low alertness (drowsy)
+        Optimal arousal → exploit (focused task execution)
+        Extreme arousal (low/high) → explore (search for alternatives)
 
         Returns:
         --------
-        alertness : float
-            Alertness level (0-1)
+        explore_tendency : float
+            Exploration tendency (0-1)
+            0 = pure exploitation
+            1 = pure exploration
         """
-        # Alertness is simply the arousal level
-        # (norepinephrine directly increases wakefulness)
-        return self.arousal_level
+        # Distance from optimal center
+        optimal_distance = abs(self.current_arousal - self.optimal_center)
 
-    def get_arousal_stability(self) -> float:
+        # Exploration tendency increases with distance from optimal
+        # At optimal → explore_tendency ≈ 0 (exploit)
+        # At extremes → explore_tendency ≈ 1 (explore)
+
+        # Scale distance to 0-1 range
+        # Maximum distance from center = 0.6 (if center=0.6, max distance to 0 or 1 is 0.6)
+        max_distance = max(self.optimal_center, 1.0 - self.optimal_center)
+        explore_tendency = optimal_distance / max_distance
+
+        # Clamp to [0, 1]
+        explore_tendency = max(0.0, min(1.0, explore_tendency))
+
+        return explore_tendency
+
+    def compute_stress_response(self, stressor: float) -> float:
         """
-        Compute arousal stability (inverse of arousal variance)
+        Compute stress response (fight-or-flight activation)
 
-        Returns:
-        --------
-        stability : float
-            Arousal stability score (0-1)
-            Higher = more stable arousal
-        """
-        if len(self.arousal_history) < 2:
-            return 1.0  # Maximally stable if no history
-
-        # Compute variance of arousal history
-        arousal_variance = np.var(self.arousal_history)
-
-        # Stability = inverse of variance (normalized)
-        stability = 1.0 / (1.0 + arousal_variance)
-
-        return float(stability)
-
-    def process_event(
-        self,
-        stress_event: float
-    ) -> Dict:
-        """
-        Main processing: update arousal, compute performance, focus, alertness
+        High stress → high arousal activation
 
         Parameters:
         -----------
-        stress_event : float
-            Stress intensity of event (-1 to +1)
+        stressor : float
+            Stressor intensity (0-1)
+
+        Returns:
+        --------
+        stress_response : float
+            Stress response activation (0-1)
+        """
+        # Stress response = stressor * sensitivity
+        stress_response = stressor * self.stress_sensitivity
+
+        # Clamp to [0, 1]
+        stress_response = max(0.0, min(1.0, stress_response))
+
+        return stress_response
+
+    def process_event(self, task_urgency: float, stress: float) -> Dict:
+        """
+        Main processing: update arousal, compute modulations
+
+        Parameters:
+        -----------
+        task_urgency : float
+            Task urgency level (0-1)
+        stress : float
+            Stress level (0-1)
 
         Returns:
         --------
         result : Dict
             {
                 "arousal_level": float,
-                "performance": Dict,
-                "focus_strength": float,
-                "alertness": float,
-                "arousal_stability": float
+                "performance_multiplier": float,
+                "focus_width": float,
+                "explore_tendency": float,
+                "stress_response": float
             }
         """
-        # 1. Update arousal from stress event
-        self.update_arousal(stress_event)
+        # 1. Update arousal (using novelty=0 as default)
+        self.update_arousal(task_urgency, stress, novelty=0.0)
 
-        # 2. Compute performance (Yerkes-Dodson)
-        performance = self.compute_performance()
+        # 2. Compute performance multiplier (inverted-U)
+        performance_multiplier = self.compute_performance_multiplier()
 
-        # 3. Modulate focus
-        focus = self.modulate_focus()
+        # 3. Compute focus width
+        focus_width = self.compute_focus_width()
 
-        # 4. Get alertness
-        alertness = self.get_alertness()
+        # 4. Compute exploit vs explore
+        explore_tendency = self.get_exploit_vs_explore()
 
-        # 5. Get arousal stability
-        stability = self.get_arousal_stability()
+        # 5. Compute stress response
+        stress_response = self.compute_stress_response(stress)
 
         # 6. Update event counter
         self.total_events += 1
 
         # 7. Return complete result
         return {
-            "arousal_level": float(self.arousal_level),
-            "performance": performance,
-            "focus_strength": float(focus),
-            "alertness": float(alertness),
-            "arousal_stability": float(stability)
+            "arousal_level": float(self.current_arousal),
+            "performance_multiplier": float(performance_multiplier),
+            "focus_width": float(focus_width),
+            "explore_tendency": float(explore_tendency),
+            "stress_response": float(stress_response)
         }
 
     def get_state(self) -> Dict:
@@ -256,34 +273,38 @@ class NorepinephrineSystem:
                 "arousal_level": float,
                 "arousal_history": List[float],
                 "arousal_mean": float,
-                "arousal_stability": float,
-                "performance_efficiency": float,
-                "focus_strength": float,
-                "alertness": float,
+                "performance_multiplier": float,
+                "focus_width": float,
+                "explore_tendency": float,
+                "optimal_distance": float,
                 "total_events": int
             }
         """
         # Current arousal
-        arousal_current = self.arousal_level
+        arousal_level = self.current_arousal
 
         # Arousal statistics
         arousal_mean = np.mean(self.arousal_history) if self.arousal_history else self.baseline_arousal
-        arousal_stability = self.get_arousal_stability()
 
-        # Performance
-        performance = self.compute_performance()
+        # Performance multiplier
+        performance_multiplier = self.compute_performance_multiplier()
 
-        # Focus & alertness
-        focus = self.modulate_focus()
-        alertness = self.get_alertness()
+        # Focus width
+        focus_width = self.compute_focus_width()
+
+        # Explore tendency
+        explore_tendency = self.get_exploit_vs_explore()
+
+        # Optimal distance (how far from optimal)
+        optimal_distance = abs(self.current_arousal - self.optimal_center)
 
         return {
-            "arousal_level": float(arousal_current),
+            "arousal_level": float(arousal_level),
             "arousal_history": self.arousal_history.copy(),
             "arousal_mean": float(arousal_mean),
-            "arousal_stability": float(arousal_stability),
-            "performance_efficiency": float(performance["performance_efficiency"]),
-            "focus_strength": float(focus),
-            "alertness": float(alertness),
+            "performance_multiplier": float(performance_multiplier),
+            "focus_width": float(focus_width),
+            "explore_tendency": float(explore_tendency),
+            "optimal_distance": float(optimal_distance),
             "total_events": int(self.total_events)
         }

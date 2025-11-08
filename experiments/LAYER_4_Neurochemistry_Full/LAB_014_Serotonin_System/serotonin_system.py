@@ -1,16 +1,20 @@
 """
 LAB_014: Serotonin System
 
-Mood stability, impulse control, and patience modulation.
+Mood stability, impulse control, and temporal discounting.
 
 Biological Inspiration:
-- Raphe nuclei
-- Serotonergic projections
+- Raphe nuclei (serotonergic neurons)
+- Serotonergic projections to PFC, amygdala, hippocampus
 
-Core Function: Regulate mood baseline and impulse control
+Core Functions:
+- Mood stability (buffer against emotional fluctuations)
+- Impulse control (patience vs impulsivity)
+- Temporal discounting (future reward valuation)
+- Social sensitivity (social reward modulation)
 
 Key Papers:
-- Dayan & Huys (2009) - "Serotonin in the orbitofrontal cortex and the neural basis of economic value"
+- Dayan & Huys (2009) - "Serotonin in Affective Control"
 - Crockett et al. (2012) - "Serotonin modulates behavioral reactions to unfairness"
 """
 
@@ -26,227 +30,253 @@ class SerotoninSystem:
 
     Parameters:
     -----------
-    baseline_mood : float
-        Initial mood level (default: 0.5, neutral)
-    impulse_threshold : float
-        Threshold for impulse control (default: 0.7)
-    patience_factor : float
-        Base patience for temporal discounting (default: 1.0)
-    reactivity_dampening : float
-        How much serotonin dampens emotional reactivity (default: 0.5)
-    mood_inertia : float
-        Resistance to mood changes (default: 0.95, high inertia)
+    baseline_level : float
+        Baseline serotonin level (default: 0.5, neutral)
+    stability_factor : float
+        Mood buffering strength (default: 0.7)
+    patience_multiplier : float
+        Impulse control multiplier (default: 1.5)
+    social_sensitivity_gain : float
+        Social context amplification (default: 0.3)
+    adaptation_rate : float
+        Speed of serotonin level changes (default: 0.1)
     history_window : int
-        Size of mood history buffer (default: 20)
+        Size of level history buffer (default: 20)
     """
 
     def __init__(
         self,
-        baseline_mood: float = 0.5,
-        impulse_threshold: float = 0.7,
-        patience_factor: float = 1.0,
-        reactivity_dampening: float = 0.5,
-        mood_inertia: float = 0.95,
+        baseline_level: float = 0.5,
+        stability_factor: float = 0.7,
+        patience_multiplier: float = 1.5,
+        social_sensitivity_gain: float = 0.3,
+        adaptation_rate: float = 0.1,
         history_window: int = 20
     ):
         # Configuration
-        self.baseline_mood = baseline_mood
-        self.impulse_threshold = impulse_threshold
-        self.patience_factor = patience_factor
-        self.reactivity_dampening = reactivity_dampening
-        self.mood_inertia = mood_inertia
+        self.baseline_level = baseline_level
+        self.stability_factor = stability_factor
+        self.patience_multiplier = patience_multiplier
+        self.social_sensitivity_gain = social_sensitivity_gain
+        self.adaptation_rate = adaptation_rate
         self.history_window = history_window
 
         # State
-        self.mood_level: float = baseline_mood  # Current mood (valence baseline)
-        self.mood_history: List[float] = []
-        self.impulse_control: float = 1.0  # Max control initially
+        self.current_level: float = baseline_level
+        self.level_history: List[float] = []
         self.total_events: int = 0
 
-    def update_mood(self, emotional_event: float) -> float:
+    def update_level(self, outcome: float, social_context: float) -> float:
         """
-        Update mood level from emotional event
-
-        Mood is more stable than emotions (high inertia).
-        Serotonin provides mood baseline stability.
+        Update serotonin level from outcome and social context
 
         Parameters:
         -----------
-        emotional_event : float
-            Emotional valence of event (-1 to +1)
+        outcome : float
+            Outcome valence (0-1)
+        social_context : float
+            Social context quality (0-1)
+            0 = isolation/conflict, 1 = positive social
 
         Returns:
         --------
-        mood_level : float
-            Updated mood level (0-1)
+        serotonin_level : float
+            Updated serotonin level (0-1)
         """
-        # Incremental update with high inertia
-        # Mood changes slowly (serotonin stability)
-        mood_change = emotional_event * (1.0 - self.mood_inertia)
-        self.mood_level = self.mood_level + mood_change
+        # Combined signal: outcome modulated by social context
+        # Positive social amplifies positive outcomes
+        # Negative social dampens outcomes
+        combined_signal = outcome * (0.5 + 0.5 * social_context)
+
+        # Compute target level (what serotonin should move toward)
+        target_level = combined_signal
+
+        # Gradual adaptation toward target
+        # High adaptation_rate = fast changes
+        # Low adaptation_rate = slow, stable changes
+        delta = (target_level - self.current_level) * self.adaptation_rate
+
+        self.current_level += delta
 
         # Clamp to [0, 1]
-        self.mood_level = max(0.0, min(1.0, self.mood_level))
+        self.current_level = max(0.0, min(1.0, self.current_level))
 
-        # Add to history
-        self.mood_history.append(self.mood_level)
-        if len(self.mood_history) > self.history_window:
-            self.mood_history.pop(0)
+        # Update history
+        self.level_history.append(self.current_level)
+        if len(self.level_history) > self.history_window:
+            self.level_history.pop(0)
 
-        return self.mood_level
+        return self.current_level
 
-    def compute_impulse_control(self, temptation_strength: float) -> Dict:
+    def modulate_mood(self, current_mood: float, event_valence: float) -> float:
         """
-        Compute impulse control strength
+        Buffer mood changes based on serotonin level
 
-        Higher serotonin = stronger impulse control = can resist temptation
+        High serotonin = strong buffering (stable mood)
+        Low serotonin = weak buffering (volatile mood)
 
         Parameters:
         -----------
-        temptation_strength : float
-            Strength of temptation/impulse (0-1)
+        current_mood : float
+            Current mood state (0-1)
+        event_valence : float
+            Emotional event valence (-1 to +1)
 
         Returns:
         --------
-        result : Dict
-            {
-                "control_strength": float,
-                "can_resist": bool,
-                "resistance_margin": float
-            }
+        buffered_mood : float
+            Mood after serotonin buffering (0-1)
         """
-        # Control strength = mood_level * threshold
-        # High serotonin (high mood) = high control
-        control_strength = self.mood_level * self.impulse_threshold
+        # Buffering strength = serotonin_level * stability_factor
+        # High serotonin → high buffering
+        buffering_strength = self.current_level * self.stability_factor
 
-        # Can resist if control > temptation
-        can_resist = control_strength > temptation_strength
-        resistance_margin = control_strength - temptation_strength
+        # Buffered change = raw change * (1 - buffering)
+        # High buffering → small mood change
+        buffered_change = event_valence * (1.0 - buffering_strength)
 
-        return {
-            "control_strength": control_strength,
-            "can_resist": can_resist,
-            "resistance_margin": resistance_margin
-        }
+        new_mood = current_mood + buffered_change
 
-    def get_patience_factor(self) -> float:
+        # Clamp to [0, 1]
+        new_mood = max(0.0, min(1.0, new_mood))
+
+        return new_mood
+
+    def compute_impulse_control(self) -> float:
         """
-        Get patience factor for temporal discounting
+        Compute impulse control (patience) from serotonin level
 
-        High serotonin = more patience = lower temporal discounting
-        (can wait longer for rewards)
+        High serotonin = high patience (can resist temptation)
+        Low serotonin = low patience (impulsive)
 
         Returns:
         --------
         patience : float
-            Patience multiplier (0-2.0)
-            < 1.0 = impatient (high discounting)
-            = 1.0 = normal discounting
-            > 1.0 = patient (low discounting)
+            Impulse control strength (0-1)
         """
-        # Patience scales with mood level
-        # High mood = high serotonin = more patience
-        patience = self.mood_level * self.patience_factor * 2.0
+        # Patience = serotonin * multiplier
+        # Scaled to 0-1 range
+        patience = self.current_level * self.patience_multiplier
+
+        # Clamp to [0, 1]
+        patience = min(1.0, patience)
 
         return patience
 
-    def modulate_reactivity(self, emotional_intensity: float) -> float:
+    def compute_temporal_discount(self, delay: float) -> float:
         """
-        Modulate emotional reactivity
+        Compute temporal discount rate (future devaluation)
 
-        High serotonin = dampened emotional reactivity
-        (less reactive to emotional events)
+        High serotonin = low discount rate (patient, values future)
+        Low serotonin = high discount rate (impulsive, devalues future)
 
         Parameters:
         -----------
-        emotional_intensity : float
-            Intensity of emotional stimulus (0-1)
+        delay : float
+            Delay to reward (time units)
 
         Returns:
         --------
-        dampened_reactivity : float
-            Modulated emotional reactivity (0-1)
+        discount_rate : float
+            Temporal discount rate (0-1)
+            0 = no discounting (fully patient)
+            1 = maximum discounting (completely impulsive)
         """
-        # Serotonin dampens emotional reactivity
-        # High serotonin = lower reactivity
-        dampening = self.mood_level * self.reactivity_dampening
+        # Base discount inversely proportional to serotonin
+        # High serotonin → low base discount
+        # Low serotonin → high base discount
+        base_discount = 1.0 - self.current_level
 
-        dampened_reactivity = emotional_intensity * (1.0 - dampening)
+        # Normalized hyperbolic discounting
+        # Formula: discount = base * (1 - 1/(1 + k*delay))
+        # This ensures discount ∈ [0, base_discount]
+        # k = 0.4 (discounting steepness - tuned for delay=10 baseline)
+        k = 0.4
+        discount_rate = base_discount * (1.0 - 1.0/(1.0 + k * delay))
 
-        return dampened_reactivity
+        # Clamp to [0, 1]
+        discount_rate = max(0.0, min(1.0, discount_rate))
 
-    def get_mood_stability(self) -> float:
+        return discount_rate
+
+    def compute_social_sensitivity(self) -> float:
         """
-        Compute mood stability (inverse of mood variance)
+        Compute social reward sensitivity
+
+        Serotonin modulates sensitivity to social rewards
 
         Returns:
         --------
-        stability : float
-            Mood stability score (0-1)
-            Higher = more stable mood
+        social_sensitivity : float
+            Social sensitivity (0-1)
         """
-        if len(self.mood_history) < 2:
-            return 1.0  # Maximally stable if no history
+        # Social sensitivity scales with serotonin
+        # Moderate serotonin = optimal social sensitivity
+        # Very low/high = reduced social sensitivity
 
-        # Compute variance of mood history
-        mood_variance = np.var(self.mood_history)
+        # Inverted-U curve centered at 0.6
+        optimal_level = 0.6
+        deviation = abs(self.current_level - optimal_level)
 
-        # Stability = inverse of variance (normalized)
-        stability = 1.0 / (1.0 + mood_variance)
+        # Sensitivity = 1 - deviation
+        social_sensitivity = 1.0 - (deviation * 1.5)
 
-        return stability
+        # Clamp to [0, 1]
+        social_sensitivity = max(0.0, min(1.0, social_sensitivity))
 
-    def process_event(
-        self,
-        emotional_event: float,
-        temptation_strength: float = 0.0
-    ) -> Dict:
+        return social_sensitivity
+
+    def process_event(self, outcome: float, social_context: float) -> Dict:
         """
-        Main processing: update mood, compute impulse control, return state
+        Main processing: update serotonin, compute modulations
 
         Parameters:
         -----------
-        emotional_event : float
-            Emotional valence of event (-1 to +1)
-        temptation_strength : float
-            Strength of temptation/impulse (0-1, default: 0.0)
+        outcome : float
+            Outcome valence (0-1)
+        social_context : float
+            Social context quality (0-1)
 
         Returns:
         --------
         result : Dict
             {
-                "mood_level": float,
-                "impulse_control": Dict,
-                "patience_factor": float,
-                "emotional_reactivity": float,
-                "mood_stability": float
+                "serotonin_level": float,
+                "impulse_control": float,
+                "mood_stability": float,
+                "temporal_discount_rate": float,
+                "social_sensitivity": float
             }
         """
-        # 1. Update mood from emotional event
-        self.update_mood(emotional_event)
+        # 1. Update serotonin level
+        self.update_level(outcome, social_context)
 
         # 2. Compute impulse control
-        impulse_control = self.compute_impulse_control(temptation_strength)
+        impulse_control = self.compute_impulse_control()
 
-        # 3. Get patience factor
-        patience = self.get_patience_factor()
+        # 3. Compute mood stability (from history variance)
+        if len(self.level_history) >= 2:
+            mood_variance = np.var(self.level_history)
+            mood_stability = 1.0 / (1.0 + mood_variance)
+        else:
+            mood_stability = 1.0  # Maximally stable if no history
 
-        # 4. Modulate reactivity
-        reactivity = self.modulate_reactivity(abs(emotional_event))
+        # 4. Compute temporal discount (using delay=10 as baseline)
+        temporal_discount_rate = self.compute_temporal_discount(delay=10.0)
 
-        # 5. Get mood stability
-        stability = self.get_mood_stability()
+        # 5. Compute social sensitivity
+        social_sensitivity = self.compute_social_sensitivity()
 
         # 6. Update event counter
         self.total_events += 1
 
         # 7. Return complete result
         return {
-            "mood_level": self.mood_level,
-            "impulse_control": impulse_control,
-            "patience_factor": patience,
-            "emotional_reactivity": reactivity,
-            "mood_stability": stability
+            "serotonin_level": float(self.current_level),
+            "impulse_control": float(impulse_control),
+            "mood_stability": float(mood_stability),
+            "temporal_discount_rate": float(temporal_discount_rate),
+            "social_sensitivity": float(social_sensitivity)
         }
 
     def get_state(self) -> Dict:
@@ -257,34 +287,45 @@ class SerotoninSystem:
         --------
         state : Dict
             {
-                "mood_level": float,
-                "mood_history": List[float],
-                "mood_mean": float,
-                "mood_stability": float,
-                "impulse_control_strength": float,
-                "patience_factor": float,
+                "serotonin_level": float,
+                "level_history": List[float],
+                "level_mean": float,
+                "impulse_control": float,
+                "mood_stability_index": float,
+                "temporal_discount_baseline": float,
+                "social_sensitivity": float,
                 "total_events": int
             }
         """
-        # Current mood
-        mood_current = self.mood_level
+        # Current level
+        serotonin_level = self.current_level
 
-        # Mood statistics
-        mood_mean = np.mean(self.mood_history) if self.mood_history else self.baseline_mood
-        mood_stability = self.get_mood_stability()
+        # Level statistics
+        level_mean = np.mean(self.level_history) if self.level_history else self.baseline_level
 
-        # Control strength (current)
-        control_strength = self.mood_level * self.impulse_threshold
+        # Impulse control
+        impulse_control = self.compute_impulse_control()
 
-        # Patience
-        patience = self.get_patience_factor()
+        # Mood stability
+        if len(self.level_history) >= 2:
+            mood_variance = np.var(self.level_history)
+            mood_stability_index = 1.0 / (1.0 + mood_variance)
+        else:
+            mood_stability_index = 1.0
+
+        # Temporal discount (baseline delay=10)
+        temporal_discount_baseline = self.compute_temporal_discount(delay=10.0)
+
+        # Social sensitivity
+        social_sensitivity = self.compute_social_sensitivity()
 
         return {
-            "mood_level": float(mood_current),
-            "mood_history": self.mood_history.copy(),
-            "mood_mean": float(mood_mean),
-            "mood_stability": float(mood_stability),
-            "impulse_control_strength": float(control_strength),
-            "patience_factor": float(patience),
+            "serotonin_level": float(serotonin_level),
+            "level_history": self.level_history.copy(),
+            "level_mean": float(level_mean),
+            "impulse_control": float(impulse_control),
+            "mood_stability_index": float(mood_stability_index),
+            "temporal_discount_baseline": float(temporal_discount_baseline),
+            "social_sensitivity": float(social_sensitivity),
             "total_events": int(self.total_events)
         }

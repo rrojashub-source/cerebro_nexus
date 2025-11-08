@@ -1,14 +1,14 @@
 {
   "_metadata": {
-    "registry_version": "1.1",
-    "last_updated": "2025-11-04T15:30:00Z",
+    "registry_version": "1.2",
+    "last_updated": "2025-11-07T20:45:00Z",
     "total_labs_planned": 52,
-    "total_labs_implemented": 19,
-    "completion_percentage": 36.5,
+    "total_labs_implemented": 23,
+    "completion_percentage": 44.2,
     "master_blueprint": "MASTER_BLUEPRINT_50_LABS.md",
     "integration_guide": "INTEGRATION_GUIDE_LABS_029_050.md",
     "consolidation_date": "2025-11-04",
-    "note": "LAB_013 (Dopamine System) implemented - Session 7"
+    "note": "LAYER_4 Neurochemistry Full COMPLETED (5/5 LABs: LAB_013-017) - Session 17"
   },
 
   "architecture": {
@@ -176,11 +176,11 @@
     "layer_4": {
       "name": "Neurochemistry Full",
       "description": "5 LABs - Neurotransmitter systems",
-      "status": "🟡 partial (1/5 LABs - 20%)",
+      "status": "✅ operational (5/5 LABs - 100%)",
       "location": "LAYER_4_Neurochemistry_Full/",
       "labs_count": 5,
-      "labs_implemented": 1,
-      "estimated_implementation": "Q4 2025",
+      "labs_implemented": 5,
+      "implementation_completed": "2025-11-07 (Session 17)",
       "labs": [
         {
           "id": "LAB_013",
@@ -201,38 +201,93 @@
         {
           "id": "LAB_014",
           "name": "Serotonin System",
-          "function": "Mood stability, impulse control, well-being, patience",
+          "function": "Mood stability, impulse control, temporal discounting, social sensitivity",
           "neuroscience_basis": "Raphe nuclei, serotonergic projections",
-          "status": "🔴 not implemented",
+          "status": "✅ operational",
+          "implementation_date": "2025-11-07",
+          "actual_code_size": "931 lines (329 main + 602 tests)",
           "estimated_code_size": "500-700 lines",
-          "key_papers": ["Dayan & Huys 2009 - Serotonin & decision making"]
+          "key_papers": ["Dayan & Huys 2009 - Serotonin in Affective Control"],
+          "api_endpoints": [
+            "POST /serotonin/process",
+            "GET /serotonin/state"
+          ],
+          "test_coverage": "100% (34/34 tests passing)",
+          "key_features": [
+            "Mood stability modulation",
+            "Impulse control (high serotonin = reduced impulsivity)",
+            "Hyperbolic temporal discounting (k=0.4 tuned)",
+            "Social sensitivity amplification"
+          ]
         },
         {
           "id": "LAB_015",
           "name": "Norepinephrine System",
-          "function": "Arousal, stress response, focus/alertness",
+          "function": "Arousal modulation, stress response, focus width, exploit-explore balance",
           "neuroscience_basis": "Locus coeruleus, noradrenergic projections",
-          "status": "🔴 not implemented",
+          "status": "✅ operational",
+          "implementation_date": "2025-11-07",
+          "actual_code_size": "770 lines (309 main + 461 tests)",
           "estimated_code_size": "400-600 lines",
-          "key_papers": ["Aston-Jones & Cohen 2005 - LC-NE & optimal performance"]
+          "key_papers": ["Aston-Jones & Cohen 2005 - Locus coeruleus-norepinephrine function"],
+          "api_endpoints": [
+            "POST /norepinephrine/process",
+            "GET /norepinephrine/state"
+          ],
+          "test_coverage": "100% (26/26 tests passing)",
+          "key_features": [
+            "Arousal update with decay dynamics",
+            "Inverted-U performance curve (Yerkes-Dodson law)",
+            "Focus width modulation (narrow focus at high arousal)",
+            "Exploit vs. Explore balance",
+            "Stress response with cortisol integration"
+          ]
         },
         {
           "id": "LAB_016",
           "name": "Acetylcholine System",
-          "function": "Attention amplification, learning enhancement, encoding strength",
+          "function": "Attention amplification, learning enhancement, encoding strength, SNR improvement",
           "neuroscience_basis": "Basal forebrain, cholinergic projections",
-          "status": "🔴 not implemented",
+          "status": "✅ operational",
+          "implementation_date": "2025-11-07",
+          "actual_code_size": "787 lines (287 main + 500 tests)",
           "estimated_code_size": "400-500 lines",
-          "key_papers": ["Hasselmo 2006 - ACh & memory encoding"]
+          "key_papers": ["Hasselmo 2006 - The role of acetylcholine in learning and memory"],
+          "api_endpoints": [
+            "POST /acetylcholine/process",
+            "GET /acetylcholine/state"
+          ],
+          "test_coverage": "100% (30/30 tests passing)",
+          "key_features": [
+            "ACh level update with decay toward baseline",
+            "Non-linear encoding strength boost (squared ACh scaling)",
+            "Attention gain modulation (relevance-dependent)",
+            "Learning rate modulation (plasticity gating)",
+            "Signal-to-noise ratio enhancement"
+          ]
         },
         {
           "id": "LAB_017",
           "name": "GABA/Glutamate Balance",
-          "function": "Excitation/inhibition balance, stability control",
-          "neuroscience_basis": "Cortical E/I balance, interneurons",
-          "status": "🔴 not implemented",
+          "function": "Excitation/inhibition balance, homeostatic control, network gain, stability",
+          "neuroscience_basis": "Cortical E/I balance, GABAergic interneurons",
+          "status": "✅ operational",
+          "implementation_date": "2025-11-07",
+          "actual_code_size": "877 lines (327 main + 550 tests)",
           "estimated_code_size": "500-700 lines",
-          "key_papers": ["Destexhe & Marder 2004 - Homeostatic plasticity"]
+          "key_papers": ["Destexhe & Marder 2004 - Excitation-inhibition balance"],
+          "api_endpoints": [
+            "POST /gaba_glutamate/process",
+            "GET /gaba_glutamate/state"
+          ],
+          "test_coverage": "100% (31/31 tests passing)",
+          "key_features": [
+            "Glutamate (excitation) and GABA (inhibition) level tracking",
+            "E/I ratio computation (optimal: 0.75)",
+            "Homeostatic control (automatic convergence to optimal ratio)",
+            "Network gain modulation (signal amplification)",
+            "Stability index (distance from optimal E/I)"
+          ]
         }
       ]
     },
@@ -309,7 +364,7 @@
     "api_endpoints": {
       "layer_2_labs": "✅ All 8 LABs have endpoints",
       "layer_3_labs": "✅ All 4 LABs have endpoints",
-      "layer_4_labs": "🟡 Partial (1/5 LABs): LAB_013 (POST /dopamine/process, GET /dopamine/state)",
+      "layer_4_labs": "✅ All 5 LABs have endpoints (LAB_013-017: 10 endpoints total)",
       "layer_5_labs": "🟡 20+ endpoints available (INTEGRATION_GUIDE_LABS_029_050.md)"
     }
   },
