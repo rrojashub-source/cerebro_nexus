@@ -97,6 +97,21 @@ from LAYER_4_Neurochemistry_Full.LAB_016_Acetylcholine_System import Acetylcholi
 # LAB_017: GABA System
 from LAYER_4_Neurochemistry_Full.LAB_017_GABA_Glutamate_Balance import GABAGlutamateSystem
 
+# LAB_019: Inhibitory Control System
+from LAYER_5_Higher_Cognition.Executive_Functions.LAB_019_Inhibitory_Control import InhibitoryControlSystem
+
+# LAB_020: Cognitive Flexibility System
+from LAYER_5_Higher_Cognition.Executive_Functions.LAB_020_Cognitive_Flexibility import CognitiveFlexibilitySystem
+
+# LAB_021: Error Detection System
+from LAYER_5_Higher_Cognition.Executive_Functions.LAB_021_Error_Detection import ErrorDetectionSystem
+
+# LAB_018: Planning System
+from LAYER_5_Higher_Cognition.Executive_Functions.LAB_018_Planning_Sequencing import PlanningSystem
+
+# LAB_022: Goal-Directed Behavior System
+from LAYER_5_Higher_Cognition.Executive_Functions.LAB_022_Goal_Directed_Behavior import GoalDirectedBehaviorSystem
+
 # Session 12: Consciousness Endpoints (CognitiveStack Integration)
 from consciousness_endpoints import register_consciousness_endpoints
 
@@ -463,6 +478,66 @@ gaba_glutamate_system = GABAGlutamateSystem(
     homeostatic_gain=0.3,
     adaptation_rate=0.1,
     history_window=15
+)
+
+# ============================================
+# LAB_019: Global Inhibitory Control System
+# ============================================
+inhibitory_control_system = InhibitoryControlSystem(
+    baseline_control=0.5,
+    control_gain=2.0,
+    conflict_sensitivity=0.8,
+    adaptation_rate=0.1,
+    history_window=15,
+    base_rt=400.0
+)
+
+# ============================================
+# LAB_020: Global Cognitive Flexibility System
+# ============================================
+cognitive_flexibility_system = CognitiveFlexibilitySystem(
+    baseline_flexibility=0.5,
+    switch_cost_base=150.0,
+    reconfiguration_speed=0.8,
+    rule_encoding_strength=0.7,
+    adaptation_rate=0.15,
+    history_window=20
+)
+
+# ============================================
+# LAB_021: Global Error Detection System
+# ============================================
+error_detection_system = ErrorDetectionSystem(
+    baseline_sensitivity=0.6,
+    conflict_threshold=0.5,
+    error_learning_rate=0.2,
+    correction_strength=0.8,
+    adaptation_rate=0.15,
+    history_window=25
+)
+
+# ============================================
+# LAB_018: Global Planning System
+# ============================================
+planning_system = PlanningSystem(
+    baseline_planning_capacity=0.6,
+    max_plan_depth=5,
+    max_plan_length=10,
+    sequencing_precision=0.8,
+    replanning_threshold=0.3,
+    adaptation_rate=0.1
+)
+
+# ============================================
+# LAB_022: Global Goal-Directed Behavior System
+# ============================================
+goal_directed_system = GoalDirectedBehaviorSystem(
+    baseline_motivation=0.6,
+    goal_capacity=5,
+    persistence_factor=0.8,
+    model_based_weight=0.6,
+    goal_shielding_strength=0.7,
+    adaptation_rate=0.12
 )
 
 # ============================================
@@ -2995,6 +3070,404 @@ async def get_gaba_glutamate_state():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get GABA/Glutamate state: {str(e)}"
+        )
+
+
+# ============================================
+# LAB_019: Inhibitory Control System Endpoints
+# ============================================
+
+class InhibitoryControlEventRequest(BaseModel):
+    response_conflict: float = Field(..., ge=0.0, le=1.0, description="Conflict level between competing responses (0-1)")
+    prepotency: float = Field(..., ge=0.0, le=1.0, description="Automatic response strength (0-1)")
+
+
+@app.post("/inhibitory_control/process", tags=["LAB_019"])
+async def process_inhibitory_control_event(request: InhibitoryControlEventRequest):
+    """
+    Process inhibition event and compute control metrics
+
+    Returns control strength, SSRT (stop-signal reaction time), impulsivity, and success rate.
+
+    **Biological Inspiration:** Right inferior frontal gyrus (rIFG), pre-SMA, OFC (Aron et al. 2014)
+
+    **Core Functions:**
+    - Response inhibition (stop-signal paradigm)
+    - Conflict resolution
+    - Impulsivity measurement
+    - Serotonin modulation integration
+
+    **Example:**
+    - response_conflict: 0.7, prepotency: 0.8 → High control demand, inhibition attempted
+    - response_conflict: 0.2, prepotency: 0.3 → Low control demand, baseline maintained
+    """
+    try:
+        result = inhibitory_control_system.process_event(
+            response_conflict=request.response_conflict,
+            prepotency=request.prepotency
+        )
+
+        # Integrate with serotonin system if available
+        serotonin_state = serotonin_system.get_state()
+        serotonin_modulation = inhibitory_control_system.integrate_serotonin(
+            serotonin_level=serotonin_state["serotonin_level"]
+        )
+
+        return {
+            "success": True,
+            "response_conflict": request.response_conflict,
+            "prepotency": request.prepotency,
+            "serotonin_modulation": float(serotonin_modulation),
+            **result
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process inhibitory control event: {str(e)}"
+        )
+
+
+@app.get("/inhibitory_control/state", tags=["LAB_019"])
+async def get_inhibitory_control_state():
+    """
+    Get current inhibitory control system state
+
+    Returns:
+    - control_strength: Current control strength (0-1)
+    - control_history: Recent control strength history (windowed)
+    - total_inhibitions: Total inhibition attempts
+    - successful_inhibitions: Successful inhibition count
+    - success_rate: Inhibition success rate (0-1)
+    - average_ssrt: Average stop-signal reaction time (milliseconds)
+    """
+    try:
+        state = inhibitory_control_system.get_state()
+
+        return {
+            "success": True,
+            **state
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get inhibitory control state: {str(e)}"
+        )
+
+
+# ============================================
+# LAB_020: Cognitive Flexibility System Endpoints
+# ============================================
+
+class CognitiveFlexibilityEventRequest(BaseModel):
+    new_task: str = Field(..., description="New task identifier to switch to")
+    preparation_time: float = Field(..., ge=0.0, description="Preparation time available (milliseconds)")
+
+
+@app.post("/cognitive_flexibility/process", tags=["LAB_020"])
+async def process_cognitive_flexibility_event(request: CognitiveFlexibilityEventRequest):
+    """
+    Process task switching event and compute flexibility metrics
+
+    Returns flexibility, switch cost, success, and perseveration detection.
+
+    **Biological Inspiration:** Dorsolateral PFC, ACC, posterior parietal (Monsell 2003)
+
+    **Core Functions:**
+    - Task set switching and reconfiguration
+    - Switch cost computation
+    - Perseveration detection (stuck in old task)
+    - Dopamine/acetylcholine modulation integration
+
+    **Example:**
+    - new_task: "B", preparation_time: 500 → Switch from A→B with 500ms prep
+    - new_task: "A", preparation_time: 0 → Switch back to A without prep
+    """
+    try:
+        result = cognitive_flexibility_system.process_event(
+            new_task=request.new_task,
+            preparation_time=request.preparation_time
+        )
+
+        # Integrate with dopamine and acetylcholine systems
+        dopamine_state = dopamine_system.get_state()
+        ach_state = acetylcholine_system.get_state()
+
+        dopamine_modulation = cognitive_flexibility_system.integrate_dopamine(
+            dopamine_level=dopamine_state["dopamine_level"]
+        )
+
+        ach_boost = cognitive_flexibility_system.integrate_acetylcholine(
+            ach_level=ach_state["acetylcholine_level"]
+        )
+
+        return {
+            "success": True,
+            "new_task": request.new_task,
+            "preparation_time": request.preparation_time,
+            "dopamine_modulation": float(dopamine_modulation),
+            "acetylcholine_boost": float(ach_boost),
+            **result
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process cognitive flexibility event: {str(e)}"
+        )
+
+
+@app.get("/cognitive_flexibility/state", tags=["LAB_020"])
+async def get_cognitive_flexibility_state():
+    """
+    Get current cognitive flexibility system state
+
+    Returns:
+    - flexibility: Current flexibility level (0-1)
+    - current_task_set: Currently active task
+    - task_history: Recent task history (windowed)
+    - switch_count: Total task switches attempted
+    - successful_switches: Successful switches count
+    - success_rate: Switch success rate (0-1)
+    - average_switch_cost_ms: Average switch cost (milliseconds)
+    """
+    try:
+        state = cognitive_flexibility_system.get_state()
+
+        return {
+            "success": True,
+            **state
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get cognitive flexibility state: {str(e)}"
+        )
+
+
+# ============================================
+# LAB_021: Error Detection System Endpoints
+# ============================================
+
+class ErrorDetectionEventRequest(BaseModel):
+    response_strengths: list = Field(..., description="Strengths of competing responses [A, B]")
+    actual_outcome: str = Field(..., description="What actually happened")
+    expected_outcome: str = Field(..., description="What was expected")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence in expectation (0-1)")
+
+
+@app.post("/error_detection/process", tags=["LAB_021"])
+async def process_error_detection_event(request: ErrorDetectionEventRequest):
+    """
+    Process event with conflict and error detection
+
+    Returns conflict level, error detection, ERN amplitude, and correction signals.
+
+    **Biological Inspiration:** ACC (conflict/error monitoring), mPFC (Botvinick 2001, Holroyd 2002)
+
+    **Core Functions:**
+    - Conflict detection (competing responses)
+    - Error detection (expected vs actual mismatch)
+    - ERN computation (error-related negativity)
+    - Corrective signal generation (control boost, post-error slowing)
+    - Dopamine RPE and norepinephrine arousal integration
+
+    **Example:**
+    - response_strengths: [0.7, 0.3], actual="A", expected="B", confidence=0.8 → Error detected
+    - response_strengths: [0.5, 0.5], actual="A", expected="A", confidence=0.7 → High conflict, no error
+    """
+    try:
+        result = error_detection_system.process_event(
+            response_strengths=request.response_strengths,
+            actual_outcome=request.actual_outcome,
+            expected_outcome=request.expected_outcome,
+            confidence=request.confidence
+        )
+
+        # Integrate with dopamine system (RPE as error signal)
+        dopamine_state = dopamine_system.get_state()
+
+        # Compute RPE from error
+        if result["error_detected"]:
+            # Error = negative RPE
+            rpe = -result["error_magnitude"]
+        else:
+            # No error = positive RPE
+            rpe = 0.5
+
+        # Integrate with norepinephrine system (arousal spike)
+        norepinephrine_state = norepinephrine_system.get_state()
+        arousal_boost = error_detection_system.integrate_norepinephrine_arousal(
+            baseline_arousal=norepinephrine_state["arousal"],
+            error_detected=result["error_detected"],
+            error_magnitude=result["error_magnitude"]
+        )
+
+        return {
+            "success": True,
+            "dopamine_rpe": float(rpe),
+            "norepinephrine_arousal_boost": float(arousal_boost),
+            **result
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process error detection event: {str(e)}"
+        )
+
+
+@app.get("/error_detection/state", tags=["LAB_021"])
+async def get_error_detection_state():
+    """
+    Get current error detection system state
+
+    Returns:
+    - sensitivity: Current error sensitivity (0-1)
+    - conflict_level: Current conflict level (0-1)
+    - errors_detected: Total errors detected
+    - corrections_applied: Total corrections triggered
+    - detection_rate: Proportion of trials with errors (0-1)
+    - false_alarm_rate: Estimated false alarm rate (0-1)
+    - average_ern: Average ERN amplitude (arbitrary units)
+    """
+    try:
+        state = error_detection_system.get_state()
+
+        return {
+            "success": True,
+            **state
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get error detection state: {str(e)}"
+        )
+
+
+# ============================================
+# LAB_018: Planning System Endpoints
+# ============================================
+
+class PlanningCreateRequest(BaseModel):
+    goal: str = Field(..., description="High-level goal to plan for")
+    constraints: dict = Field(default={}, description="Planning constraints (max_time, max_actions, etc.)")
+
+
+@app.post("/planning/create", tags=["LAB_018"])
+async def create_plan(request: PlanningCreateRequest):
+    """Create hierarchical plan for goal"""
+    try:
+        result = planning_system.process_event(
+            goal=request.goal,
+            constraints=request.constraints
+        )
+
+        # Integrate with dopamine and acetylcholine
+        dopamine_state = dopamine_system.get_state()
+        ach_state = acetylcholine_system.get_state()
+
+        capacity_modulation = planning_system.integrate_dopamine(dopamine_state["dopamine_level"])
+        precision_boost = planning_system.integrate_acetylcholine(ach_state["acetylcholine_level"])
+
+        return {
+            "success": True,
+            "dopamine_capacity_modulation": float(capacity_modulation),
+            "acetylcholine_precision_boost": float(precision_boost),
+            **result
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create plan: {str(e)}"
+        )
+
+
+@app.get("/planning/state", tags=["LAB_018"])
+async def get_planning_state():
+    """Get current planning system state"""
+    try:
+        state = planning_system.get_state()
+        return {
+            "success": True,
+            **state
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get planning state: {str(e)}"
+        )
+
+
+# ============================================
+# LAB_022: Goal-Directed Behavior System Endpoints (INTEGRATIVE)
+# ============================================
+
+class GoalDirectedEventRequest(BaseModel):
+    goal_description: str = Field(..., description="Goal description")
+    goal_priority: float = Field(..., ge=0.0, le=1.0, description="Goal priority (0-1)")
+    progress: float = Field(default=0.0, ge=0.0, le=1.0, description="Current progress (0-1)")
+    obstacles: float = Field(default=0.0, ge=0.0, le=1.0, description="Obstacles encountered (0-1)")
+
+
+@app.post("/goal_directed/process", tags=["LAB_022"])
+async def process_goal_directed_event(request: GoalDirectedEventRequest):
+    """
+    Process goal-directed behavior (INTEGRATIVE - Uses ALL systems)
+
+    Integrates:
+    - ALL 4 Neurochemistry LABs (DA, 5-HT, NE, ACh, GABA)
+    - ALL 4 Executive Function LABs (Inhibition, Flexibility, Error, Planning)
+    """
+    try:
+        # 1. Process goal
+        result = goal_directed_system.process_event(
+            goal_update={"description": request.goal_description, "priority": request.goal_priority},
+            context={"progress": request.progress, "obstacles": request.obstacles}
+        )
+
+        # 2. Integrate ALL neurochemistry systems
+        dopamine_state = dopamine_system.get_state()
+        serotonin_state = serotonin_system.get_state()
+        norepinephrine_state = norepinephrine_system.get_state()
+        ach_state = acetylcholine_system.get_state()
+        gaba_state = gaba_glutamate_system.get_state()
+
+        neuro_modulations = goal_directed_system.integrate_all_neurotransmitters(
+            dopamine=dopamine_state["dopamine_level"],
+            serotonin=serotonin_state["serotonin_level"],
+            norepinephrine=norepinephrine_state["arousal"],
+            acetylcholine=ach_state["acetylcholine_level"],
+            gaba=gaba_state["gaba_level"],
+            glutamate=gaba_state["glutamate_level"]
+        )
+
+        # 3. Integrate ALL executive functions
+        ef_contributions = goal_directed_system.integrate_executive_functions(result["active_goal"])
+
+        return {
+            "success": True,
+            "neurochemistry_modulations": neuro_modulations,
+            "executive_function_contributions": ef_contributions,
+            **result
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process goal-directed event: {str(e)}"
+        )
+
+
+@app.get("/goal_directed/state", tags=["LAB_022"])
+async def get_goal_directed_state():
+    """Get current goal-directed behavior system state"""
+    try:
+        state = goal_directed_system.get_state()
+        return {
+            "success": True,
+            **state
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get goal-directed state: {str(e)}"
         )
 
 
