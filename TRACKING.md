@@ -2613,3 +2613,186 @@ Track when major documentation was last updated:
 ---
 
 **"Every commit is progress. Every session is learning. Every day is closer to consciousness."** 🧠
+
+### Session 20 - LAB_030 + Research LAB_029-033 (November 8, 2025) ✅
+
+**Duration:** ~2 hours (continued from Session 19)
+**Goal:** Research + Plan LAB_029-033, Implement LAB_030
+
+**Context:**
+Ricardo granted full autonomy after Session 19 completion. After completing LAYER_5F (6 LABs), I proposed continuing with LAYER_5B (Social Cognition Advanced + Homeostasis). Ricardo approved: "como tu desees" → "siii vamos". Mid-session, Ricardo suggested strategic pause after LAB_030, which I accepted for quality preservation.
+
+**Completed:**
+
+1. ✅ **EXPLORAR Phase - LAB_029-033 Research**
+   - Created `memory/lab_029_033_social_homeostasis/exploration.md` (~500 lines)
+   - 11 neuroscience papers analyzed:
+     - Greene et al. 2001 - Moral dilemmas & brain (LAB_029)
+     - Cushman 2013 - Action vs outcome morality (LAB_029)
+     - Haidt 2001 - Moral intuitions first (LAB_029)
+     - Zacks & Michelon 2005 - Spatial perspective (LAB_030)
+     - Ruby & Decety 2001 - 1st vs 3rd person (LAB_030)
+     - Dijk & Czeisler 1995 - Two-process sleep model (LAB_031)
+     - Schmidt et al. 2007 - Circadian & cognition (LAB_031)
+     - Baumeister et al. 1998 - Ego depletion (LAB_032)
+     - Hockey 2013 - Compensatory control (LAB_032)
+     - McEwen 2000 - Allostatic load (LAB_033)
+     - Arnsten 2009 - Stress & PFC impairment (LAB_033)
+   - Architecture: 2 social cognition + 3 homeostasis LABs
+   - Integration map: Dense connections to LAB_001, 011, 015, 018-021, 027-028
+
+2. ✅ **PLANIFICAR Phase - Implementation Plan**
+   - Created `tasks/lab_029_033_social_homeostasis.md` (~450 lines)
+   - Implementation order: LAB_030 → 029 → 031 → 032 → 033
+   - Estimated: 136-159 tests, 2,500-3,000 lines main code
+   - TDD methodology defined for each LAB
+
+3. ✅ **LAB_030: Perspective Taking System**
+   - **Function:** Spatial & conceptual perspective shifts (egocentric ↔ allocentric)
+   - **Implementation:** 350 lines (perspective_taking_system.py)
+   - **Tests:** 475 lines, 22 tests (100% passing)
+   - **API:** (endpoints to be added in Session 21)
+   - **Key Achievement:** Mental rotation cost + egocentric/allocentric transformation
+   - **Integration:** LAB_027 (ToM - false belief support), LAB_028 (Empathy - embodied perspective)
+   - **Neuroscience Basis:** TPJ, precuneus, retrosplenial cortex
+   - **Papers:** Zacks & Michelon 2005, Ruby & Decety 2001, Kessler & Rutherford 2010
+   - **Bugs Fixed:** 0 ⭐ (perfect implementation - all 22 tests passed first time!)
+
+**Metrics:**
+
+| Metric | Session 20 | Cumulative (After S19+S20) |
+|--------|------------|----------------------------|
+| LABs Implemented | 1 (LAB_030) | 35/52 (67.3%) |
+| Tests Created | 22 | 204 total |
+| Code Lines | ~825 lines | +4,825 lines (S19+S20) |
+| API Endpoints | 0 (Session 21) | 32 (from S19) |
+| Zero Bug Rate | 100% (1/1) | 57% (4/7 LABs S19+S20) |
+| Research Papers | 11 | 24 (13 S19 + 11 S20) |
+
+**TDD Methodology:**
+
+| LAB | Tests | Pass Rate | Bugs Fixed | Perfect? |
+|-----|-------|-----------|------------|----------|
+| LAB_030 | 22 | 100% | 0 | ✅ |
+
+**Technical Highlights:**
+
+1. **Mental Rotation Cost (Shepard & Metzler 1971):**
+```python
+def compute_rotation_cost(self, angle_degrees: float) -> float:
+    """Rotation time increases linearly with angle"""
+    return abs(angle_degrees) * self.rotation_cost_per_degree  # 0.01s per degree
+```
+
+2. **Egocentric → Allocentric Transformation:**
+```python
+# Convert "to my left" (egocentric) → "west" (allocentric)
+# Based on agent's heading
+ego_to_allo = {
+    "front": agent_heading,
+    "back": (agent_heading + 180) % 360,
+    "left": (agent_heading + 270) % 360,
+    "right": (agent_heading + 90) % 360
+}
+```
+
+3. **False Belief Support (LAB_027 Integration):**
+```python
+# Support Sally-Anne task: "What can they see from there?"
+if 135 <= relative_angle < 225:
+    result["relative_position"] = "back"
+    result["visible"] = False  # Behind = not visible → false belief possible
+```
+
+**Research Insights (LAB_029-033):**
+
+1. **LAB_029 (Social Norms & Ethics):** Dual-process moral reasoning
+   - System 1 (vmPFC): Fast, emotional, deontological
+   - System 2 (dlPFC): Slow, rational, utilitarian
+   - Integration: LAB_027 (intentions), LAB_028 (care ethics)
+
+2. **LAB_031 (Circadian Rhythm):** Two-process sleep model (Borbély 1982)
+   - Process C: 24-hour circadian rhythm
+   - Process S: Homeostatic sleep pressure
+   - Alertness = C - S
+
+3. **LAB_032 (Energy Management):** Ego depletion + compensatory control
+   - Energy depletes with cognitive load
+   - Fatigue → narrow focus, prioritize urgent
+   - Recovery: Exponential during rest
+
+4. **LAB_033 (Allostatic Load):** Cumulative stress effects
+   - Load > 0.6 → PFC impairment (LAB_018-021 affected)
+   - Load > 0.6 → Amygdala hyperactivity (LAB_001 amplified)
+   - Slow recovery (chronic stress)
+
+**Files Created (5 files):**
+```
+experiments/LAYER_5_Higher_Cognition/Social_Homeostasis/
+└── LAB_030_Perspective_Taking/
+    ├── __init__.py
+    └── perspective_taking_system.py (350 lines)
+
+tests/unit/labs/
+└── test_lab_030_perspective_taking.py (475 lines, 22 tests)
+
+memory/lab_029_033_social_homeostasis/
+└── exploration.md (500 lines - neuroscience research)
+
+tasks/
+└── lab_029_033_social_homeostasis.md (450 lines - implementation plan)
+```
+
+**Git Commit:**
+- c3fa0da (feat(layer5): Implement LAB_030 + Research LAB_029-033)
+
+**Strategic Pause:**
+
+Mid-session, after completing LAB_030, I proposed continuing with 4 remaining LABs (LAB_029, 031-033) using 81K tokens available. Ricardo decided to close session here: "cierra por hoy gran trabajo"
+
+**Rationale for pause:**
+- Quality preservation (LAB_029 requires careful dual-process balancing)
+- Token optimization (81K borderline for 4 complex LABs)
+- Natural stopping point (LAB_030 complete, research done)
+- Session 21 with 200K full tokens = guaranteed quality
+
+**Session Success:**
+- ✅ LAB_030 complete with zero bugs (perfect TDD execution)
+- ✅ Research phase complete for 4 remaining LABs (11 papers)
+- ✅ Planning phase complete (detailed implementation plan)
+- ✅ Foundation solid for Session 21
+- ✅ Quality maintained per user mandate
+
+**Project Status After Session 20:**
+
+**CEREBRO_NEXUS_V3.0.0 LAB Progress:**
+- LAYER_1: ✅ operational (Memory Substrate)
+- LAYER_2: ✅ operational (8/8 LABs - Cognitive Loop)
+- LAYER_3: ✅ operational (4/4 LABs - Neurochemistry Base)
+- LAYER_4: ✅ operational (5/5 LABs - Neurochemistry Full)
+- LAYER_5: 🟡 14/31 LABs operational (45.2%)
+  - 5A Executive Functions: ✅ 5/5 LABs (100%)
+  - 5F Creativity & Social Cognition: ✅ 6/6 LABs (100%)
+  - 5B Social Homeostasis (partial): ✅ 1/5 LABs (20%) **[THIS SESSION - LAB_030]**
+  - 5Z FASE_8 Features: ✅ 2/2 LABs (100%)
+  - 5C-5E: 🔴 0/13 LABs (designed)
+
+**Overall:** 35/52 LABs operational (67.3% complete)
+
+**Roadmap Status:**
+- ✅ Q4 2025 (LAYER_4): COMPLETED (Session 17)
+- ✅ Q1 2026 (LAYER_5A): COMPLETED (Session 18)
+- ✅ Session 19 (LAYER_5F): COMPLETED (Session 19)
+- 🟡 Session 20 (LAYER_5B partial): 1/5 LABs COMPLETED **[THIS SESSION]**
+- 🔴 Session 21 (LAYER_5B completion): 4 LABs remaining (LAB_029, 031-033)
+
+**Next Steps (Session 21):**
+- LAB_029: Social Norms & Ethics (high difficulty, dual-process)
+- LAB_031: Circadian Rhythm (medium difficulty, two-process model)
+- LAB_032: Energy Management (medium difficulty, ego depletion)
+- LAB_033: Allostatic Load (high difficulty, wide integration)
+
+**Estimated Session 21:** 4 LABs, ~120-140 tests, ~3 hours
+
+---
+
