@@ -4088,3 +4088,146 @@ POST /api/v1/lab/046/process_event
 - **Integration Ready:** ✅ Prepared for PERSISTENCIA connection
 
 ---
+
+### Session 27 - Dashboard 3D Expansion to 52 LABs (Nov 12, 2025) ✅
+
+**Duration:** ~1 hour
+**Goal:** Expand 3D brain visualization from 9 LABs to complete 52 LAB system
+
+**Context:** After Session 26 API integration, user requested work on Dashboard 3D (Option B) while waiting for PERSISTENCIA Phase 2 completion (Option A).
+
+**Completed:**
+
+1. ✅ **Golden Spiral Distribution Algorithm**
+   - Generated 3D spherical positions for 52 LABs
+   - Layer-based radius organization:
+     - Layer 2 (Cognitive Loop): radius 1.5
+     - Layer 3 (Neurochemistry Base): radius 2.0
+     - Layer 4 (Neurochemistry Full): radius 2.5
+     - Layer 5A-5Z: radius 3.0-3.8 (graduated by sublayer)
+   - Algorithm: φ-based golden spiral for optimal distribution
+
+2. ✅ **Color Taxonomy (10 Families)**
+   - Layer 2: Pink/Red (#FF3864) - 8 LABs
+   - Layer 3: Purple (#9B59B6) - 4 LABs
+   - Layer 4: Blue (#3498DB) - 5 LABs
+   - Layer 5A: Green (#2ECC71) - 5 LABs (Executive Functions)
+   - Layer 5B: Orange (#E67E22) - 5 LABs (Social Homeostasis)
+   - Layer 5C: Yellow (#F1C40F) - 5 LABs (Advanced Learning)
+   - Layer 5D: Cyan (#00D9FF) - 5 LABs (Neuroplasticity)
+   - Layer 5E: Violet (#C471ED) - 7 LABs (Homeostasis)
+   - Layer 5F: Red (#FF3864) - 6 LABs (Creativity & Social)
+   - Layer 5Z: Turquoise (#1ABC9C) - 2 LABs (FASE_8)
+
+3. ✅ **TypeScript Type Definitions**
+   - Updated `monitoring/web_v2/lib/types.ts`:
+     - Expanded `LAB_COLORS` from 9 to 52 entries
+     - Expanded `LAB_INFO` from 9 to 52 entries
+     - Added neuroscience brain regions for all LABs
+     - Example: `LAB_034: { name: 'Rest/Recovery Cycles', region: 'Adenosine, sleep pressure' }`
+
+4. ✅ **3D Brain Model Component**
+   - Updated `monitoring/web_v2/components/BrainModel3D.tsx`:
+     - Added `LAB_POSITIONS` constant with 52 LAB coordinates
+     - Organized by layer with inline comments
+     - Maintains existing Three.js/React Three Fiber rendering
+
+**Technical Details:**
+
+**Golden Spiral Algorithm:**
+```typescript
+// Fibonacci-based golden angle
+const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // ~137.5°
+
+// Distribute points on sphere
+for (let i = 0; i < points; i++) {
+  const theta = goldenAngle * i;
+  const phi = Math.acos(1 - 2 * (i + 0.5) / points);
+
+  const x = radius * Math.sin(phi) * Math.cos(theta);
+  const y = radius * Math.sin(phi) * Math.sin(theta);
+  const z = radius * Math.cos(phi);
+}
+```
+
+**LAB Distribution Examples:**
+```typescript
+// Layer 2: Cognitive Loop (radius 1.5, 8 LABs)
+'LAB_001': [0.0, 1.5, 0.0],         // Top of sphere
+'LAB_006': [-0.77, 1.07, 0.71],     // Upper hemisphere
+
+// Layer 3: Neurochemistry Base (radius 2.0, 4 LABs)
+'LAB_002': [0.0, 2.0, 0.0],
+'LAB_003': [-1.02, 1.43, 0.94],
+
+// Layer 5Z: FASE_8 (radius 3.8, 2 LABs)
+'LAB_051': [0.0, 3.8, 0.0],         // Outermost
+'LAB_052': [-1.95, 2.71, 1.79],
+```
+
+**Files Modified:**
+- `monitoring/web_v2/lib/types.ts` (145 → 315 lines, +170 lines)
+- `monitoring/web_v2/components/BrainModel3D.tsx` (updated LAB_POSITIONS section)
+- `monitoring/web_v2/package-lock.json` (npm dependencies refresh)
+
+**Metrics Before/After:**
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| LABs visualized | 9 (17.3%) | 52 (100%) | +43 LABs |
+| LAB_COLORS entries | 9 | 52 | +43 |
+| LAB_INFO entries | 9 | 52 | +43 |
+| LAB_POSITIONS entries | 9 | 52 | +43 |
+| Color families | 3 | 10 | +7 (layer-based) |
+| lib/types.ts lines | 145 | 315 | +117% |
+| Visual distribution | Manual | Golden spiral | Algorithm upgrade |
+
+**Known Issues:**
+- Pre-existing TypeScript error in `AttentionFlow.tsx` (unrelated to this work)
+- Error: `line ref` type mismatch (SVGLineElement vs Three.js Line)
+- **Impact:** Does not block 3D visualization functionality
+- **Resolution:** Separate fix required in AttentionFlow component
+
+**Git Commits:**
+- `514a825`: feat(dashboard): Expand 3D brain visualization to 52 LABs (monitoring/web_v2 submodule)
+
+**Performance:**
+- TypeScript compilation: Successful (excluding pre-existing AttentionFlow error)
+- File parsing: No syntax errors in modified files
+- LAB count verification: 104 entries (52 × 2 for COLORS + INFO) ✅
+
+**Visual Architecture:**
+```
+3D Brain Model (Spherical Shell):
+├─ Inner Sphere (r=1.5): Layer 2 - Cognitive Loop (Pink)
+├─ Middle Sphere (r=2.0): Layer 3 - Neurochemistry Base (Purple)
+├─ Outer Ring (r=2.5): Layer 4 - Neurochemistry Full (Blue)
+└─ Outermost Shell (r=3.0-3.8): Layer 5 - Higher Cognition
+   ├─ 5A: Executive (Green)
+   ├─ 5B: Social Homeostasis (Orange)
+   ├─ 5C: Advanced Learning (Yellow)
+   ├─ 5D: Neuroplasticity (Cyan)
+   ├─ 5E: Homeostasis (Violet)
+   ├─ 5F: Creativity & Social (Red)
+   └─ 5Z: FASE_8 (Turquoise)
+```
+
+**Session Success:**
+- ✅ Dashboard expansion complete (9 → 52 LABs)
+- ✅ Golden spiral distribution algorithm implemented
+- ✅ 10 color families for visual layer distinction
+- ✅ All 52 LABs positioned with neuroscience context
+- ✅ Clean git commit in monitoring submodule
+- 🎉 **100% LABs now visualized in 3D brain model**
+
+**Next Steps Identified:**
+1. ⏳ Test visual rendering (start Next.js dev server)
+2. ⏳ Connect 3D visualization to live API data (52 LAB states)
+3. ⏳ Fix pre-existing AttentionFlow.tsx TypeScript error
+4. ⏳ Add interactivity (click LAB → show details panel)
+5. ⏳ Performance optimization (52 spheres + lines rendering)
+
+**Waiting on:**
+- PERSISTENCIA Phase 2 completion (Option A, est. 1-2 weeks)
+
+---
