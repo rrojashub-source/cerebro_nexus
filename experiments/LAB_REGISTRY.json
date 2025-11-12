@@ -757,15 +757,16 @@
       "layer_3_labs": "✅ All 4 LABs have endpoints",
       "layer_4_labs": "✅ All 5 LABs have endpoints (LAB_013-017: 10 endpoints total)",
       "layer_5a_labs": "✅ All 5 LABs have endpoints (LAB_018-022: 10 endpoints total - Session 18)",
-      "layer_5c_labs": "🟡 Implementation complete, API integration pending (LAB_034-038: 5 LABs - Session 22 & 25)",
-      "layer_5d_labs": "🟡 Implementation complete, API integration pending (LAB_039-043: 5 LABs - Session 23 & 25)",
-      "layer_5e_labs": "🟡 Implementation complete, API integration pending (LAB_044-050: 7 LABs - Session 24 & 25)",
+      "layer_5c_labs": "✅ All 5 LABs have endpoints (LAB_034-038: /api/v1/lab/034-038/* - Session 26)",
+      "layer_5d_labs": "✅ All 5 LABs have endpoints (LAB_039-043: /api/v1/lab/039-043/* - Session 26)",
+      "layer_5e_labs": "✅ All 7 LABs have endpoints (LAB_044-050: /api/v1/lab/044-050/* - Session 26)",
       "layer_5f_labs": "✅ All 6 LABs have endpoints (LAB_023-028: 12 endpoints total - Session 19)",
       "layer_5b_labs": "🔴 Not yet implemented (LAB_029-033: 5 LABs creativity insights - Q2 2026)",
-      "total_labs_with_endpoints": "28/52 (Layers 1-4 + 5A + 5F)",
+      "total_labs_with_endpoints": "45/52 (Layers 1-5 except 5B)",
       "total_labs_implemented": "52/52 (100%)",
-      "api_integration_pending": "17 LABs (5C: 5 LABs, 5D: 5 LABs, 5E: 7 LABs)",
-      "note": "All 52 LABs have core implementations with tests. API endpoints pending for Layer 5C/5D/5E (Sessions 22-25)."
+      "api_integration_complete": "✅ 45 LABs exposed via API (87%)",
+      "api_integration_pending": "5 LABs (5B: LAB_029-033 creativity insights)",
+      "note": "Session 26: Integrated 17 LABs (5C+5D+5E) via labs_layer5_endpoints.py router. All endpoints available at /api/v1/lab/{LAB_NUM}/*. Total 40 new routes."
     }
   },
 

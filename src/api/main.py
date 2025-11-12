@@ -118,6 +118,9 @@ from consciousness_endpoints import register_consciousness_endpoints
 # A/B Testing Framework
 from ab_testing import get_ab_test_manager, TestVariant
 
+# Layer 5 LABs Router (LAB_034-050: 17 LABs)
+from labs_layer5_endpoints import get_layer5_router
+
 # ============================================
 # Configuration
 # ============================================
@@ -645,6 +648,13 @@ def generate_query_embedding(text: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error generating embedding: {str(e)}"
         )
+
+# ============================================
+# Include Routers
+# ============================================
+
+# Include Layer 5 LABs Router (LAB_034-050: 17 LABs)
+app.include_router(get_layer5_router(), prefix="/api/v1", tags=["Layer 5 LABs"])
 
 # ============================================
 # Endpoints
