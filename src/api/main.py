@@ -98,19 +98,24 @@ from LAYER_4_Neurochemistry_Full.LAB_016_Acetylcholine_System import Acetylcholi
 from LAYER_4_Neurochemistry_Full.LAB_017_GABA_Glutamate_Balance import GABAGlutamateSystem
 
 # LAB_019: Inhibitory Control System
-from LAYER_5_Higher_Cognition.Executive_Functions.LAB_019_Inhibitory_Control import InhibitoryControlSystem
+# TEMPORARILY DISABLED: Module not yet implemented
+# from LAYER_5_Higher_Cognition.Executive_Functions.LAB_019_Inhibitory_Control import InhibitoryControlSystem
 
 # LAB_020: Cognitive Flexibility System
-from LAYER_5_Higher_Cognition.Executive_Functions.LAB_020_Cognitive_Flexibility import CognitiveFlexibilitySystem
+# TEMPORARILY DISABLED: Module not yet implemented
+# from LAYER_5_Higher_Cognition.Executive_Functions.LAB_020_Cognitive_Flexibility import CognitiveFlexibilitySystem
 
 # LAB_021: Error Detection System
-from LAYER_5_Higher_Cognition.Executive_Functions.LAB_021_Error_Detection import ErrorDetectionSystem
+# TEMPORARILY DISABLED: Module not yet implemented
+# from LAYER_5_Higher_Cognition.Executive_Functions.LAB_021_Error_Detection import ErrorDetectionSystem
 
 # LAB_018: Planning System
-from LAYER_5_Higher_Cognition.Executive_Functions.LAB_018_Planning_Sequencing import PlanningSystem
+# TEMPORARILY DISABLED: Module not yet implemented
+# from LAYER_5_Higher_Cognition.Executive_Functions.LAB_018_Planning_Sequencing import PlanningSystem
 
 # LAB_022: Goal-Directed Behavior System
-from LAYER_5_Higher_Cognition.Executive_Functions.LAB_022_Goal_Directed_Behavior import GoalDirectedBehaviorSystem
+# TEMPORARILY DISABLED: Module not yet implemented
+# from LAYER_5_Higher_Cognition.Executive_Functions.LAB_022_Goal_Directed_Behavior import GoalDirectedBehaviorSystem
 
 # Session 12: Consciousness Endpoints (CognitiveStack Integration)
 from consciousness_endpoints import register_consciousness_endpoints
@@ -119,7 +124,8 @@ from consciousness_endpoints import register_consciousness_endpoints
 from ab_testing import get_ab_test_manager, TestVariant
 
 # Layer 5 LABs Router (LAB_034-050: 17 LABs)
-from labs_layer5_endpoints import get_layer5_router
+# TEMPORARILY DISABLED: Dependencies not yet implemented
+# from labs_layer5_endpoints import get_layer5_router
 
 # ============================================
 # Configuration
@@ -264,6 +270,36 @@ class SearchResponse(BaseModel):
     count: int
     results: List[SearchResult]
     timestamp: datetime
+
+# ============================================
+# PERSISTENCIA INTEGRATION: AAG + FIRM Models
+# ============================================
+class AAGRequest(BaseModel):
+    query: str = Field(..., description="User query for knowledge generation")
+    top_k: int = Field(20, ge=1, le=100, description="Number of episodes to retrieve")
+    use_precomputed: bool = Field(True, description="Use pre-computed embeddings (Week 5)")
+    external_dbs: Optional[List[Dict[str, Any]]] = Field(None, description="External agent DBs (Week 6+)")
+
+class AAGResponse(BaseModel):
+    query: str
+    response: str
+    accepted: List[Dict[str, Any]]  # Knowledge items with score >= 0.7
+    attributed: List[Dict[str, Any]]  # Knowledge items with 0.4 <= score < 0.7
+    rejected: List[Dict[str, Any]]  # Knowledge items with score < 0.4
+    stats: Dict[str, int]  # {n_accepted, n_attributed, n_rejected}
+    latency_ms: float
+    metadata: Dict[str, Any]  # {use_precomputed, external_agents_count}
+
+class FIRMRequest(BaseModel):
+    accepted_items: List[Dict[str, Any]] = Field(..., description="Accepted knowledge items from AAG")
+
+class FIRMResponse(BaseModel):
+    firm_score: Optional[float] = Field(None, description="FIRM correlation score (-1 to 1)")
+    trend: str = Field(..., description="strong_alignment | moderate_alignment | weak_alignment | insufficient_data")
+    alert: Optional[str] = Field(None, description="Alert message if identity drift detected")
+    self_count: int
+    external_count: int
+    metadata: Dict[str, Any]
 
 # ============================================
 # FASE_8_UPGRADE: Temporal Reasoning Models
@@ -654,7 +690,8 @@ def generate_query_embedding(text: str):
 # ============================================
 
 # Include Layer 5 LABs Router (LAB_034-050: 17 LABs)
-app.include_router(get_layer5_router(), prefix="/api/v1", tags=["Layer 5 LABs"])
+# TEMPORARILY DISABLED: Dependencies not yet implemented
+# app.include_router(get_layer5_router(), prefix="/api/v1", tags=["Layer 5 LABs"])
 
 # ============================================
 # Endpoints
@@ -893,11 +930,11 @@ async def search_memories(request: SearchRequest):
                     importance_score,
                     tags,
                     created_at,
-                    1 - (embedding <=> %s::vector) as similarity_score
+                    1 - (content_embedding <=> %s::vector) as similarity_score
                 FROM nexus_memory.zep_episodic_memory
-                WHERE embedding IS NOT NULL
-                    AND 1 - (embedding <=> %s::vector) >= %s
-                ORDER BY embedding <=> %s::vector
+                WHERE content_embedding IS NOT NULL
+                    AND 1 - (content_embedding <=> %s::vector) >= %s
+                ORDER BY content_embedding <=> %s::vector
                 LIMIT %s
             """, (
                 query_embedding,
@@ -1103,6 +1140,172 @@ async def search_memories(request: SearchRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error performing search: {str(e)}"
         )
+
+# ============================================
+# PERSISTENCIA INTEGRATION: AAG + FIRM Endpoints
+# ============================================
+
+@app.post("/aag/generate", response_model=AAGResponse, tags=["AAG"])
+async def generate_aag_response(request: AAGRequest):
+    """
+    Generate response using AAG (Attribution-Augmented Generation).
+
+    Integrates PERSISTENCIA Week 5 pre-computed embeddings for fast retrieval.
+    Supports multi-agent knowledge integration (Week 6+ with external_dbs).
+
+    **Features:**
+    - Semantic memory retrieval with pre-computed embeddings (~10ms latency)
+    - Identity-aware knowledge scoring (alignment with NEXUS Z_ID)
+    - Three-tier classification: accepted (>=0.7), attributed (0.4-0.7), rejected (<0.4)
+    - Multi-agent support (external_dbs parameter for Week 6+)
+
+    **Example:**
+    ```json
+    {
+        "query": "How to implement Test-Driven Development?",
+        "top_k": 20,
+        "use_precomputed": true
+    }
+    ```
+    """
+    start_time = time.time()
+
+    try:
+        # Import PERSISTENCIA modules
+        import sys
+        persistencia_path = '/mnt/d/01_PROYECTOS_ACTIVOS/PERSISTENCIA'
+        if persistencia_path not in sys.path:
+            sys.path.insert(0, persistencia_path)
+
+        from src.memory.retrieval import load_z_id_from_gic
+        from src.aag.generation import generate_response_with_aag
+
+        # Load NEXUS Z_ID from GIC
+        my_z_id = load_z_id_from_gic('nexus')
+
+        # Generate response with AAG
+        result = generate_response_with_aag(
+            query=request.query,
+            my_z_id=my_z_id,
+            mode='production',  # Use real DB retrieval
+            top_k=request.top_k,
+            use_precomputed=request.use_precomputed,  # Week 5 optimization
+            external_dbs=request.external_dbs  # Week 6+ multi-agent
+        )
+
+        # Calculate latency
+        latency_ms = (time.time() - start_time) * 1000
+
+        # Build response
+        return AAGResponse(
+            query=request.query,
+            response=result['response'],
+            accepted=result['accepted'],
+            attributed=result['attributed'],
+            rejected=result['rejected'],
+            stats=result['stats'],
+            latency_ms=latency_ms,
+            metadata={
+                'use_precomputed': request.use_precomputed,
+                'external_agents_count': len(request.external_dbs or [])
+            }
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"AAG generation failed: {str(e)}"
+        )
+
+
+@app.post("/firm/audit", response_model=FIRMResponse, tags=["FIRM"])
+async def audit_firm_boundary(request: FIRMRequest):
+    """
+    Audit AAG result with FIRM (Foreign-Identity Rejection Metric).
+
+    Detects identity drift by analyzing correlation between self-knowledge
+    and external knowledge acceptance scores.
+
+    **Requires:** ≥3 external items for meaningful correlation
+
+    **FIRM Scores:**
+    - >= 0.7: Strong alignment (responses grounded in self-identity) ✅
+    - 0.4-0.7: Moderate alignment (caution: potential drift) ⚠️
+    - < 0.4: Weak alignment (alert: identity boundary violation) ❌
+
+    **Example Usage:**
+    ```python
+    # Step 1: Generate AAG response
+    aag_result = await generate_aag_response({"query": "debugging tips"})
+
+    # Step 2: Audit with FIRM
+    firm_result = await audit_firm_boundary({
+        "accepted_items": aag_result["accepted"]
+    })
+    ```
+
+    **Note:** Week 5 returns "insufficient_data" (no external agents yet).
+    Week 6+ will provide full FIRM correlation with ARIA integration.
+    """
+    try:
+        # Import PERSISTENCIA modules
+        import sys
+        persistencia_path = '/mnt/d/01_PROYECTOS_ACTIVOS/PERSISTENCIA'
+        if persistencia_path not in sys.path:
+            sys.path.insert(0, persistencia_path)
+
+        from src.memory.retrieval import load_z_id_from_gic
+        from src.firm.firm_computation import compute_firm
+
+        # Load NEXUS Z_ID from GIC
+        my_z_id = load_z_id_from_gic('nexus')
+
+        # Audit with FIRM (requires full AAG response structure)
+        # Reconstruct AAG response format from accepted_items
+        aag_response = {
+            'accepted': request.accepted_items,
+            'attributed': [],
+            'rejected': []
+        }
+        result = compute_firm(aag_response, my_z_id)
+
+        # Build response
+        return FIRMResponse(
+            firm_score=result.get('firm_score'),
+            trend=result['trend'],
+            alert=result.get('alert'),
+            self_count=result['self_count'],
+            external_count=result['external_count'],
+            metadata=result.get('metadata', {})
+        )
+
+    except ValueError as e:
+        # Week 5 expected behavior: Insufficient external items
+        if "FIRM requires ≥3 external items" in str(e):
+            # Return graceful response (not an error, just insufficient data)
+            return FIRMResponse(
+                firm_score=None,
+                trend='insufficient_data',
+                alert=str(e),
+                self_count=len(request.accepted_items),
+                external_count=0,
+                metadata={'note': 'Week 5: No external agents yet. Week 6+ will provide full FIRM correlation with ARIA integration.'}
+            )
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid request: {str(e)}"
+            )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"FIRM audit failed: {str(e)}"
+        )
+
+# ============================================
+# End PERSISTENCIA Integration
+# ============================================
 
 @app.get("/stats", tags=["Stats"])
 async def get_stats():
