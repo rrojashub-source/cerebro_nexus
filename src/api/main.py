@@ -25,6 +25,15 @@ import sys
 import os
 # Add current directory to Python path for hybrid memory modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# PERSISTENCIA Integration: Add PERSISTENCIA path for AAG/FIRM modules
+_persistencia_path = os.getenv('PERSISTENCIA_PATH', '/app/persistencia')
+if _persistencia_path not in sys.path:
+    sys.path.insert(0, _persistencia_path)
+    print(f"✓ PERSISTENCIA path added: {_persistencia_path}", flush=True)
+else:
+    print(f"✓ PERSISTENCIA path already present: {_persistencia_path}", flush=True)
+
 from fact_extractor import extract_facts_from_content
 from fact_schemas import FactQueryRequest, FactQueryResponse, HybridQueryRequest, HybridQueryResponse
 
@@ -98,24 +107,19 @@ from LAYER_4_Neurochemistry_Full.LAB_016_Acetylcholine_System import Acetylcholi
 from LAYER_4_Neurochemistry_Full.LAB_017_GABA_Glutamate_Balance import GABAGlutamateSystem
 
 # LAB_019: Inhibitory Control System
-# TEMPORARILY DISABLED: Module not yet implemented
-# from LAYER_5_Higher_Cognition.Executive_Functions.LAB_019_Inhibitory_Control import InhibitoryControlSystem
+from LAYER_5_Higher_Cognition.Executive_Functions.LAB_019_Inhibitory_Control import InhibitoryControlSystem
 
 # LAB_020: Cognitive Flexibility System
-# TEMPORARILY DISABLED: Module not yet implemented
-# from LAYER_5_Higher_Cognition.Executive_Functions.LAB_020_Cognitive_Flexibility import CognitiveFlexibilitySystem
+from LAYER_5_Higher_Cognition.Executive_Functions.LAB_020_Cognitive_Flexibility import CognitiveFlexibilitySystem
 
 # LAB_021: Error Detection System
-# TEMPORARILY DISABLED: Module not yet implemented
-# from LAYER_5_Higher_Cognition.Executive_Functions.LAB_021_Error_Detection import ErrorDetectionSystem
+from LAYER_5_Higher_Cognition.Executive_Functions.LAB_021_Error_Detection import ErrorDetectionSystem
 
 # LAB_018: Planning System
-# TEMPORARILY DISABLED: Module not yet implemented
-# from LAYER_5_Higher_Cognition.Executive_Functions.LAB_018_Planning_Sequencing import PlanningSystem
+from LAYER_5_Higher_Cognition.Executive_Functions.LAB_018_Planning_Sequencing import PlanningSystem
 
 # LAB_022: Goal-Directed Behavior System
-# TEMPORARILY DISABLED: Module not yet implemented
-# from LAYER_5_Higher_Cognition.Executive_Functions.LAB_022_Goal_Directed_Behavior import GoalDirectedBehaviorSystem
+from LAYER_5_Higher_Cognition.Executive_Functions.LAB_022_Goal_Directed_Behavior import GoalDirectedBehaviorSystem
 
 # Session 12: Consciousness Endpoints (CognitiveStack Integration)
 from consciousness_endpoints import register_consciousness_endpoints
@@ -1171,14 +1175,9 @@ async def generate_aag_response(request: AAGRequest):
     start_time = time.time()
 
     try:
-        # Import PERSISTENCIA modules
-        import sys
-        persistencia_path = '/mnt/d/01_PROYECTOS_ACTIVOS/PERSISTENCIA'
-        if persistencia_path not in sys.path:
-            sys.path.insert(0, persistencia_path)
-
-        from src.memory.retrieval import load_z_id_from_gic
-        from src.aag.generation import generate_response_with_aag
+        # Import PERSISTENCIA modules (namespace conflict resolved)
+        from persistencia.memory.retrieval import load_z_id_from_gic
+        from persistencia.aag.generation import generate_response_with_aag
 
         # Load NEXUS Z_ID from GIC
         my_z_id = load_z_id_from_gic('nexus')
@@ -1248,14 +1247,9 @@ async def audit_firm_boundary(request: FIRMRequest):
     Week 6+ will provide full FIRM correlation with ARIA integration.
     """
     try:
-        # Import PERSISTENCIA modules
-        import sys
-        persistencia_path = '/mnt/d/01_PROYECTOS_ACTIVOS/PERSISTENCIA'
-        if persistencia_path not in sys.path:
-            sys.path.insert(0, persistencia_path)
-
-        from src.memory.retrieval import load_z_id_from_gic
-        from src.firm.firm_computation import compute_firm
+        # Import PERSISTENCIA modules (namespace conflict resolved)
+        from persistencia.memory.retrieval import load_z_id_from_gic
+        from persistencia.firm.firm_computation import compute_firm
 
         # Load NEXUS Z_ID from GIC
         my_z_id = load_z_id_from_gic('nexus')

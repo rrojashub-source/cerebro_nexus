@@ -106,25 +106,31 @@ services:
   # ============================================
   nexus_api:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: config/docker/Dockerfile
     container_name: nexus_api_master
     environment:
+      # API Configuration
       POSTGRES_HOST: nexus_postgresql
       POSTGRES_PORT: 5432
       POSTGRES_DB: nexus_memory
       POSTGRES_USER: nexus_superuser
       POSTGRES_PASSWORD_FILE: /run/secrets/pg_superuser_password
+      POSTGRES_PASSWORD: RpKeuQhnwqMOA4iQPILQshWtwFj0P2hm
       REDIS_HOST: nexus_redis
       REDIS_PORT: 6379
       REDIS_PASSWORD_FILE: /run/secrets/redis_password
       REDIS_CACHE_TTL: 300
       API_PORT: 8003
+      # PERSISTENCIA Configuration
+      PERSISTENCIA_PATH: /app/persistencia
+      PYTHONPATH: /app/persistencia:/app
     ports:
       - "8003:8003"
     volumes:
-      - ./src:/app/src:ro
-      - ./logs:/app/logs
+      - ../../src:/app/src:ro
+      - ../../logs:/app/logs
+      - ../../../PERSISTENCIA:/app/persistencia:ro
     networks:
       - nexus_network
     secrets:
@@ -157,8 +163,8 @@ services:
   # ============================================
   nexus_embeddings_worker:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: config/docker/Dockerfile
     container_name: nexus_embeddings_worker
     environment:
       POSTGRES_HOST: nexus_postgresql
@@ -174,8 +180,8 @@ services:
     ports:
       - "9090:9090"  # Prometheus metrics
     volumes:
-      - ./src:/app/src:ro
-      - ./logs:/app/logs
+      - ../../src:/app/src:ro
+      - ../../logs:/app/logs
     networks:
       - nexus_network
     secrets:
