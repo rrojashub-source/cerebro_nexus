@@ -13,10 +13,18 @@ from dataclasses import dataclass
 import sys
 from pathlib import Path
 import numpy as np
+import logging
+
+# Logging setup
+logger = logging.getLogger(__name__)
 
 # Add experiments to path
 experiments_path = Path(__file__).parent.parent
 sys.path.insert(0, str(experiments_path))
+
+# Add src/api to path for PersistenciaClient
+src_api_path = Path(__file__).parent.parent.parent / 'src' / 'api'
+sys.path.insert(0, str(src_api_path))
 
 from INTEGRATION_LAYERS.neuro_emotional_bridge import (
     NeuroEmotionalBridge,
@@ -26,6 +34,7 @@ from INTEGRATION_LAYERS.neuro_emotional_bridge import (
 from LAYER_2_Cognitive_Loop.LAB_001_Emotional_Salience.implementation.emotional_salience_scorer import (
     EmotionalSalienceScorer
 )
+from persistencia_client import PersistenciaClient
 
 
 # ============================================================================
@@ -1219,7 +1228,10 @@ class CognitiveStack:
         self.hybrid_memory = HybridMemoryExtractor()
         self.temporal_reasoning = TemporalReasoningLinker(max_temporal_links=5)
 
-    def process_event(
+        # PERSISTENCIA Integration (Session 28 - Dashboard 3D + AAG)
+        self.persistencia = PersistenciaClient(base_url="http://localhost:8003")
+
+    async def process_event(
         self,
         content: str,
         emotional_state: EmotionalState,
@@ -1284,13 +1296,44 @@ class CognitiveStack:
         novelty_score = novelty_result['novelty_score']
 
         # ====================================================================
+        # PHASE 3.5: AAG RETRIEVAL (PERSISTENCIA Integration - Session 28)
+        # ====================================================================
+
+        # Retrieve contextual episodes from PERSISTENCIA
+        # Target: <100ms retrieval, graceful degradation on failure
+        try:
+            aag_result = await self.persistencia.aag_generate(
+                query=content,
+                top_k=5,
+                similarity_threshold=0.7,
+                timeout_ms=100
+            )
+            retrieved_episodes = aag_result['episodes']
+            relevance_boost = aag_result['avg_relevance']
+
+            logger.info(
+                f"AAG retrieval: {len(retrieved_episodes)} episodes, "
+                f"relevance={relevance_boost:.2f}, "
+                f"latency={aag_result['retrieval_time_ms']:.1f}ms"
+            )
+        except Exception as e:
+            # Graceful degradation: Continue without AAG context
+            logger.warning(f"AAG retrieval failed: {e}")
+            retrieved_episodes = []
+            relevance_boost = 0.0
+
+        # ====================================================================
         # PHASE 4: ATTENTION GATING (Layer 2 + Layer 3 + Layer 4)
         # ====================================================================
 
-        # Attention computation (novelty + ACh + anticipation)
+        # Boost ACh level with AAG relevance (if context retrieved)
+        # Higher relevance → stronger attention enhancement
+        ach_boosted = neuro_state['acetylcholine'] * (1 + relevance_boost * 0.2)
+
+        # Attention computation (novelty + ACh enhanced + anticipation)
         attention_result = self.attention.compute_level(
             novelty_score=novelty_score,
-            ach_level=neuro_state['acetylcholine'],
+            ach_level=ach_boosted,  # Enhanced with AAG context
             emotional_anticipation=emotional_state.anticipation
         )
 
@@ -1415,7 +1458,11 @@ class CognitiveStack:
             },
             'neuro_state': neuro_state,
             'novelty': novelty_result,  # Session 10: 4-dimensional novelty
-            'attention': attention_result,
+            'attention': {
+                **attention_result,
+                'retrieved_context': retrieved_episodes,  # Session 28: PERSISTENCIA integration
+                'relevance_boost': float(relevance_boost)  # AAG relevance boost (0-1)
+            },
             'memory': {
                 'content': content,
                 'salience_score': float(salience_score),
@@ -1493,7 +1540,8 @@ class CognitiveStack:
 # EXAMPLE USAGE
 # ============================================================================
 
-if __name__ == "__main__":
+async def main():
+    """Async example usage (Session 28: AAG Integration)"""
     # Test full stack
     stack = CognitiveStack()
 
@@ -1511,7 +1559,7 @@ if __name__ == "__main__":
     )
 
     print("=" * 60)
-    print("COGNITIVE STACK - FULL INTEGRATION TEST")
+    print("COGNITIVE STACK - FULL INTEGRATION TEST (Session 28)")
     print("=" * 60)
 
     print("\n📊 INPUT:")
@@ -1519,7 +1567,7 @@ if __name__ == "__main__":
     print(f"  Emotional State: joy={emotional_state.joy}, surprise={emotional_state.surprise}")
     print(f"  Novelty: 0.95")
 
-    result = stack.process_event(
+    result = await stack.process_event(
         content="Major breakthrough discovery",
         emotional_state=emotional_state,
         somatic_marker=somatic_marker,
@@ -1573,3 +1621,9 @@ if __name__ == "__main__":
     print("\n✅ Full stack integration complete")
     print("   Session 9: +LAB_006, +LAB_007, +LAB_008")
     print("   Session 10: Enhanced LAB_002, LAB_003, LAB_004")
+    print("   Session 28: +PERSISTENCIA AAG Integration")
+
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
