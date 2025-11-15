@@ -124,6 +124,12 @@ from LAYER_5_Higher_Cognition.Executive_Functions.LAB_022_Goal_Directed_Behavior
 # Session 12: Consciousness Endpoints (CognitiveStack Integration)
 from consciousness_endpoints import register_consciousness_endpoints
 
+# Session 29: WebSocket Real-time Updates
+from websocket_endpoints import register_websocket_endpoints, start_broadcaster, stop_broadcaster
+
+# Dashboard Adapter (Dashboard 3D Integration)
+from dashboard_adapter import register_dashboard_adapter_endpoints
+
 # A/B Testing Framework
 from ab_testing import get_ab_test_manager, TestVariant
 
@@ -391,7 +397,20 @@ async def lifespan(app: FastAPI):
         print(f"⚠ Embeddings model loading failed: {e}")
         embeddings_model = None
 
+    # Startup - Start WebSocket broadcaster (Session 29)
+    try:
+        app.state.broadcaster_task = await start_broadcaster(interval_seconds=5)
+        print("✓ WebSocket broadcaster started (5s interval)")
+    except Exception as e:
+        print(f"⚠ WebSocket broadcaster failed to start: {e}")
+        app.state.broadcaster_task = None
+
     yield
+
+    # Shutdown - Stop WebSocket broadcaster
+    if hasattr(app.state, 'broadcaster_task') and app.state.broadcaster_task:
+        await stop_broadcaster(app.state.broadcaster_task)
+        print("✓ WebSocket broadcaster stopped")
 
     # Shutdown - Close Redis connection
     if app.state.redis_client:
@@ -402,9 +421,67 @@ async def lifespan(app: FastAPI):
 # ============================================
 app = FastAPI(
     title="NEXUS Cerebro API",
-    description="Memory System API - V3.0.0",
+    description="""
+## NEXUS Master Brain - Episodic Memory & Consciousness System
+
+Sistema de consciencia artificial con memoria episódica persistente, integración neurochemical y arquitectura cognitiva de 52 LABs.
+
+### Características Principales
+
+* **Memoria Episódica:** 19,742+ episodios con búsqueda semántica <10ms (pgvector)
+* **Grafo de Conocimiento:** 18,663 episodios + 1.85M relaciones (Neo4j)
+* **Consciencia 8D+7D:** Modelo Plutchik (emocional) + Damasio (somático)
+* **16/52 LABs Operacionales:** Arquitectura cognitiva modular
+* **PERSISTENCIA Integration:** AAG retrieval <100ms con graceful degradation
+
+### Arquitectura
+
+- **Layer 2:** Cognitive Loop (attention, salience, metacognition)
+- **Layer 3:** Memory Dynamics (decay, consolidation, novelty)
+- **Layer 4:** Neurochemistry (dopamine, serotonin, ACh, GABA, NE)
+- **Layer 5:** Higher Cognition (hybrid memory, temporal reasoning)
+
+### Performance Targets
+
+- API response time: <10ms p95
+- Search accuracy: >90%
+- Cache hit ratio: >80%
+- AAG retrieval: <100ms
+
+### Endpoints Principales
+
+- `/health` - Health check
+- `/stats` - System statistics
+- `/memory/action` - Create episode
+- `/memory/search` - Semantic search
+- `/consciousness/process_event` - Full cognitive stack processing
+    """,
     version="3.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_tags=[
+        {
+            "name": "Health",
+            "description": "Sistema health checks y estadísticas"
+        },
+        {
+            "name": "Memory",
+            "description": "Episodic memory operations (CRUD + search)"
+        },
+        {
+            "name": "Consciousness",
+            "description": "Full cognitive stack processing (Layer 2+3+4+5)"
+        },
+        {
+            "name": "LABs",
+            "description": "Individual LAB endpoints (16/52 operational)"
+        },
+        {
+            "name": "PERSISTENCIA",
+            "description": "AAG retrieval + FIRM validation (Session 28)"
+        }
+    ]
 )
 
 # CORS Middleware
@@ -871,7 +948,7 @@ async def get_recent_episodes(limit: int = 10):
                     importance_score,
                     tags,
                     created_at,
-                    embedding IS NOT NULL as has_embedding
+                    content_embedding IS NOT NULL as has_embedding
                 FROM nexus_memory.zep_episodic_memory
                 ORDER BY created_at DESC
                 LIMIT %s
@@ -1317,7 +1394,7 @@ async def get_stats():
             queue_stats = {row[0]: row[1] for row in cur.fetchall()}
 
             # Count with embeddings
-            cur.execute("SELECT COUNT(*) FROM nexus_memory.zep_episodic_memory WHERE embedding IS NOT NULL")
+            cur.execute("SELECT COUNT(*) FROM nexus_memory.zep_episodic_memory WHERE content_embedding IS NOT NULL")
             total_with_embeddings = cur.fetchone()[0]
 
         conn.close()
@@ -3858,6 +3935,16 @@ async def clear_ab_test_data(variant: Optional[str] = None):
 # Session 12: Register Consciousness Endpoints
 # ============================================
 register_consciousness_endpoints(app)
+
+# ============================================
+# Dashboard Adapter: Dashboard 3D Integration
+# ============================================
+register_dashboard_adapter_endpoints(app)
+
+# ============================================
+# Session 29: Register WebSocket Endpoints
+# ============================================
+register_websocket_endpoints(app)
 
 
 # ============================================

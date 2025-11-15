@@ -215,8 +215,8 @@ async def process_event_endpoint(request: ProcessEventRequest) -> ProcessEventRe
         emotional_state = convert_emotional_state(request.emotional_state)
         somatic_marker = convert_somatic_marker(request.somatic_marker)
 
-        # Process event through full stack
-        result = stack.process_event(
+        # Process event through full stack (Session 28: AAG Integration)
+        result = await stack.process_event(
             content=request.content,
             emotional_state=emotional_state,
             somatic_marker=somatic_marker,
@@ -280,7 +280,11 @@ async def get_consciousness_state_endpoint() -> ConsciousnessStateResponse:
             somatic_state_7d={
                 'valence': 0.0,
                 'arousal': 0.0,
-                'situation': 'neutral'
+                'body_state': 0.5,
+                'cognitive_load': 0.5,
+                'emotional_regulation': 0.5,
+                'social_engagement': 0.5,
+                'temporal_awareness': 0.5
             },
             neuro_state_5d={
                 'dopamine': 0.5,
@@ -332,8 +336,8 @@ async def simulate_event_endpoint(request: SimulateEventRequest) -> SimulateEven
         emotional_state = convert_emotional_state(request.emotional_state)
         somatic_marker = convert_somatic_marker(request.somatic_marker)
 
-        # Process event through full stack (simulation only)
-        result = stack.process_event(
+        # Process event through full stack (simulation only, Session 28: AAG Integration)
+        result = await stack.process_event(
             content=request.content,
             emotional_state=emotional_state,
             somatic_marker=somatic_marker,
