@@ -133,6 +133,9 @@ from dashboard_adapter import register_dashboard_adapter_endpoints
 # A/B Testing Framework
 from ab_testing import get_ab_test_manager, TestVariant
 
+# Graph Algorithms (Neo4j Advanced Algorithms)
+from graph_endpoints import router as graph_router
+
 # Layer 5 LABs Router (LAB_034-050: 17 LABs)
 # TEMPORARILY DISABLED: Dependencies not yet implemented
 # from labs_layer5_endpoints import get_layer5_router
@@ -769,6 +772,9 @@ def generate_query_embedding(text: str):
 # ============================================
 # Include Routers
 # ============================================
+
+# Include Graph Algorithms Router (Neo4j Advanced Algorithms)
+app.include_router(graph_router)
 
 # Include Layer 5 LABs Router (LAB_034-050: 17 LABs)
 # TEMPORARILY DISABLED: Dependencies not yet implemented
