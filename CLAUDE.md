@@ -152,8 +152,10 @@ CEREBRO_NEXUS_V3.0.0/
 | LAB_013 | Fact Extraction | Conocimiento estructurado | Background |
 | LAB_014 | Hybrid Memory | Sync PostgreSQL + Neo4j | Bidirectional |
 | LAB_015 | Performance Optimization | Cache multi-nivel | Redis + local |
+| **NEW** | **Graph Algorithms** | **Community Detection, PageRank, Betweenness, Shortest Path** | **API /graph/** |
 
 **Registro:** `experiments/NEXUS_LABS/LAB_REGISTRY.json`
+**Graph Algorithms Docs:** `docs/api/GRAPH_ALGORITHMS.md`
 
 ---
 
@@ -191,9 +193,18 @@ GET /consciousness/current
 
 # Estadísticas sistema
 GET /stats
+
+# Graph Algorithms (NEW - Nov 17, 2025)
+GET /graph/health
+POST /graph/community_detection
+POST /graph/centrality
+GET /graph/important_episodes
+POST /graph/shortest_path
+GET /graph/insights
 ```
 
 **Arquitectura detallada:** Ver `docs/architecture/ARCHITECTURE_DIAGRAMS.md`
+**Graph Algorithms:** Ver `docs/api/GRAPH_ALGORITHMS.md`
 
 ---
 

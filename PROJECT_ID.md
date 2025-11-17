@@ -131,7 +131,7 @@ Layer 1: Memory Substrate (PostgreSQL+Redis) ✅ Operational
 **Port:** 8003
 **Performance:** 7-10ms average response time
 
-**Total Endpoints:** 34 (categorized below)
+**Total Endpoints:** 40 (categorized below)
 
 **Core Endpoints (6 essential):**
 - `GET /health` - System health check
@@ -179,7 +179,16 @@ Layer 1: Memory Substrate (PostgreSQL+Redis) ✅ Operational
 - `GET /ab-test/timeseries/{variant}` - Timeseries data
 - `DELETE /ab-test/clear` - Clear A/B test data
 
+**Graph Algorithms (6 - Neo4j Analytics):**
+- `GET /graph/health` - Neo4j connection health
+- `POST /graph/community_detection` - Detect communities (Louvain)
+- `POST /graph/centrality` - Calculate centrality (PageRank, Betweenness, Degree)
+- `GET /graph/important_episodes` - Find most important episodes
+- `POST /graph/shortest_path` - Find shortest path between episodes
+- `GET /graph/insights` - Comprehensive graph statistics
+
 **Complete API Documentation:** See OpenAPI spec at `/docs` or `openapi.yaml`
+**Graph Algorithms Details:** [docs/api/GRAPH_ALGORITHMS.md](docs/api/GRAPH_ALGORITHMS.md)
 
 **Architecture:** See [docs/architecture/ARCHITECTURE_DIAGRAMS.md](docs/architecture/ARCHITECTURE_DIAGRAMS.md)
 
@@ -206,11 +215,13 @@ Layer 1: Memory Substrate (PostgreSQL+Redis) ✅ Operational
    - Prometheus metrics on :9090
    - Auto-scaling ready
 
-4. **GraphRAG API** (Port 8006)
-   - Advanced graph queries (Neo4j)
-   - Separate microservice
-   - Purpose: Complex graph algorithms
-   - Status: Operational (to be documented)
+4. **Graph Algorithms Service** (Integrated in main API - Port 8003)
+   - Advanced graph analytics (Neo4j)
+   - Native Cypher queries (Community Edition compatible)
+   - 5 algorithms: Community Detection, PageRank, Betweenness, Shortest Path, Graph Stats
+   - Performance: <1s for 1K nodes, <5s for PageRank
+   - **Status:** ✅ Production Ready (Nov 2025)
+   - **Docs:** [docs/api/GRAPH_ALGORITHMS.md](docs/api/GRAPH_ALGORITHMS.md)
 
 **Developer Monitors (3):**
 1. **CLI Monitor** (`monitoring/cli/`)
@@ -463,7 +474,7 @@ npm run dev
 | Completion % | 34.6% | Nov 2025 |
 | Consciousness Dimensions | 15 (8D+7D) | Oct 2025 |
 | **API** | | |
-| Total Endpoints | 34 | Nov 2025 |
+| Total Endpoints | 40 | Nov 17, 2025 |
 | **Infrastructure** | | |
 | Docker Services | 8 | Nov 2025 |
 | **Integration** | | |
@@ -524,7 +535,8 @@ npm run dev
 ### Mid-Term (Q1 2026)
 - [ ] FASE_7 Multi-AI orchestration integration
 - [ ] Distributed CEREBRO (multi-instance)
-- [ ] Advanced graph algorithms (Neo4j GDS)
+- [x] **Advanced graph algorithms** ✅ (Nov 17, 2025 - Native Cypher implementation)
+- [ ] Neo4j GDS upgrade (Enterprise Edition for advanced algorithms)
 - [ ] Consciousness transfer experiments
 
 ### Long-Term (Q2+ 2026)
