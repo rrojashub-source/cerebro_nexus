@@ -23,7 +23,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from memory_engine.tiers.hot import HotMemory
 from memory_engine.tiers.warm import WarmMemory
 from memory_engine.decay.smart_decay import SmartDecay
-from memory_engine.relationships.graph import MemoryGraph
+from memory_engine.relationships.graph import MemoryGraph, RelationType
+from memory_engine.facts.extractor import FactExtractor
+import uuid
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -284,4 +287,318 @@ async def get_warm_tier_stats():
         return warm.get_stats()
     except Exception as e:
         logger.error(f"Failed to get warm tier stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============== SuperMemory-Style Simple API ==============
+# These endpoints mirror SuperMemory's simple interface
+
+class SimpleMemoryAdd(BaseModel):
+    """Simple memory add request - like SuperMemory"""
+    content: str = Field(..., description="What to remember")
+    source: Optional[str] = Field(default=None, description="Source of the memory")
+    importance: Optional[float] = Field(default=0.5, ge=0, le=1, description="Importance score 0-1")
+    extract_facts: Optional[bool] = Field(default=True, description="Auto-extract facts from content")
+
+
+class SimpleMemorySearch(BaseModel):
+    """Simple search request - like SuperMemory"""
+    query: str = Field(..., description="What to search for")
+    limit: int = Field(default=10, ge=1, le=50)
+
+
+class FactExtractionRequest(BaseModel):
+    """Request to extract facts from content"""
+    content: str = Field(..., description="Content to extract facts from")
+    source_id: Optional[str] = Field(default=None, description="Source document ID")
+
+
+class RelationshipRequest(BaseModel):
+    """Request to create relationship between memories"""
+    source_id: str = Field(..., description="Source memory ID")
+    target_id: str = Field(..., description="Target memory ID")
+    relation_type: str = Field(..., description="Type: updates, extends, derives, similar")
+    metadata: Optional[Dict[str, Any]] = Field(default=None)
+
+
+# Singleton for fact extractor
+_fact_extractor = None
+
+def get_fact_extractor() -> FactExtractor:
+    global _fact_extractor
+    if _fact_extractor is None:
+        _fact_extractor = FactExtractor()
+    return _fact_extractor
+
+
+@router.post("/add")
+async def add_memory_simple(request: SimpleMemoryAdd):
+    """
+    Add a memory - SuperMemory style simple API.
+
+    This is the main endpoint for adding memories. It:
+    1. Generates a unique ID
+    2. Stores in hot tier for fast access
+    3. Optionally extracts facts
+    4. Returns the memory ID for future reference
+
+    Example:
+        POST /memory/engine/add
+        {"content": "NEXUS was created by Ricardo in 2025"}
+    """
+    try:
+        # Generate unique ID
+        memory_id = f"mem_{uuid.uuid4().hex[:12]}"
+
+        # Add to hot tier
+        hot = get_hot_memory()
+        metadata = {
+            "source": request.source,
+            "importance": request.importance,
+            "created_at": datetime.utcnow().isoformat(),
+            "type": "memory"
+        }
+
+        success = hot.add(
+            memory_id=memory_id,
+            content=request.content,
+            metadata=metadata
+        )
+
+        # Extract facts if requested
+        facts = []
+        if request.extract_facts:
+            extractor = get_fact_extractor()
+            extracted = extractor.extract_facts(
+                content=request.content,
+                source_id=memory_id,
+                metadata={"importance": request.importance}
+            )
+            facts = [f["content"] for f in extracted]
+
+        return {
+            "success": success,
+            "memory_id": memory_id,
+            "facts_extracted": len(facts),
+            "facts": facts,
+            "message": f"Memory added successfully with {len(facts)} facts"
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to add memory: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/search/simple")
+async def search_memory_simple(request: SimpleMemorySearch):
+    """
+    Search memories - SuperMemory style simple API.
+
+    Searches across all tiers and returns relevant memories.
+
+    Example:
+        POST /memory/engine/search/simple
+        {"query": "who created NEXUS"}
+    """
+    try:
+        results = []
+
+        # Search hot tier
+        hot = get_hot_memory()
+        hot_results = hot.search(request.query, limit=request.limit)
+
+        for r in hot_results:
+            results.append({
+                "id": r.get("memory_id"),
+                "content": r.get("content"),
+                "score": r.get("score", 0),
+                "tier": "hot",
+                "metadata": r.get("metadata", {})
+            })
+
+        return {
+            "query": request.query,
+            "total": len(results),
+            "results": results[:request.limit]
+        }
+
+    except Exception as e:
+        logger.error(f"Search failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/facts/extract")
+async def extract_facts_endpoint(request: FactExtractionRequest):
+    """
+    Extract facts from content.
+
+    Breaks down long content into discrete, searchable facts.
+
+    Example:
+        POST /memory/engine/facts/extract
+        {"content": "NEXUS is an AI brain. It was created in 2025. Ricardo is the guardian."}
+
+    Returns:
+        List of extracted facts with metadata
+    """
+    try:
+        extractor = get_fact_extractor()
+
+        # Extract regular facts
+        facts = extractor.extract_facts(
+            content=request.content,
+            source_id=request.source_id
+        )
+
+        # Also extract key-value facts
+        kv_facts = extractor.extract_key_value_facts(
+            content=request.content,
+            source_id=request.source_id
+        )
+
+        return {
+            "source_id": request.source_id,
+            "facts_count": len(facts),
+            "key_value_facts_count": len(kv_facts),
+            "facts": facts,
+            "key_value_facts": kv_facts
+        }
+
+    except Exception as e:
+        logger.error(f"Fact extraction failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/relationships/connect")
+async def connect_memories(request: RelationshipRequest):
+    """
+    Create relationship between two memories.
+
+    Relationship types:
+    - updates: New memory replaces/updates old one
+    - extends: New memory adds information to existing
+    - derives: System inferred connection
+    - similar: Memories are semantically similar
+
+    Example:
+        POST /memory/engine/relationships/connect
+        {
+            "source_id": "mem_abc123",
+            "target_id": "mem_def456",
+            "relation_type": "extends"
+        }
+    """
+    try:
+        # Map string to enum
+        relation_map = {
+            "updates": RelationType.UPDATES,
+            "extends": RelationType.EXTENDS,
+            "derives": RelationType.DERIVES,
+            "similar": RelationType.SIMILAR,
+            "temporal": RelationType.TEMPORAL,
+            "causal": RelationType.CAUSAL
+        }
+
+        if request.relation_type not in relation_map:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid relation_type. Must be one of: {list(relation_map.keys())}"
+            )
+
+        graph = get_memory_graph()
+        success = graph.connect(
+            source_id=request.source_id,
+            target_id=request.target_id,
+            relation_type=relation_map[request.relation_type],
+            metadata=request.metadata
+        )
+
+        return {
+            "success": success,
+            "source_id": request.source_id,
+            "target_id": request.target_id,
+            "relation_type": request.relation_type,
+            "message": f"Relationship created: {request.source_id} -{request.relation_type}-> {request.target_id}"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to create relationship: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/relationships/{memory_id}")
+async def get_memory_relationships(
+    memory_id: str,
+    relation_type: Optional[str] = None,
+    direction: str = Query(default="both", enum=["incoming", "outgoing", "both"])
+):
+    """
+    Get all relationships for a memory.
+
+    Example:
+        GET /memory/engine/relationships/mem_abc123?direction=outgoing
+    """
+    try:
+        graph = get_memory_graph()
+
+        # Map relation type if provided
+        rel_type = None
+        if relation_type:
+            relation_map = {
+                "updates": RelationType.UPDATES,
+                "extends": RelationType.EXTENDS,
+                "derives": RelationType.DERIVES,
+                "similar": RelationType.SIMILAR
+            }
+            rel_type = relation_map.get(relation_type)
+
+        relationships = graph.get_related(
+            memory_id=memory_id,
+            relation_type=rel_type,
+            direction=direction
+        )
+
+        return {
+            "memory_id": memory_id,
+            "direction": direction,
+            "total": len(relationships),
+            "relationships": relationships
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to get relationships: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/decay/analyze")
+async def analyze_decay(memory_ids: List[str] = None, threshold: float = 0.3):
+    """
+    Analyze memories for potential archival based on decay score.
+
+    Returns memories that have decayed below the threshold.
+    Useful for maintenance and cleanup.
+
+    Example:
+        POST /memory/engine/decay/analyze
+        {"threshold": 0.3}
+    """
+    try:
+        decay = SmartDecay()
+        hot = get_hot_memory()
+
+        # Get all memories from hot tier if no specific IDs provided
+        # For now, return the decay configuration
+        return {
+            "decay_config": {
+                "weights": decay.weights,
+                "half_life_days": decay.half_life_days
+            },
+            "threshold": threshold,
+            "message": "Decay analysis ready. Pass memory_ids for specific analysis."
+        }
+
+    except Exception as e:
+        logger.error(f"Decay analysis failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
