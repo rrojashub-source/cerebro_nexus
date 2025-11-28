@@ -26,13 +26,12 @@ import os
 # Add current directory to Python path for hybrid memory modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# PERSISTENCIA Integration: Add PERSISTENCIA path for AAG/FIRM modules
-_persistencia_path = os.getenv('PERSISTENCIA_PATH', '/app/persistencia')
-if _persistencia_path not in sys.path:
-    sys.path.insert(0, _persistencia_path)
-    print(f"✓ PERSISTENCIA path added: {_persistencia_path}", flush=True)
-else:
-    print(f"✓ PERSISTENCIA path already present: {_persistencia_path}", flush=True)
+# Identity Integration: Add src path for identity modules (AAG/FIRM/Z_ID)
+_src_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # /src
+_project_root = os.path.dirname(_src_path)  # /CEREBRO_NEXUS_V3.0.0
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+    print(f"✓ Project root path added: {_project_root}", flush=True)
 
 from fact_extractor import extract_facts_from_content
 from fact_schemas import FactQueryRequest, FactQueryResponse, HybridQueryRequest, HybridQueryResponse
@@ -135,6 +134,9 @@ from ab_testing import get_ab_test_manager, TestVariant
 
 # Graph Algorithms (Neo4j Advanced Algorithms)
 from graph_endpoints import router as graph_router
+
+# Memory Engine (Multi-tier SuperMemory-style)
+from memory_engine_endpoints import router as memory_engine_router
 
 # Layer 5 LABs Router (LAB_034-050: 17 LABs)
 # TEMPORARILY DISABLED: Dependencies not yet implemented
@@ -776,6 +778,9 @@ def generate_query_embedding(text: str):
 # Include Graph Algorithms Router (Neo4j Advanced Algorithms)
 app.include_router(graph_router)
 
+# Include Memory Engine Router (Multi-tier SuperMemory-style)
+app.include_router(memory_engine_router)
+
 # Include Layer 5 LABs Router (LAB_034-050: 17 LABs)
 # TEMPORARILY DISABLED: Dependencies not yet implemented
 # app.include_router(get_layer5_router(), prefix="/api/v1", tags=["Layer 5 LABs"])
@@ -1259,8 +1264,8 @@ async def generate_aag_response(request: AAGRequest):
 
     try:
         # Import PERSISTENCIA modules (namespace conflict resolved)
-        from persistencia.memory.retrieval import load_z_id_from_gic
-        from persistencia.aag.generation import generate_response_with_aag
+        from src.identity.retrieval.retrieval import load_z_id_from_gic
+        from src.identity.aag.generation import generate_response_with_aag
 
         # Load NEXUS Z_ID from GIC
         my_z_id = load_z_id_from_gic('nexus')
@@ -1331,8 +1336,8 @@ async def audit_firm_boundary(request: FIRMRequest):
     """
     try:
         # Import PERSISTENCIA modules (namespace conflict resolved)
-        from persistencia.memory.retrieval import load_z_id_from_gic
-        from persistencia.firm.firm_computation import compute_firm
+        from src.identity.retrieval.retrieval import load_z_id_from_gic
+        from src.identity.firm.firm_computation import compute_firm
 
         # Load NEXUS Z_ID from GIC
         my_z_id = load_z_id_from_gic('nexus')
