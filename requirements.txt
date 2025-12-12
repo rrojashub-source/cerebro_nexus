@@ -13,16 +13,17 @@
 # ============================================
 # API Framework
 # ============================================
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+pydantic-settings==2.6.1
 
 # ============================================
 # Database
 # ============================================
-# PostgreSQL: psycopg v3 (sync) + asyncpg (async)
+# PostgreSQL: psycopg v3 (sync) + psycopg2 (legacy) + asyncpg (async)
 psycopg[binary]==3.1.13
+psycopg2-binary==2.9.9
 asyncpg==0.29.0
 
 # ============================================
@@ -41,16 +42,28 @@ hiredis==2.2.3
 # ============================================
 # Utilities
 # ============================================
-python-dotenv==1.0.0
-python-multipart==0.0.6
+python-dotenv==1.0.1
+python-multipart==0.0.18
+httpx==0.28.1
+
+# ============================================
+# Sensory System (TTS Voice)
+# ============================================
+# Edge TTS - Microsoft Text-to-Speech (free, no API key)
+# Used by sensory_endpoints.py for NEXUS voice
+edge-tts>=6.1.0
 
 # ============================================
 # Monitoring (Prometheus)
 # ============================================
-prometheus-client==0.19.0
+prometheus-client==0.21.1
 
 # ============================================
 # Logging
 # ============================================
-structlog==23.2.0
+structlog==24.4.0
 neo4j==5.26.0
+
+# ============================================
+# Last Updated: December 12, 2025
+# ============================================

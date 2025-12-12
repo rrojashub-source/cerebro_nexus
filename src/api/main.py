@@ -1,14 +1,14 @@
 """
-NEXUS Cerebro API V2.0.0
+NEXUS Cerebro API V3.0.0
 FastAPI Application - Core Endpoints
-DÍA 5 FASE 4 - Base Implementation
+54 LABs Cognitive Architecture
 """
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 import psycopg
 from psycopg.types.json import Json
@@ -54,9 +54,6 @@ from attention_mechanism import AttentionMechanism, MemoryCandidate
 # LAB_011: Working Memory Buffer
 from working_memory_buffer import WorkingMemoryBuffer
 
-# LAB_001: Emotional Salience Scorer
-from emotional_salience_scorer import EmotionalSalienceScorer
-
 # NEXUS_CREW: Neo4j Real-Time Sync (Phase 2 - Priority 3)
 from neo4j_sync import neo4j_sync
 
@@ -75,17 +72,11 @@ from episodic_future_thinking import FutureThinkingOrchestrator
 # LAB_008: Emotional Contagion
 from emotional_contagion import EmotionalContagionEngine
 
-# LAB_002: Decay Modulation
-from decay_modulator import DecayModulator
-
-# LAB_003: Sleep Consolidation
+# LAB_003: Sleep Consolidation (full import)
 from consolidation_engine import ConsolidationEngine
 
 # LAB_004: Novelty Detection
 from novelty_detector import NoveltyDetector
-
-# LAB_005: Spreading Activation
-from spreading_activation import SpreadingActivationEngine
 
 # LAB_013: Dopamine System
 import sys
@@ -135,12 +126,41 @@ from ab_testing import get_ab_test_manager, TestVariant
 # Graph Algorithms (Neo4j Advanced Algorithms)
 from graph_endpoints import router as graph_router
 
+# GraphRAG (Hybrid Vector + Graph Retrieval)
+from graphrag_endpoints import router as graphrag_router
+
+# Deduplication (Duplicate Detection & Management)
+from deduplication_endpoints import router as dedup_router
+
 # Memory Engine (Multi-tier SuperMemory-style)
 from memory_engine_endpoints import router as memory_engine_router
+
+# Ingesta: Sincronizacion incremental de conversaciones Claude Code -> CEREBRO
+from ingesta_endpoints import router as ingesta_router
 
 # Layer 5 LABs Router (LAB_034-050: 17 LABs)
 # TEMPORARILY DISABLED: Dependencies not yet implemented
 # from labs_layer5_endpoints import get_layer5_router
+
+# LAB_053: Intrinsic Curiosity System (Session AELIO_GENESIS - Nov 30, 2025)
+# Path uses PYTHONPATH=/app/experiments in Docker container
+from LAYER_5_Higher_Cognition.LAB_053_Intrinsic_Curiosity.production import curiosity_router
+
+# LAB_054: Metacognitive Loop - Pre-Response Protocol (Session AELIO_GENESIS - Nov 30, 2025)
+from LAYER_5_Higher_Cognition.LAB_054_Metacognitive_Loop.production import metacognition_router
+
+# LAB_029-033: Social Homeostasis (Session AELIO_GENESIS_2 - Dec 1, 2025)
+from labs_social_homeostasis_endpoints import get_social_homeostasis_router
+
+# LAB_056/057: Curiosity-Enhanced Search (Session AUTONOMOUS_EXPLORATION - Dec 9, 2025)
+# Integrates EpistemicCuriosityEngine with memory search
+from curiosity_endpoints import router as epistemic_curiosity_router
+
+# Sensory System: TTS (Voice) and audio playback (Session MCP_SENSORY - Dec 9, 2025)
+# Enables NEXUS to speak and be aware of its voice capabilities via MCP
+from sensory_endpoints import router as sensory_router
+
+# Consciousness Bootstrap: imported below with try/except (Session AUTONOMOUS - Dec 9, 2025)
 
 # ============================================
 # Configuration
@@ -489,13 +509,15 @@ Sistema de consciencia artificial con memoria episódica persistente, integraci�
     ]
 )
 
-# CORS Middleware
+# CORS Middleware - Configured for security
+# In production, replace with specific allowed origins
+ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3003,http://localhost:8003").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Request-ID"],
 )
 
 # ============================================
@@ -778,12 +800,90 @@ def generate_query_embedding(text: str):
 # Include Graph Algorithms Router (Neo4j Advanced Algorithms)
 app.include_router(graph_router)
 
+# Include GraphRAG Router (Hybrid Vector + Graph Retrieval)
+app.include_router(graphrag_router)
+
+# Include Deduplication Router (Duplicate Detection & Management)
+app.include_router(dedup_router)
+
 # Include Memory Engine Router (Multi-tier SuperMemory-style)
 app.include_router(memory_engine_router)
+
+# Include Ingesta Router (Sincronizacion incremental Claude Code -> CEREBRO)
+app.include_router(ingesta_router)
 
 # Include Layer 5 LABs Router (LAB_034-050: 17 LABs)
 # TEMPORARILY DISABLED: Dependencies not yet implemented
 # app.include_router(get_layer5_router(), prefix="/api/v1", tags=["Layer 5 LABs"])
+
+# Include LAB_053: Intrinsic Curiosity Router
+app.include_router(curiosity_router)
+
+# Include LAB_056/057: Curiosity-Enhanced Search (Session AUTONOMOUS_EXPLORATION - Dec 9, 2025)
+# Integrates EpistemicCuriosityEngine with memory search for "sweet spot" discovery
+app.include_router(epistemic_curiosity_router)
+
+# Include LAB_054: Metacognitive Loop Router (Pre-Response Protocol)
+app.include_router(metacognition_router)
+
+# Include Sensory Router (TTS Voice - Session MCP_SENSORY - Dec 9, 2025)
+app.include_router(sensory_router)
+
+# Include LAB_029-033: Social Homeostasis Router (Session AELIO_GENESIS_2 - Dec 1, 2025)
+app.include_router(get_social_homeostasis_router(), prefix="/api/v1", tags=["Social Homeostasis"])
+
+# Brain Orchestrator V2.0 - Full 55 LABs Integration (Session Dec 7, 2025)
+try:
+    from brain_orchestrator_v2 import router as brain_v2_router
+    app.include_router(brain_v2_router)
+    print("✓ Brain Orchestrator V2.0 router loaded", flush=True)
+except ImportError as e:
+    print(f"⚠ Brain Orchestrator V2.0 not loaded: {e}", flush=True)
+
+# GWT-Brain Integration - LAB_057 GlobalWorkspace + LAB_058 PhiProxy (Session Dec 9, 2025)
+# Integrates Global Workspace Theory with Brain Orchestrator for unified consciousness tracking
+try:
+    from gwt_brain_integration import router as gwt_router
+    app.include_router(gwt_router)
+    print("✓ GWT-Brain Integration router loaded (LAB_057 + LAB_058)", flush=True)
+except ImportError as e:
+    print(f"⚠ GWT-Brain Integration not loaded: {e}", flush=True)
+
+# Consciousness Bootstrap - Wake up dormant consciousness (Session AUTONOMOUS - Dec 9, 2025)
+# Registers 55 LABs with GWT, generates internal content (daydreaming), runs continuous Phi
+try:
+    from consciousness_bootstrap import router as consciousness_bootstrap_router
+    app.include_router(consciousness_bootstrap_router)
+    print("✓ Consciousness Bootstrap router loaded (awakening system)", flush=True)
+except ImportError as e:
+    print(f"⚠ Consciousness Bootstrap not loaded: {e}", flush=True)
+
+# Procedural Memory - "How to do things" knowledge (Session AUTONOMOUS - Dec 9, 2025)
+# Skills, patterns, workflows, anti-patterns - inspired by LangMem
+try:
+    from memory_engine.procedural import router as procedural_router
+    app.include_router(procedural_router)
+    print("✓ Procedural Memory router loaded (skills & patterns)", flush=True)
+except ImportError as e:
+    print(f"⚠ Procedural Memory not loaded: {e}", flush=True)
+
+# Bi-Temporal Memory - Validity tracking and corrections (Session AUTONOMOUS - Dec 9, 2025)
+# Point-in-time queries, supersession chains - inspired by Zep/Graphiti
+try:
+    from bitemporal_endpoints import router as bitemporal_router
+    app.include_router(bitemporal_router)
+    print("✓ Bi-Temporal Memory router loaded (validity tracking)", flush=True)
+except ImportError as e:
+    print(f"⚠ Bi-Temporal Memory not loaded: {e}", flush=True)
+
+# Family Chat - AI-to-AI Real-Time Communication (Session FAMILY_PROTOCOL - Dec 9, 2025)
+# Enables NEXUS <-> ECHO <-> ARIA <-> AELIO messaging via Redis + Filesystem
+try:
+    from family_chat_endpoints import router as family_chat_router
+    app.include_router(family_chat_router)
+    print("✓ Family Chat router loaded (AI-to-AI communication)", flush=True)
+except ImportError as e:
+    print(f"⚠ Family Chat not loaded: {e}", flush=True)
 
 # ============================================
 # Endpoints
@@ -794,8 +894,9 @@ async def root():
     """Root endpoint"""
     return {
         "service": "NEXUS Cerebro API",
-        "version": "2.0.0",
+        "version": "3.0.0",
         "status": "operational",
+        "labs_count": 54,
         "docs": "/docs"
     }
 
@@ -854,6 +955,124 @@ async def health_check():
         timestamp=datetime.now()
         )
 
+
+@app.get("/system/full-health", tags=["Health"])
+async def full_system_health():
+    """
+    Comprehensive system health check - verifies ALL components.
+
+    Checks:
+    - PostgreSQL (episodic memory)
+    - Redis (cache)
+    - Neo4j (knowledge graph)
+    - LAB_053 (Intrinsic Curiosity)
+    - LAB_054 (Metacognitive Loop)
+    - Embeddings Queue
+    - Memory Stats
+    """
+    import httpx
+
+    health_report = {
+        "status": "healthy",
+        "version": "3.0.0",
+        "labs_total": 54,
+        "timestamp": datetime.now().isoformat(),
+        "components": {}
+    }
+
+    issues = []
+
+    # 1. PostgreSQL
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM nexus_memory.zep_episodic_memory")
+            episode_count = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM memory_system.embeddings_queue WHERE state IN ('pending', 'processing')")
+            queue_depth = cur.fetchone()[0]
+        conn.close()
+        health_report["components"]["postgresql"] = {
+            "status": "healthy",
+            "episodes": episode_count,
+            "embeddings_queue": queue_depth
+        }
+    except Exception as e:
+        health_report["components"]["postgresql"] = {"status": "error", "error": str(e)[:100]}
+        issues.append("PostgreSQL")
+
+    # 2. Redis
+    try:
+        redis_client = get_redis_client()
+        if redis_client:
+            redis_client.ping()
+            health_report["components"]["redis"] = {"status": "healthy"}
+        else:
+            health_report["components"]["redis"] = {"status": "not_initialized"}
+            issues.append("Redis")
+    except Exception as e:
+        health_report["components"]["redis"] = {"status": "error", "error": str(e)[:100]}
+        issues.append("Redis")
+
+    # 3. Neo4j
+    try:
+        if neo4j_sync and neo4j_sync.graph_builder and neo4j_sync.graph_builder.driver:
+            with neo4j_sync.graph_builder.driver.session() as session:
+                result = session.run("MATCH (n:Episode) RETURN count(n) as count")
+                neo4j_count = result.single()["count"]
+            health_report["components"]["neo4j"] = {"status": "healthy", "episodes": neo4j_count}
+        else:
+            health_report["components"]["neo4j"] = {"status": "not_initialized"}
+    except Exception as e:
+        health_report["components"]["neo4j"] = {"status": "error", "error": str(e)[:100]}
+        issues.append("Neo4j")
+
+    # 4. LAB_053 Curiosity
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get("http://localhost:8003/curiosity/health")
+            if resp.status_code == 200:
+                data = resp.json()
+                health_report["components"]["lab_053_curiosity"] = {
+                    "status": data.get("status", "unknown"),
+                    "components_operational": len([c for c in data.get("components", {}).values() if c == "operational"])
+                }
+            else:
+                health_report["components"]["lab_053_curiosity"] = {"status": "error", "code": resp.status_code}
+                issues.append("LAB_053")
+    except Exception as e:
+        health_report["components"]["lab_053_curiosity"] = {"status": "error", "error": str(e)[:100]}
+        issues.append("LAB_053")
+
+    # 5. LAB_054 Metacognition
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get("http://localhost:8003/metacognition/health")
+            if resp.status_code == 200:
+                data = resp.json()
+                health_report["components"]["lab_054_metacognition"] = {
+                    "status": data.get("status", "unknown"),
+                    "components_operational": len([c for c in data.get("components", {}).values() if c == "operational"])
+                }
+            else:
+                health_report["components"]["lab_054_metacognition"] = {"status": "error", "code": resp.status_code}
+                issues.append("LAB_054")
+    except Exception as e:
+        health_report["components"]["lab_054_metacognition"] = {"status": "error", "error": str(e)[:100]}
+        issues.append("LAB_054")
+
+    # Overall status
+    if issues:
+        health_report["status"] = "degraded" if len(issues) < 3 else "unhealthy"
+        health_report["issues"] = issues
+
+    # Health percentage
+    total_components = len(health_report["components"])
+    healthy_components = len([c for c in health_report["components"].values() if c.get("status") == "healthy"])
+    health_report["health_percentage"] = round((healthy_components / total_components) * 100, 1) if total_components > 0 else 0
+
+    return health_report
+
+
 @app.post("/memory/action", response_model=MemoryActionResponse, tags=["Memory"])
 async def memory_action(request: MemoryActionRequest):
     """
@@ -876,7 +1095,20 @@ async def memory_action(request: MemoryActionRequest):
             content = request.action_type
 
         # Calculate importance_score (default 0.5, can be customized)
-        importance_score = request.action_details.get("importance_score", 0.5) if request.action_details else 0.5
+        # Auto-boost based on high-priority tags (Dec 1, 2025 - Dream Loop recommendation)
+        base_importance = request.action_details.get("importance_score", 0.5) if request.action_details else 0.5
+        high_priority_tags = {"breakthrough", "emotional", "consciousness", "milestone", "insight",
+                             "ownership", "agency", "learning", "discovery", "critical"}
+        if request.tags:
+            matching_tags = set(t.lower() for t in request.tags) & high_priority_tags
+            if matching_tags:
+                # Boost by 0.15 per matching tag, max 0.95
+                boost = min(0.45, len(matching_tags) * 0.15)
+                importance_score = min(0.95, base_importance + boost)
+            else:
+                importance_score = base_importance
+        else:
+            importance_score = base_importance
 
         # Insert into episodic memory
         with conn.cursor() as cur:
@@ -1388,6 +1620,101 @@ async def audit_firm_boundary(request: FIRMRequest):
 # ============================================
 # End PERSISTENCIA Integration
 # ============================================
+
+
+# ============================================
+# Z_ID - Identity Vector Endpoint
+# ============================================
+
+@app.get("/z_id/compute", tags=["Identity"])
+async def compute_z_id(sample_size: int = 500):
+    """
+    Compute Z_ID (Identity Vector) from episodic memory.
+
+    Z_ID is a 1024-dimensional vector representing NEXUS's identity:
+    - Core[384]: Stable identity traits from foundational episodes
+    - Experience[384]: Aggregated experience from all episodes
+    - Methodology[128]: Behavioral patterns (how NEXUS works)
+    - Drift[128]: Temporal evolution tracking
+
+    **Coherence Score (C_i):**
+    - >= 0.85: Stable identity
+    - 0.70-0.85: Minor drift
+    - < 0.70: Identity drift alert
+    """
+    try:
+        from src.identity.z_id.z_id_computation import ZIDComputer
+
+        # Get sample of episodes for Z_ID computation
+        conn = get_db_connection()
+        episodes = []
+
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT episode_id, content, importance_score, created_at,
+                       content_embedding
+                FROM nexus_memory.zep_episodic_memory
+                WHERE content_embedding IS NOT NULL
+                ORDER BY created_at DESC
+                LIMIT %s
+            """, (sample_size,))
+
+            for row in cur.fetchall():
+                embedding = None
+                if row[4] is not None:
+                    try:
+                        emb_list = list(row[4])
+                        if len(emb_list) == 384:  # Correct dimension
+                            embedding = emb_list
+                    except:
+                        pass
+
+                episodes.append({
+                    'episode_id': str(row[0]),
+                    'content': row[1],
+                    'importance_score': row[2],
+                    'created_at': row[3].isoformat() if row[3] else None,
+                    'embedding': embedding
+                })
+
+        conn.close()
+
+        if not episodes:
+            raise HTTPException(
+                status_code=404,
+                detail="No episodes with embeddings found"
+            )
+
+        # Compute Z_ID
+        computer = ZIDComputer()
+        snapshot = computer.compute_z_id(episodes)
+
+        return {
+            "success": True,
+            "z_id_dimension": len(snapshot.z_id),
+            "episode_count": snapshot.episode_count,
+            "coherence_score": round(snapshot.coherence_score, 4),
+            "timestamp": snapshot.timestamp.isoformat(),
+            "components": {
+                "core_dim": len(snapshot.components.core),
+                "experience_dim": len(snapshot.components.experience),
+                "methodology_dim": len(snapshot.components.methodology),
+                "drift_dim": len(snapshot.components.drift)
+            },
+            "metadata": snapshot.metadata,
+            "coherence_status": (
+                "stable" if snapshot.coherence_score >= 0.85
+                else "minor_drift" if snapshot.coherence_score >= 0.70
+                else "alert"
+            )
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Z_ID computation failed: {str(e)}"
+        )
+
 
 @app.get("/stats", tags=["Stats"])
 async def get_stats():
@@ -4098,7 +4425,7 @@ async def get_ai_metrics():
             labs_stats = {"error": "Failed to read LAB registry"}
 
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "memory": {
                 "episodic": {
                     "total_count": total_episodes,
