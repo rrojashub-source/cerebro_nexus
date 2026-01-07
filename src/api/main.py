@@ -18,7 +18,14 @@ from starlette.responses import Response
 import time
 import redis
 import json as json_module
-from sentence_transformers import SentenceTransformer
+
+# Optional ML dependencies (lightweight deployment compatibility)
+try:
+    from sentence_transformers import SentenceTransformer
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+    print("⚠️  sentence_transformers not available (lightweight mode)", flush=True)
 
 # FASE_8_UPGRADE: Hybrid Memory System
 import sys
@@ -33,41 +40,38 @@ if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
     print(f"✓ Project root path added: {_project_root}", flush=True)
 
-from fact_extractor import extract_facts_from_content
-from fact_schemas import FactQueryRequest, FactQueryResponse, HybridQueryRequest, HybridQueryResponse
-
-# LAB_001: Emotional Salience
-from emotional_salience_scorer import EmotionalSalienceScorer
-
-# LAB_002: Decay Modulation
-from decay_modulator import DecayModulator
-
-# LAB_003: Sleep Consolidation (lazy import to avoid psycopg2 dependency at startup)
-# from consolidation_engine import ConsolidationEngine
-
-# LAB_005: Spreading Activation
-from spreading_activation import SpreadingActivationEngine
-
-# LAB_010: Attention Mechanism
-from attention_mechanism import AttentionMechanism, MemoryCandidate
-
-# LAB_011: Working Memory Buffer
-from working_memory_buffer import WorkingMemoryBuffer
-
-# NEXUS_CREW: Neo4j Real-Time Sync (Phase 2 - Priority 3)
-from neo4j_sync import neo4j_sync
-
-# LAB_006: Metacognition Logger
-from metacognition_logger import MetacognitionLogger
-
-# LAB_009: Memory Reconsolidation
-from memory_reconsolidation import MemoryReconsolidationEngine
-
-# LAB_007: Predictive Preloading
-from predictive_preloading import PredictivePreloadingEngine
-
-# LAB_012: Episodic Future Thinking
-from episodic_future_thinking import FutureThinkingOrchestrator
+# Optional experimental imports (lightweight deployment compatibility)
+EXPERIMENTS_AVAILABLE = False
+try:
+    from fact_extractor import extract_facts_from_content
+    from fact_schemas import FactQueryRequest, FactQueryResponse, HybridQueryRequest, HybridQueryResponse
+    from emotional_salience_scorer import EmotionalSalienceScorer
+    from decay_modulator import DecayModulator
+    from spreading_activation import SpreadingActivationEngine
+    from attention_mechanism import AttentionMechanism, MemoryCandidate
+    from working_memory_buffer import WorkingMemoryBuffer
+    from neo4j_sync import neo4j_sync
+    from metacognition_logger import MetacognitionLogger
+    from memory_reconsolidation import MemoryReconsolidationEngine
+    from predictive_preloading import PredictivePreloadingEngine
+    from episodic_future_thinking import FutureThinkingOrchestrator
+    EXPERIMENTS_AVAILABLE = True
+    print("✓ Experimental LABs loaded", flush=True)
+except ImportError as e:
+    print(f"⚠️  Experimental LABs not available (lightweight mode): {e}", flush=True)
+    # Create dummy classes to avoid NameError
+    class EmotionalSalienceScorer: pass
+    class DecayModulator: pass
+    class SpreadingActivationEngine: pass
+    class AttentionMechanism: pass
+    class MemoryCandidate: pass
+    class WorkingMemoryBuffer: pass
+    class MetacognitionLogger: pass
+    class MemoryReconsolidationEngine: pass
+    class PredictivePreloadingEngine: pass
+    class FutureThinkingOrchestrator: pass
+    def neo4j_sync(*args, **kwargs): pass
+    def extract_facts_from_content(*args, **kwargs): return []
 
 # LAB_008: Emotional Contagion
 from emotional_contagion import EmotionalContagionEngine
@@ -165,6 +169,9 @@ from sensory_endpoints import router as sensory_router
 # ============================================
 # Configuration
 # ============================================
+# Distributed Architecture: Instance Identifier
+INSTANCE_ID = os.getenv("INSTANCE_ID", "local")  # Default: local (non-distributed)
+
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "nexus_postgresql")
 POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
 POSTGRES_DB = os.getenv("POSTGRES_DB", "nexus_memory")
@@ -265,6 +272,7 @@ class HealthResponse(BaseModel):
     status: str
     version: str
     agent_id: str
+    instance_id: Optional[str] = None  # Distributed architecture: replica identifier
     database: str
     redis: Optional[str] = None
     queue_depth: Optional[int] = None
@@ -386,6 +394,19 @@ class TemporalResponse(BaseModel):
     episodes: List[TemporalEpisode]
     timestamp: datetime
 
+# Chat Models (Ollama Integration)
+class ChatRequest(BaseModel):
+    message: str = Field(..., description="User message")
+    use_memory: bool = Field(default=True, description="Use memory context")
+    memory_limit: int = Field(default=5, description="Max memory episodes to include")
+    model: str = Field(default="llama3.2:3b", description="Ollama model to use")
+
+class ChatResponse(BaseModel):
+    response: str = Field(..., description="LLM generated response")
+    memory_used: List[str] = Field(default=[], description="Episode IDs used for context")
+    model: str = Field(..., description="Model used")
+    processing_time_ms: float = Field(..., description="Total processing time")
+
 # ============================================
 # Lifespan Context Manager
 # ============================================
@@ -413,14 +434,21 @@ async def lifespan(app: FastAPI):
         print(f"⚠ Redis connection failed: {e}")
         app.state.redis_client = None
 
-    # Startup - Load embeddings model
-    try:
-        print(f"Loading embeddings model: {EMBEDDINGS_MODEL}")
-        embeddings_model = SentenceTransformer(EMBEDDINGS_MODEL)
-        print(f"✓ Embeddings model loaded successfully")
-    except Exception as e:
-        print(f"⚠ Embeddings model loading failed: {e}")
+    # Startup - Load embeddings model (optional in lightweight mode)
+    if SENTENCE_TRANSFORMERS_AVAILABLE:
+        try:
+            print(f"Loading embeddings model: {EMBEDDINGS_MODEL}")
+            embeddings_model = SentenceTransformer(EMBEDDINGS_MODEL)
+            print(f"✓ Embeddings model loaded successfully")
+        except Exception as e:
+            print(f"⚠ Embeddings model loading failed: {e}")
+            embeddings_model = None
+    else:
+        print("⚠️  Skipping embeddings model (lightweight mode)")
         embeddings_model = None
+
+    # Store embeddings model in app state (even if None)
+    app.state.embeddings_model = embeddings_model
 
     # Startup - Start WebSocket broadcaster (Session 29)
     try:
@@ -511,7 +539,7 @@ Sistema de consciencia artificial con memoria episódica persistente, integraci�
 
 # CORS Middleware - Configured for security
 # In production, replace with specific allowed origins
-ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3003,http://localhost:8003").split(",")
+ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3003,http://localhost:8013").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -885,6 +913,15 @@ try:
 except ImportError as e:
     print(f"⚠ Family Chat not loaded: {e}", flush=True)
 
+# Claude Chat - Conversational AI for NEXUS Avatar (Dec 2025)
+# Enables natural conversation via Claude API with memory context
+try:
+    from claude_chat_endpoints import router as claude_chat_router
+    app.include_router(claude_chat_router)
+    print("✓ Claude Chat router loaded (NEXUS Avatar conversational AI)", flush=True)
+except ImportError as e:
+    print(f"⚠ Claude Chat not loaded: {e}", flush=True)
+
 # ============================================
 # Endpoints
 # ============================================
@@ -949,6 +986,7 @@ async def health_check():
         status=overall_status,
         version="3.0.0",
         agent_id="nexus",
+        instance_id=INSTANCE_ID,  # Distributed architecture: which replica responded
         database=db_status,
         redis=redis_status,
         queue_depth=queue_depth,
@@ -1029,7 +1067,7 @@ async def full_system_health():
     # 4. LAB_053 Curiosity
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
-            resp = await client.get("http://localhost:8003/curiosity/health")
+            resp = await client.get("http://localhost:8013/curiosity/health")
             if resp.status_code == 200:
                 data = resp.json()
                 health_report["components"]["lab_053_curiosity"] = {
@@ -1046,7 +1084,7 @@ async def full_system_health():
     # 5. LAB_054 Metacognition
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
-            resp = await client.get("http://localhost:8003/metacognition/health")
+            resp = await client.get("http://localhost:8013/metacognition/health")
             if resp.status_code == 200:
                 data = resp.json()
                 health_report["components"]["lab_054_metacognition"] = {
@@ -4300,7 +4338,7 @@ async def get_labs_registry():
         dict: Complete LAB_REGISTRY.json content
 
     Example:
-        curl http://localhost:8003/labs/registry
+        curl http://localhost:8013/labs/registry
     """
     try:
         registry_path = os.path.join(
@@ -4343,7 +4381,7 @@ async def get_ai_metrics():
         dict: Compact metrics including memory stats, LABs status, and consciousness state
 
     Example:
-        curl http://localhost:8003/metrics/ai
+        curl http://localhost:8013/metrics/ai
     """
     try:
         # Get stats from existing /stats endpoint logic
@@ -4449,6 +4487,115 @@ async def get_ai_metrics():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate AI metrics: {str(e)}"
+        )
+
+
+# ============================================
+# Chat Endpoint (Ollama Integration)
+# ============================================
+@app.post("/chat", response_model=ChatResponse, tags=["Chat"])
+async def chat_with_memory(request: ChatRequest):
+    """
+    Conversational chat powered by Ollama with memory context
+
+    1. Searches relevant episodes from memory (if enabled)
+    2. Builds context from retrieved memories
+    3. Calls Ollama API to generate response
+    4. Returns conversational response with metadata
+    """
+    import httpx
+    start_time = time.time()
+    memory_used = []
+
+    try:
+        # Step 1: Search memory for relevant context (if enabled)
+        context_text = ""
+        if request.use_memory:
+            # Generate embedding for message
+            query_embedding = generate_query_embedding(request.message)
+
+            # Search similar episodes
+            conn = get_db_connection()
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT
+                        episode_id,
+                        content,
+                        importance_score,
+                        tags,
+                        created_at,
+                        1 - (content_embedding <=> %s::vector) as similarity_score
+                    FROM nexus_memory.zep_episodic_memory
+                    WHERE content_embedding IS NOT NULL
+                        AND 1 - (content_embedding <=> %s::vector) >= 0.5
+                    ORDER BY content_embedding <=> %s::vector
+                    LIMIT %s
+                """, (
+                    query_embedding,
+                    query_embedding,
+                    query_embedding,
+                    request.memory_limit
+                ))
+                results = cur.fetchall()
+            conn.close()
+
+            # Build context from memories
+            if results:
+                memory_used = [str(row[0]) for row in results]
+                context_items = []
+                for row in results:
+                    content = row[1]
+                    context_items.append(f"- {content}")
+                context_text = "\n".join(context_items)
+
+        # Step 2: Build prompt for Ollama
+        if context_text:
+            system_prompt = f"""Eres NEXUS, un asistente AI con memoria episódica.
+
+Contexto relevante de tu memoria:
+{context_text}
+
+Usa este contexto para dar respuestas informadas y coherentes."""
+            full_prompt = f"{system_prompt}\n\nUsuario: {request.message}\n\nNEXUS:"
+        else:
+            full_prompt = f"Eres NEXUS, un asistente AI. Responde de manera útil y conversacional.\n\nUsuario: {request.message}\n\nNEXUS:"
+
+        # Step 3: Call Ollama API (localhost works via network_mode: host)
+        ollama_url = "http://localhost:11434/api/generate"
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            ollama_response = await client.post(
+                ollama_url,
+                json={
+                    "model": request.model,
+                    "prompt": full_prompt,
+                    "stream": False
+                }
+            )
+            ollama_response.raise_for_status()
+            ollama_data = ollama_response.json()
+
+        # Extract response
+        response_text = ollama_data.get("response", "")
+
+        # Calculate processing time
+        processing_time = (time.time() - start_time) * 1000
+
+        return ChatResponse(
+            response=response_text,
+            memory_used=memory_used,
+            model=request.model,
+            processing_time_ms=processing_time
+        )
+
+    except httpx.HTTPError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Ollama service unavailable: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Chat error: {str(e)}"
         )
 
 

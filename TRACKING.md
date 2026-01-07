@@ -6382,3 +6382,289 @@ Processing Modes:
 - Requires API restart to load new router
 
 ---
+
+## Feature: VPS Deployment Phase 2 (Fly.io) - January 7, 2026
+
+### Overview
+Deployment of NEXUS CEREBRO API V3.0.0 to Fly.io cloud platform with distributed architecture support.
+
+### Phase 1: Local Distributed Testing (COMPLETED ✅)
+
+**Architecture Built**:
+- 3 API replicas (FastAPI instances)
+- PostgreSQL primary database
+- Redis cache layer
+- Nginx load balancer with session affinity (ip_hash)
+
+**Docker Compose Setup**:
+- `docker-compose.distributed.yml` - 6 services
+- Ports remapped to avoid conflicts:
+  - PostgreSQL: 5438 → 15432 (avoiding NEXUS V3 on 5437, ARIA on 5438)
+  - Redis: 6380 → 16379
+  - Load Balancer: 8001 → 18000
+
+**Optimizations Implemented**:
+
+1. **Build Context Optimization**:
+   - Problem: 5.56GB build context causing 5-10 min builds
+   - Solution: Created `.dockerignore` file
+   - Excluded: .git/, docs/, *.md, __pycache__, venv/, logs/, .claude/, memory/, tasks/
+   - Result: 98% reduction (<100MB transfer)
+
+2. **Health Check Enhancement**:
+   - Added `instance_id` to health response
+   - Format: `{"status": "healthy", "instance_id": "replica-1", ...}`
+   - Enables tracking which replica served request
+
+**Testing Results**:
+- ✅ Load distribution: ip_hash correctly routes same client to same replica
+- ✅ Failover: Stopped replica-1, traffic auto-routed to replica-3 (zero downtime)
+- ✅ Recovery: Restarted replica-1, automatically rejoined cluster (~10s)
+- ✅ All 9/9 success criteria met
+
+**Files Created**:
+- `.dockerignore` - Build context exclusions (98% reduction)
+- `docker-compose.distributed.yml` - Distributed architecture
+- `scripts/test-phase1.sh` - Automated testing
+- `docs/plans/phase2_vps_deployment.md` - Complete deployment plan
+
+### Phase 2: Fly.io Deployment (PARTIAL ⚠️)
+
+**Provider Selected**: Fly.io
+- Reason: Docker-native, managed PostgreSQL, free tier, global edge network
+- Account: rrojas.hub@gmail.com
+- GitHub: Already connected
+
+**Resources Created**:
+
+1. **Application**: `nexus-cerebro-api`
+   - Region: iad (Ashburn, Virginia)
+   - URL: https://nexus-cerebro-api.fly.dev/
+   - Machines: 7819091a214108, d894d0ecedd148
+
+2. **PostgreSQL**: `nexus-cerebro-db` (Fly Postgres Flex 17.2)
+   - Connection string configured in secrets
+   - Internal: nexus-cerebro-db.flycast:5432
+   - Database: nexus_consciousness
+
+3. **Redis**: SKIPPED
+   - Error: "This functionality is disabled for trial organizations"
+   - Requires credit card even for free tier
+   - Decision: Proceed without Redis (CEREBRO has fallback to PostgreSQL-only mode)
+
+**Image Optimization Journey**:
+
+**Attempt 1**: Original Dockerfile (FAILED)
+- Base: python:3.12-slim
+- Size: 9.9GB compressed
+- Error: "Not enough space to unpack image, possibly exceeds maximum of 8GB uncompressed"
+- Machine created but never started: e286070b1e6238
+
+**Attempt 2**: Alpine-based Dockerfile (CREATED)
+- File: `Dockerfile.flyio` - NEW Alpine-based build
+- Base: python:3.12-alpine
+- Excluded: experiments/, scripts/, full ML dependencies
+- Multi-stage build: Builder + Runtime
+- Size: 51MB final image (99.5% reduction!)
+- Non-root user: nexus (UID 1000)
+
+**Import Optimization**:
+
+**Problem 1**: Missing ML Dependencies
+```python
+ModuleNotFoundError: No module named 'sentence_transformers'
+```
+- Root cause: sentence_transformers in requirements-ml.txt (excluded)
+- Solution: Made import optional with try/except wrapper
+- Added: SENTENCE_TRANSFORMERS_AVAILABLE flag
+- Conditionally load embeddings model at startup
+
+**Problem 2**: Missing Experimental Modules
+```python
+ModuleNotFoundError: No module named 'fact_extractor'
+(+ ~20 other experimental modules)
+```
+- Root cause: experiments/ and features/ not copied to container
+- Modules affected:
+  - fact_extractor, emotional_salience_scorer
+  - decay_modulator, spreading_activation
+  - attention_mechanism, working_memory_buffer
+  - neo4j_sync, metacognition_logger
+  - memory_reconsolidation, predictive_preloading
+  - episodic_future_thinking, emotional_contagion
+  - And more...
+
+- Solution: Comprehensive try/except wrapper (lines 43-74 in main.py)
+  - Attempts to import all experimental modules
+  - Sets EXPERIMENTS_AVAILABLE = True if successful
+  - Creates dummy classes/functions if imports fail
+  - Allows app to start in "lightweight mode"
+
+**Files Modified**:
+- `src/api/main.py` - Optional imports wrapper (75 lines)
+- `Dockerfile.flyio` - Alpine-based optimized build (NEW)
+- `fly.toml` - Fly.io configuration (NEW)
+
+**Deployment Commands**:
+```bash
+# Install Fly.io CLI
+curl -L https://fly.io/install.sh | sh
+export FLYCTL_INSTALL="/home/ricardo/.fly"
+export PATH="$FLYCTL_INSTALL/bin:$PATH"
+
+# Initialize app
+fly apps create nexus-cerebro-api
+
+# Create PostgreSQL
+fly postgres create --name nexus-cerebro-db --region iad
+
+# Configure secrets
+fly secrets set DATABASE_URL="postgres://nexus_user:..." \
+  AGENT_ID="nexus" \
+  CEREBRO_VERSION="3.0.0"
+
+# Deploy
+fly deploy --config fly.toml --dockerfile Dockerfile.flyio
+```
+
+### Current Status: BLOCKED ⚠️
+
+**Deployment State**:
+- ✅ Image built successfully: 51MB Alpine-based
+- ✅ Machines created: 7819091a214108, d894d0ecedd148
+- ✅ Deployment command succeeded: "Both machines in good state"
+- ❌ Application not responding to requests
+
+**Health Check Error**:
+```bash
+curl -s https://nexus-cerebro-api.fly.dev/health
+# Status: 502 Bad Gateway
+# Time: 59.016380s
+```
+
+**Machine Status**:
+```
+PROCESS ID              VERSION REGION STATE
+app     7819091a214108  4       iad    stopped
+app     d894d0ecedd148  4       iad    starting
+```
+Machines in crash-loop (stopped/starting cycle)
+
+**Diagnostic Attempts**:
+- `flyctl logs` - Not producing output
+- `flyctl ssh console` - Fails: "no started VMs"
+- Direct health check - 502 after 59s timeout
+
+**Root Cause Hypothesis**:
+1. Additional missing imports not caught by try/except
+2. PostgreSQL connection issues from Fly.io environment
+3. Startup timeout too short (default may not be enough)
+4. App crashing during initialization before health endpoint ready
+
+### Learnings
+
+**Build Optimization**:
+- .dockerignore is CRITICAL for large projects (98% reduction)
+- Alpine Linux ideal for production (51MB vs 9.9GB)
+- Multi-stage builds essential for minimal images
+- Fly.io has 8GB uncompressed limit (strict enforcement)
+
+**Optional Dependencies Pattern**:
+- Try/except wrappers enable lightweight deployments
+- Dummy classes prevent NameError when imports fail
+- Feature flags (EXPERIMENTS_AVAILABLE) control conditional logic
+- "Lightweight mode" allows core functionality without full stack
+
+**Deployment Strategy**:
+- Test locally first (Phase 1 validation saved time)
+- Platform limits must be researched upfront
+- Logs/diagnostics are essential for debugging
+- Free tiers often have hidden limitations (Redis, credit card requirements)
+
+### Next Steps (BLOCKED - Requires Action)
+
+**Immediate Diagnostics Needed**:
+1. ✅ Access Fly.io web dashboard for detailed machine logs (CLI not working)
+2. ✅ Verify PostgreSQL connectivity from Fly.io environment
+3. ✅ Check if additional modules need to be copied
+4. ✅ Consider increasing startup timeout in fly.toml
+
+**Alternative Strategies**:
+
+**Option A**: Deploy with full dependencies
+- Copy experiments/ and features/ directories to container
+- Accept larger image size (but still under 8GB)
+- Eliminates all import errors
+- Trade-off: Slower deployments, higher resource usage
+
+**Option B**: Verify environment variables
+- Ensure DATABASE_URL is correct format for Fly.io
+- Verify all required secrets are set
+- Check if internal .flycast domain is resolvable
+
+**Option C**: Increase timeouts
+- Modify fly.toml health check timeouts
+- Allow more time for app initialization
+- May help if app is slow to start but functional
+
+**Option D**: Alternative provider
+- Consider Railway, Render, or DigitalOcean App Platform
+- Compare diagnostics capabilities and free tier limits
+- May have better logging/debugging tools
+
+### Files Created
+
+**Production Files**:
+- `.dockerignore` - Build context optimization
+- `Dockerfile.flyio` - Alpine-based production image
+- `fly.toml` - Fly.io configuration
+- `docs/plans/phase2_vps_deployment.md` - Complete deployment plan
+
+**Testing Files**:
+- `docker-compose.distributed.yml` - Local distributed testing
+- `scripts/test-phase1.sh` - Automated failover tests
+
+**Documentation**:
+- This TRACKING.md entry - Complete Phase 2 journey
+
+### Metrics
+
+**Image Optimization**:
+- Original: 9.9GB compressed
+- Optimized: 51MB (99.5% reduction)
+- Build context: 5.56GB → <100MB (98% reduction)
+
+**Deployment Time**:
+- Phase 1 setup: ~45 minutes
+- Fly.io infrastructure: ~15 minutes
+- Debugging attempts: ~60 minutes
+- Total Phase 2 time: ~2 hours
+
+**Cost**:
+- Fly.io: $0 (free tier)
+- PostgreSQL: $0 (free tier, 1GB storage)
+- Redis: Skipped (requires credit card)
+- Total: $0
+
+### Status Summary
+
+✅ **Phase 1 - Local Distributed Architecture**: COMPLETE
+- 6-service Docker Compose setup working perfectly
+- Load balancing and failover validated
+- All test criteria met
+
+⚠️ **Phase 2 - Fly.io Deployment**: PARTIAL
+- Infrastructure created successfully
+- Image optimized to 51MB
+- Optional imports pattern implemented
+- **BLOCKED**: App deployed but not responding (502 error)
+- **NEXT**: Access web dashboard for detailed diagnostics
+
+🔄 **Phase 3 - Multi-Region**: PENDING
+- Awaiting Phase 2 resolution
+
+🔄 **Phase 4 - Autonomous Operations**: PENDING
+- Awaiting Phase 3 completion
+
+---
+---
