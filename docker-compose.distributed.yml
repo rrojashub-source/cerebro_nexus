@@ -1,0 +1,272 @@
+# NEXUS Distributed Architecture - Phase 1: Local Multi-Instance
+# 3 replicas de CEREBRO API + Load Balancer + PostgreSQL + Redis
+# Blueprint implementation: docs/architecture/NEXUS_DISTRIBUTED_BLUEPRINT.md
+
+version: '3.8'
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  nexus-net:
+    driver: bridge
+
+# ============================================
+# Volumes (Persistent Data)
+# ============================================
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+
+# ============================================
+# Secrets (Docker Secrets para passwords)
+# ============================================
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  redis_password:
+    file: ./secrets/redis_password.txt
+
+# ============================================
+# Services
+# ============================================
+services:
+
+  # ------------------------------------------
+  # PostgreSQL: Single Primary (Shared Memory)
+  # ------------------------------------------
+  nexus-postgresql:
+    image: postgres:16-alpine
+    container_name: nexus-postgresql-distributed
+    environment:
+      POSTGRES_DB: nexus_memory
+      POSTGRES_USER: nexus_superuser
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - nexus-net
+    ports:
+      - "15432:5432"  # Expose para acceso externo (debugging) - Puerto 15432 para evitar conflictos
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus_superuser -d nexus_memory"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ------------------------------------------
+  # Redis: Shared Cache + GWT State
+  # ------------------------------------------
+  nexus-redis:
+    image: redis:7-alpine
+    container_name: nexus-redis-distributed
+    command: redis-server --requirepass nexus_redis_secure_2025 --maxmemory 256mb --maxmemory-policy allkeys-lru
+    secrets:
+      - redis_password
+    volumes:
+      - redis-data:/data
+    networks:
+      - nexus-net
+    ports:
+      - "16379:6379"  # Expose para debugging - Puerto 16379 para evitar conflictos
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ------------------------------------------
+  # CEREBRO API Replica 1
+  # ------------------------------------------
+  nexus-api-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexus-api-1
+    environment:
+      POSTGRES_HOST: nexus-postgresql
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nexus_memory
+      POSTGRES_USER: nexus_superuser
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      REDIS_HOST: nexus-redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+      REDIS_DB: 0
+      PORT: 8003
+      INSTANCE_ID: replica-1  # Identificador de réplica
+      AGENT_ID: nexus
+      LOG_LEVEL: info
+    secrets:
+      - postgres_password
+      - redis_password
+    depends_on:
+      nexus-postgresql:
+        condition: service_healthy
+      nexus-redis:
+        condition: service_healthy
+    networks:
+      - nexus-net
+    # NO exponemos puerto directamente (solo via load balancer)
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # ------------------------------------------
+  # CEREBRO API Replica 2
+  # ------------------------------------------
+  nexus-api-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexus-api-2
+    environment:
+      POSTGRES_HOST: nexus-postgresql
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nexus_memory
+      POSTGRES_USER: nexus_superuser
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      REDIS_HOST: nexus-redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+      REDIS_DB: 0
+      PORT: 8003
+      INSTANCE_ID: replica-2
+      AGENT_ID: nexus
+      LOG_LEVEL: info
+    secrets:
+      - postgres_password
+      - redis_password
+    depends_on:
+      nexus-postgresql:
+        condition: service_healthy
+      nexus-redis:
+        condition: service_healthy
+    networks:
+      - nexus-net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # ------------------------------------------
+  # CEREBRO API Replica 3
+  # ------------------------------------------
+  nexus-api-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexus-api-3
+    environment:
+      POSTGRES_HOST: nexus-postgresql
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nexus_memory
+      POSTGRES_USER: nexus_superuser
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      REDIS_HOST: nexus-redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+      REDIS_DB: 0
+      PORT: 8003
+      INSTANCE_ID: replica-3
+      AGENT_ID: nexus
+      LOG_LEVEL: info
+    secrets:
+      - postgres_password
+      - redis_password
+    depends_on:
+      nexus-postgresql:
+        condition: service_healthy
+      nexus-redis:
+        condition: service_healthy
+    networks:
+      - nexus-net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # ------------------------------------------
+  # Nginx Load Balancer
+  # ------------------------------------------
+  nexus-load-balancer:
+    image: nginx:alpine
+    container_name: nexus-load-balancer
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - nexus-net
+    ports:
+      - "18000:8000"  # Puerto público del load balancer - Puerto 18000 para evitar conflictos
+    depends_on:
+      - nexus-api-1
+      - nexus-api-2
+      - nexus-api-3
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/lb-health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+# ============================================
+# Usage Instructions
+# ============================================
+# 1. Create secrets directory:
+#    mkdir -p secrets
+#    echo "RpKeuQhnwqMOA4iQPILQshWtwFj0P2hm" > secrets/postgres_password.txt
+#    echo "nexus_redis_secure_2025" > secrets/redis_password.txt
+#
+# 2. Build and start:
+#    docker-compose -f docker-compose.distributed.yml up --build -d
+#
+# 3. Check status:
+#    docker-compose -f docker-compose.distributed.yml ps
+#
+# 4. Test load balancer:
+#    curl http://localhost:8000/health
+#
+# 5. Test failover:
+#    docker stop nexus-api-1
+#    curl http://localhost:8000/health  # Should still work
+#    docker start nexus-api-1
+#
+# 6. View logs:
+#    docker-compose -f docker-compose.distributed.yml logs -f nexus-api-1
+#
+# 7. Shutdown:
+#    docker-compose -f docker-compose.distributed.yml down
+#
+# ============================================
+# Success Criteria (Phase 1):
+# ============================================
+# [ ] 3 replicas start successfully
+# [ ] Load balancer distributes requests across replicas
+# [ ] Session affinity works (same IP → same replica)
+# [ ] Failover works (kill 1 replica, others handle traffic)
+# [ ] Health checks detect unhealthy instances
+# [ ] Shared PostgreSQL works (all replicas see same data)
+# [ ] Shared Redis works (cache hit rate >0%)
+# [ ] Resource limits enforced (max 2GB RAM per replica)

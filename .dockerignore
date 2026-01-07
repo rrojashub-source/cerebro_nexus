@@ -1,0 +1,105 @@
+# NEXUS Distributed - Docker Build Context Optimization
+# Exclude files that don't need to be in the Docker image
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation (not needed in runtime)
+docs/
+*.md
+!requirements*.txt
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Docker
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+nginx.conf
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets (already in secrets/)
+.env
+*.key
+*.pem
+
+# Backups
+*.backup
+*.bak
+*.old
+
+# Database dumps
+*.sql
+*.db
+*.sqlite
+
+# Large files that shouldn't be in image
+*.tar
+*.gz
+*.zip
+*.7z
+
+# Claude Code session files
+.claude/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Scripts (not needed in runtime image)
+scripts/test-*.sh
+scripts/migrate-*.sh
+
+# Memory snapshots (local development)
+memory/
+tasks/
