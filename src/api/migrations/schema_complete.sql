@@ -2,7 +2,6 @@
 -- PostgreSQL database dump
 --
 
-\restrict ER2yn8Q7XTYMt7evdm97hNUuYiZZi8vEmOltNcegSLhcAUhFDfKruW38spOK8p2
 
 -- Dumped from database version 16.10 (Debian 16.10-1.pgdg12+1)
 -- Dumped by pg_dump version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
@@ -1975,5 +1974,4 @@ ALTER DEFAULT PRIVILEGES FOR ROLE nexus_superuser IN SCHEMA nexus_memory GRANT S
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ER2yn8Q7XTYMt7evdm97hNUuYiZZi8vEmOltNcegSLhcAUhFDfKruW38spOK8p2
 
