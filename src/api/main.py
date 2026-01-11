@@ -4715,6 +4715,8 @@ async def import_episodes(request: dict):
 
     Used for migrating data from old database to new database.
     """
+    import json
+
     try:
         episodes = request.get("episodes", [])
 
@@ -4726,6 +4728,9 @@ async def import_episodes(request: dict):
 
         for ep in episodes:
             with conn.cursor() as cur:
+                # Convert metadata dict to JSON string for JSONB column
+                metadata_json = json.dumps(ep.get("metadata", {}))
+
                 cur.execute("""
                     INSERT INTO nexus_memory.zep_episodic_memory (
                         episode_id,
@@ -4736,7 +4741,7 @@ async def import_episodes(request: dict):
                         created_at,
                         project_id,
                         metadata
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb)
                     ON CONFLICT (episode_id) DO NOTHING
                 """, (
                     ep["episode_id"],
@@ -4746,7 +4751,7 @@ async def import_episodes(request: dict):
                     ep.get("tags", []),
                     ep.get("created_at"),
                     ep.get("project_id"),
-                    ep.get("metadata", {})
+                    metadata_json
                 ))
                 imported_count += 1
 
