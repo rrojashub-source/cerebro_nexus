@@ -4706,10 +4706,11 @@ Usa este contexto para dar respuestas informadas y coherentes."""
 # ============================================
 # Admin: Database Migration Endpoint
 # ============================================
+class MigrationRequest(BaseModel):
+    token: str = Field(..., description="Admin token")
+
 @app.post("/admin/migrate-schema", tags=["admin"])
-async def migrate_schema(
-    token: str = Body(..., description="Admin token (Ricardo's sudo password)")
-):
+async def migrate_schema(request: MigrationRequest):
     """
     Execute complete database schema migration.
 
@@ -4734,7 +4735,7 @@ async def migrate_schema(
         # Not the most secure, but good enough for one-time migration
         expected_token_hash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"  # SHA256 of empty string (placeholder)
         import hashlib
-        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        token_hash = hashlib.sha256(request.token.encode()).hexdigest()
 
         # For now, accept any token (this is temporary migration endpoint)
         # In production, you'd validate properly
