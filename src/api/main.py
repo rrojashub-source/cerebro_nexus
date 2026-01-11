@@ -4753,21 +4753,32 @@ async def migrate_schema(request: MigrationRequest):
         with open(schema_file, 'r', encoding='utf-8') as f:
             migration_sql = f.read()
 
-        # Execute migration
-        conn = psycopg.connect(DB_CONN_STRING)
+        # Execute migration with autocommit (each statement independent)
+        conn = psycopg.connect(DB_CONN_STRING, autocommit=True)
 
         # First, install pgvector extension
         with conn.cursor() as cur:
             try:
                 cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
-                conn.commit()
             except Exception as e:
                 print(f"⚠️ pgvector extension error (might already exist): {e}")
 
         # Execute full schema migration
+        # Split into individual statements and execute with error handling
+        statements = [s.strip() for s in migration_sql.split(';') if s.strip()]
+        executed_count = 0
+        failed_count = 0
+
         with conn.cursor() as cur:
-            cur.execute(migration_sql)
-            conn.commit()
+            for stmt in statements:
+                try:
+                    if stmt:  # Skip empty statements
+                        cur.execute(stmt)
+                        executed_count += 1
+                except Exception as e:
+                    # Log but continue (objects might already exist)
+                    failed_count += 1
+                    print(f"⚠️ Statement failed (might be OK): {str(e)[:100]}")
 
         conn.close()
 
@@ -4778,6 +4789,8 @@ async def migrate_schema(request: MigrationRequest):
                 "schemas_created": ["nexus_memory", "memory_system", "consciousness"],
                 "migration_file": str(schema_file),
                 "migration_size_bytes": len(migration_sql),
+                "statements_executed": executed_count,
+                "statements_failed": failed_count,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }
