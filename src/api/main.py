@@ -4708,6 +4708,65 @@ Usa este contexto para dar respuestas informadas y coherentes."""
 class MigrationRequest(BaseModel):
     token: str = Field(..., description="Admin token")
 
+@app.post("/admin/import-episodes", tags=["admin"])
+async def import_episodes(request: dict):
+    """
+    Import episodes from backup JSON.
+
+    Used for migrating data from old database to new database.
+    """
+    try:
+        episodes = request.get("episodes", [])
+
+        if not episodes:
+            raise HTTPException(status_code=400, detail="No episodes provided")
+
+        conn = psycopg.connect(DB_CONN_STRING)
+        imported_count = 0
+
+        for ep in episodes:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO nexus_memory.zep_episodic_memory (
+                        episode_id,
+                        timestamp,
+                        content,
+                        importance_score,
+                        tags,
+                        created_at,
+                        project_id,
+                        metadata
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (episode_id) DO NOTHING
+                """, (
+                    ep["episode_id"],
+                    ep.get("timestamp"),
+                    ep["content"],
+                    ep.get("importance_score", 0.5),
+                    ep.get("tags", []),
+                    ep.get("created_at"),
+                    ep.get("project_id"),
+                    ep.get("metadata", {})
+                ))
+                imported_count += 1
+
+        conn.commit()
+        conn.close()
+
+        return {
+            "success": True,
+            "message": "✅ Episodes imported successfully",
+            "imported_count": imported_count,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to import episodes: {str(e)}"
+        )
+
+
 @app.get("/admin/export-episodes", tags=["admin"])
 async def export_episodes():
     """
