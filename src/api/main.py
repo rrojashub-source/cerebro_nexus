@@ -1332,8 +1332,7 @@ async def get_recent_episodes(limit: int = 10):
                     content,
                     importance_score,
                     tags,
-                    created_at,
-                    content_embedding IS NOT NULL as has_embedding
+                    created_at
                 FROM nexus_memory.zep_episodic_memory
                 ORDER BY created_at DESC
                 LIMIT %s
@@ -1351,7 +1350,7 @@ async def get_recent_episodes(limit: int = 10):
                 "importance_score": row[2],
                 "tags": row[3] or [],
                 "created_at": row[4].isoformat(),
-                "has_embedding": row[5]
+                "has_embedding": False  # pgvector not available on Fly.io
             })
 
         response = {
@@ -4708,6 +4707,53 @@ Usa este contexto para dar respuestas informadas y coherentes."""
 # ============================================
 class MigrationRequest(BaseModel):
     token: str = Field(..., description="Admin token")
+
+@app.get("/admin/count-episodes", tags=["admin"])
+async def count_episodes():
+    """
+    Simple endpoint to count episodes without using content_embedding column.
+
+    This is a diagnostic endpoint to check if database has data before migration.
+    """
+    try:
+        conn = psycopg.connect(DB_CONN_STRING)
+
+        with conn.cursor() as cur:
+            # Count total episodes
+            cur.execute("SELECT COUNT(*) FROM nexus_memory.zep_episodic_memory")
+            total_count = cur.fetchone()[0]
+
+            # Get sample of recent episodes
+            cur.execute("""
+                SELECT episode_id, LEFT(content, 100), created_at
+                FROM nexus_memory.zep_episodic_memory
+                ORDER BY created_at DESC
+                LIMIT 5
+            """)
+            samples = cur.fetchall()
+
+        conn.close()
+
+        return {
+            "success": True,
+            "total_episodes": total_count,
+            "database_empty": total_count == 0,
+            "recent_samples": [
+                {
+                    "episode_id": str(row[0]),
+                    "content_preview": row[1],
+                    "created_at": row[2].isoformat() if row[2] else None
+                }
+                for row in samples
+            ]
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to count episodes: {str(e)}"
+        )
+
 
 @app.post("/admin/add-missing-columns", tags=["admin"])
 async def add_missing_columns(request: MigrationRequest):
