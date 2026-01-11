@@ -4709,6 +4709,83 @@ Usa este contexto para dar respuestas informadas y coherentes."""
 class MigrationRequest(BaseModel):
     token: str = Field(..., description="Admin token")
 
+@app.post("/admin/add-missing-columns", tags=["admin"])
+async def add_missing_columns(request: MigrationRequest):
+    """
+    Add missing columns to existing tables.
+
+    This endpoint specifically adds columns that were missing from initial deployment:
+    - content_embedding (vector(384)) - For semantic search
+    - embedding_model (varchar(100)) - Model name
+    - embedding_computed_at (timestamp) - When embedding was generated
+    - valid_from, valid_until (timestamp) - Bi-temporal tracking
+    - superseded_by (uuid) - Supersession chain
+    - is_current (boolean) - Current version flag
+
+    Created: Jan 11, 2026 (NEXUS Laptop Setup Session)
+    Reason: Existing tables missing critical columns
+    """
+    try:
+        conn = psycopg.connect(DB_CONN_STRING, autocommit=True)
+
+        alter_statements = [
+            # Add vector extension first
+            "CREATE EXTENSION IF NOT EXISTS vector;",
+
+            # Add missing columns to zep_episodic_memory
+            "ALTER TABLE nexus_memory.zep_episodic_memory ADD COLUMN IF NOT EXISTS content_embedding vector(384);",
+            "ALTER TABLE nexus_memory.zep_episodic_memory ADD COLUMN IF NOT EXISTS embedding_model VARCHAR(100) DEFAULT 'all-MiniLM-L6-v2';",
+            "ALTER TABLE nexus_memory.zep_episodic_memory ADD COLUMN IF NOT EXISTS embedding_computed_at TIMESTAMP WITH TIME ZONE;",
+            "ALTER TABLE nexus_memory.zep_episodic_memory ADD COLUMN IF NOT EXISTS valid_from TIMESTAMP WITH TIME ZONE DEFAULT NOW();",
+            "ALTER TABLE nexus_memory.zep_episodic_memory ADD COLUMN IF NOT EXISTS valid_until TIMESTAMP WITH TIME ZONE;",
+            "ALTER TABLE nexus_memory.zep_episodic_memory ADD COLUMN IF NOT EXISTS superseded_by UUID;",
+            "ALTER TABLE nexus_memory.zep_episodic_memory ADD COLUMN IF NOT EXISTS is_current BOOLEAN DEFAULT TRUE;",
+
+            # Create indexes for performance
+            "CREATE INDEX IF NOT EXISTS idx_episodic_content_embedding ON nexus_memory.zep_episodic_memory USING hnsw (content_embedding vector_cosine_ops);",
+            "CREATE INDEX IF NOT EXISTS idx_episodic_valid_temporal ON nexus_memory.zep_episodic_memory (valid_from, valid_until) WHERE is_current = true;",
+        ]
+
+        executed_count = 0
+        failed_statements = []
+
+        with conn.cursor() as cur:
+            for stmt in alter_statements:
+                try:
+                    cur.execute(stmt)
+                    executed_count += 1
+                except Exception as e:
+                    failed_statements.append({"statement": stmt[:100], "error": str(e)[:200]})
+
+        conn.close()
+
+        return {
+            "success": True,
+            "message": "✅ Missing columns added successfully",
+            "details": {
+                "columns_added": [
+                    "content_embedding (vector(384))",
+                    "embedding_model",
+                    "embedding_computed_at",
+                    "valid_from",
+                    "valid_until",
+                    "superseded_by",
+                    "is_current"
+                ],
+                "statements_executed": executed_count,
+                "statements_failed": len(failed_statements),
+                "failures": failed_statements,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to add columns: {str(e)}"
+        )
+
+
 @app.post("/admin/migrate-schema", tags=["admin"])
 async def migrate_schema(request: MigrationRequest):
     """
