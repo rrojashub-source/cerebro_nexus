@@ -4708,6 +4708,59 @@ Usa este contexto para dar respuestas informadas y coherentes."""
 class MigrationRequest(BaseModel):
     token: str = Field(..., description="Admin token")
 
+@app.get("/admin/export-episodes", tags=["admin"])
+async def export_episodes():
+    """
+    Export all episodes with complete data for migration.
+    Returns all fields needed to recreate episodes in new database.
+    """
+    try:
+        conn = psycopg.connect(DB_CONN_STRING)
+
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    episode_id,
+                    timestamp,
+                    content,
+                    importance_score,
+                    tags,
+                    created_at,
+                    project_id,
+                    metadata
+                FROM nexus_memory.zep_episodic_memory
+                ORDER BY created_at ASC
+            """)
+            episodes = cur.fetchall()
+
+        conn.close()
+
+        exported = []
+        for row in episodes:
+            exported.append({
+                "episode_id": str(row[0]),
+                "timestamp": row[1].isoformat() if row[1] else None,
+                "content": row[2],
+                "importance_score": float(row[3]) if row[3] else 0.5,
+                "tags": row[4] or [],
+                "created_at": row[5].isoformat() if row[5] else None,
+                "project_id": str(row[6]) if row[6] else None,
+                "metadata": row[7] or {}
+            })
+
+        return {
+            "success": True,
+            "total_episodes": len(exported),
+            "episodes": exported
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to export episodes: {str(e)}"
+        )
+
+
 @app.get("/admin/count-episodes", tags=["admin"])
 async def count_episodes():
     """
