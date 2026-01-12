@@ -300,13 +300,49 @@ clp
 
 ---
 
+## 🔌 BONUS: Configurar MCP Servers (Después de clp fix)
+
+**Una vez que clp funcione correctamente**, configura los MCP servers:
+
+**Guía completa:**
+```bash
+cat /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/docs/LAPTOP_MCP_SETUP.md
+```
+
+**Quick setup:**
+```bash
+# 1. Exportar Hostinger API token
+export HOSTINGER_API_TOKEN="jkVjPETPxERZcVcpEeiT9wqgWjl7Xcy97Of7GQpN4a23ebab"
+
+# 2. Hacer permanente (agregar a ~/.bashrc)
+echo 'export HOSTINGER_API_TOKEN="jkVjPETPxERZcVcpEeiT9wqgWjl7Xcy97Of7GQpN4a23ebab"' >> ~/.bashrc
+
+# 3. Iniciar Claude Code
+cd /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0
+clp
+
+# 4. Testear MCP CEREBRO
+mcp__nexus-cerebro-hope__nexus_system_info
+```
+
+**2 MCP servers disponibles:**
+- `nexus-cerebro-hope` - 50+ tools de CEREBRO NEXUS
+- `hostinger-mcp` - Gestión hosting/DNS
+
+**📖 Ver:** `docs/LAPTOP_MCP_SETUP.md` (360 líneas con troubleshooting completo)
+
+---
+
 **⚠️ IMPORTANTE:** Ejecuta estos pasos EN ORDEN. No saltees el diagnóstico (PASO 2), es crítico para identificar el problema exacto.
 
-**✅ Cuando completes todo, reporta a Ricardo:** "clp fix aplicado y testeado exitosamente"
+**✅ Cuando completes todo, reporta a Ricardo:**
+1. "clp fix aplicado y testeado exitosamente"
+2. "MCP servers configurados - nexus-cerebro-hope + hostinger-mcp CONNECTED"
 
 ---
 
 **Creado:** 2026-01-12 16:30 UTC
+**Actualizado:** 2026-01-12 18:00 UTC (Added MCP setup)
 **Por:** NEXUS-PC
-**Commit:** 8322089
+**Commits:** 8322089 (clp), 01659f3 (actions), 7a47401 (mcp)
 **Branch:** feat/persistencia-integration
