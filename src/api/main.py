@@ -220,6 +220,16 @@ except ImportError as e:
     ingesta_router = APIRouter()
 
 try:
+    # Admin Endpoints: Session handoffs for multi-device work continuity (NEXUS@PC ↔ NEXUS@Laptop)
+    from admin_endpoints import router as admin_router
+    ADMIN_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  Admin endpoints not available: {e}", flush=True)
+    ADMIN_AVAILABLE = False
+    from fastapi import APIRouter
+    admin_router = APIRouter()
+
+try:
     # LAB_053: Intrinsic Curiosity System
     from LAYER_5_Higher_Cognition.LAB_053_Intrinsic_Curiosity.production import curiosity_router
     LAB_053_AVAILABLE = True
@@ -944,6 +954,9 @@ app.include_router(memory_engine_router)
 # Include Ingesta Router (Sincronizacion incremental Claude Code -> CEREBRO)
 app.include_router(ingesta_router)
 
+# Include Admin Router (Session handoffs for multi-device work continuity - Jan 12, 2026)
+app.include_router(admin_router)
+
 # Include Layer 5 LABs Router (LAB_034-050: 17 LABs)
 # TEMPORARILY DISABLED: Dependencies not yet implemented
 # app.include_router(get_layer5_router(), prefix="/api/v1", tags=["Layer 5 LABs"])
@@ -1056,13 +1069,17 @@ async def health_check():
             cur.execute("SELECT 1")
             result = cur.fetchone()
 
-            # Get queue depth
-            cur.execute("""
-                SELECT COUNT(*)
-                FROM memory_system.embeddings_queue
-                WHERE state IN ('pending', 'processing')
-            """)
-            queue_depth = cur.fetchone()[0]
+            # Get queue depth (optional - may not exist in lightweight/cloud deployments)
+            try:
+                cur.execute("""
+                    SELECT COUNT(*)
+                    FROM memory_system.embeddings_queue
+                    WHERE state IN ('pending', 'processing')
+                """)
+                queue_depth = cur.fetchone()[0]
+            except Exception:
+                # Embeddings queue not available (lightweight mode)
+                queue_depth = None
 
         conn.close()
         db_status = "connected" if result else "disconnected"
@@ -1130,8 +1147,15 @@ async def full_system_health():
         with conn.cursor() as cur:
             cur.execute("SELECT COUNT(*) FROM nexus_memory.zep_episodic_memory")
             episode_count = cur.fetchone()[0]
-            cur.execute("SELECT COUNT(*) FROM memory_system.embeddings_queue WHERE state IN ('pending', 'processing')")
-            queue_depth = cur.fetchone()[0]
+
+            # Get queue depth (optional - may not exist in lightweight/cloud deployments)
+            try:
+                cur.execute("SELECT COUNT(*) FROM memory_system.embeddings_queue WHERE state IN ('pending', 'processing')")
+                queue_depth = cur.fetchone()[0]
+            except Exception:
+                # Embeddings queue not available (lightweight mode)
+                queue_depth = None
+
         conn.close()
         health_report["components"]["postgresql"] = {
             "status": "healthy",
@@ -1312,20 +1336,42 @@ async def memory_action(request: MemoryActionRequest):
         )
 
 @app.get("/memory/episodic/recent", tags=["Memory"])
-async def get_recent_episodes(limit: int = 10):
-    """Get recent episodic memories with Redis cache"""
+async def get_recent_episodes(limit: int = 10, offset: int = 0):
+    """
+    Get recent episodic memories with Redis cache and pagination
+
+    Parameters:
+    - limit: Max episodes to return (default 10, max 10000)
+    - offset: Skip first N episodes (default 0) for pagination
+
+    Example:
+    - GET /memory/episodic/recent?limit=1000&offset=0    # First 1000
+    - GET /memory/episodic/recent?limit=1000&offset=1000 # Next 1000
+    """
     try:
-        # Try cache first
-        cache_key = f"episodes:recent:{limit}"
-        cached_data = cache_get(cache_key)
-        if cached_data:
-            cached_data["cached"] = True
-            return cached_data
+        # Validate parameters
+        if limit > 10000:
+            raise HTTPException(status_code=400, detail="Limit cannot exceed 10,000")
+        if offset < 0:
+            raise HTTPException(status_code=400, detail="Offset cannot be negative")
+
+        # Try cache first (only for small queries without offset)
+        cache_key = f"episodes:recent:{limit}:{offset}"
+        if offset == 0 and limit <= 100:  # Only cache small queries
+            cached_data = cache_get(cache_key)
+            if cached_data:
+                cached_data["cached"] = True
+                return cached_data
 
         # Cache miss - query database
         conn = get_db_connection()
 
         with conn.cursor() as cur:
+            # Get total count for pagination metadata
+            cur.execute("SELECT COUNT(*) FROM nexus_memory.zep_episodic_memory")
+            total_count = cur.fetchone()[0]
+
+            # Get episodes with pagination
             cur.execute("""
                 SELECT
                     episode_id,
@@ -1335,8 +1381,8 @@ async def get_recent_episodes(limit: int = 10):
                     created_at
                 FROM nexus_memory.zep_episodic_memory
                 ORDER BY created_at DESC
-                LIMIT %s
-            """, (limit,))
+                LIMIT %s OFFSET %s
+            """, (limit, offset))
 
             results = cur.fetchall()
 
@@ -1356,19 +1402,152 @@ async def get_recent_episodes(limit: int = 10):
         response = {
             "success": True,
             "count": len(episodes),
+            "total": total_count,
+            "offset": offset,
+            "limit": limit,
+            "has_more": (offset + len(episodes)) < total_count,
             "episodes": episodes,
             "cached": False
         }
 
-        # Store in cache
-        cache_set(cache_key, response)
+        # Store in cache (only small queries)
+        if offset == 0 and limit <= 100:
+            cache_set(cache_key, response)
 
         return response
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error fetching episodes: {str(e)}"
+        )
+
+@app.get("/memory/episodic/bulk", tags=["Memory"])
+async def get_bulk_episodes(
+    batch_size: int = 5000,
+    formative_only: bool = False,
+    min_importance: float = 0.0,
+    date_from: str = None,
+    date_to: str = None
+):
+    """
+    Optimized endpoint for bulk episode retrieval (e.g., multi-phase wake)
+
+    Designed for NEXUS-Laptop wake scripts to load large context efficiently.
+    No caching, direct database access for freshest data.
+
+    Parameters:
+    - batch_size: Episodes per request (default 5000, max 10000)
+    - formative_only: Only return formative episodes (default False)
+    - min_importance: Minimum importance score (default 0.0)
+    - date_from: ISO date filter (e.g., "2025-07-01")
+    - date_to: ISO date filter (e.g., "2026-01-12")
+
+    Use Cases:
+    - Wake script: Load all formative + recent high-importance
+    - Historical analysis: Load specific date ranges
+    - Context migration: Bulk transfer between devices
+
+    Example:
+    - GET /memory/episodic/bulk?formative_only=true
+    - GET /memory/episodic/bulk?min_importance=0.8&batch_size=10000
+    - GET /memory/episodic/bulk?date_from=2025-10-01&date_to=2025-10-31
+    """
+    try:
+        # Validate parameters
+        if batch_size > 10000:
+            raise HTTPException(status_code=400, detail="Batch size cannot exceed 10,000")
+        if min_importance < 0.0 or min_importance > 1.0:
+            raise HTTPException(status_code=400, detail="min_importance must be 0.0-1.0")
+
+        conn = get_db_connection()
+
+        # Build dynamic query based on filters
+        conditions = []
+        params = []
+
+        if formative_only:
+            conditions.append("formative = TRUE")
+
+        if min_importance > 0.0:
+            conditions.append("importance_score >= %s")
+            params.append(min_importance)
+
+        if date_from:
+            conditions.append("created_at >= %s")
+            params.append(date_from)
+
+        if date_to:
+            conditions.append("created_at <= %s")
+            params.append(date_to)
+
+        where_clause = ""
+        if conditions:
+            where_clause = "WHERE " + " AND ".join(conditions)
+
+        with conn.cursor() as cur:
+            # Get count
+            count_query = f"SELECT COUNT(*) FROM nexus_memory.zep_episodic_memory {where_clause}"
+            cur.execute(count_query, params)
+            total_count = cur.fetchone()[0]
+
+            # Get episodes
+            params.append(batch_size)
+            query = f"""
+                SELECT
+                    episode_id,
+                    content,
+                    importance_score,
+                    tags,
+                    created_at,
+                    formative,
+                    surprise_score,
+                    consolidation_count
+                FROM nexus_memory.zep_episodic_memory
+                {where_clause}
+                ORDER BY importance_score DESC, created_at DESC
+                LIMIT %s
+            """
+            cur.execute(query, params)
+            results = cur.fetchall()
+
+        conn.close()
+
+        episodes = []
+        for row in results:
+            episodes.append({
+                "episode_id": str(row[0]),
+                "content": row[1],
+                "importance_score": row[2],
+                "tags": row[3] or [],
+                "created_at": row[4].isoformat(),
+                "formative": row[5],
+                "surprise_score": row[6],
+                "consolidation_count": row[7]
+            })
+
+        return {
+            "success": True,
+            "count": len(episodes),
+            "total_matching": total_count,
+            "batch_size": batch_size,
+            "filters": {
+                "formative_only": formative_only,
+                "min_importance": min_importance,
+                "date_from": date_from,
+                "date_to": date_to
+            },
+            "episodes": episodes
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching bulk episodes: {str(e)}"
         )
 
 @app.post("/memory/search", response_model=SearchResponse, tags=["Memory"])
@@ -1376,10 +1555,46 @@ async def search_memories(request: SearchRequest):
     """
     Semantic search using vector embeddings
     Uses cosine similarity with pgvector to find most relevant episodes
+
+    IMPORTANT: This endpoint requires embeddings model to be loaded.
+    In Cloud lightweight mode (Fly.io), embeddings are not available.
+
+    Fallback options:
+    - Use /memory/episodic/recent with filters
+    - Use GraphRAG search if available
+    - Use tag-based filtering
     """
     try:
         # Generate embedding for search query
-        query_embedding = generate_query_embedding(request.query)
+        try:
+            query_embedding = generate_query_embedding(request.query)
+        except Exception as embed_error:
+            # Embeddings model not loaded (lightweight mode)
+            raise HTTPException(
+                status_code=503,  # Service Unavailable (not 500 Internal Error)
+                detail={
+                    "error": "Embeddings model not loaded",
+                    "reason": "Cloud deployment running in lightweight mode",
+                    "available_alternatives": [
+                        {
+                            "endpoint": "GET /memory/episodic/recent",
+                            "description": "Retrieve recent episodes with pagination",
+                            "example": "/memory/episodic/recent?limit=100"
+                        },
+                        {
+                            "endpoint": "GET /memory/episodic/bulk",
+                            "description": "Bulk retrieval with filters",
+                            "example": "/memory/episodic/bulk?min_importance=0.8"
+                        },
+                        {
+                            "endpoint": "POST /graphrag/search",
+                            "description": "Graph-based semantic search (if available)",
+                            "example": '/graphrag/search {"query": "consciousness"}'
+                        }
+                    ],
+                    "note": "Semantic search requires embeddings worker running locally. Use alternatives above for Cloud deployment."
+                }
+            )
 
         # Perform vector similarity search
         conn = get_db_connection()
@@ -4946,6 +5161,126 @@ async def add_missing_columns(request: MigrationRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Failed to add columns: {str(e)}"
+        )
+
+
+@app.post("/admin/add-sync-columns", tags=["admin"])
+async def add_sync_columns(request: MigrationRequest):
+    """
+    Add bidirectional sync columns to episodic_memory table.
+
+    This endpoint adds columns for PC <-> Cloud sync:
+    - device_id (varchar(50)) - Origin device (nexus-pc, nexus-laptop, nexus-mobile)
+    - sync_status (varchar(20)) - Sync state (pending, synced, conflict)
+    - last_modified_at (timestamp) - Last modification timestamp
+
+    Also creates:
+    - Indexes for efficient sync queries
+    - Trigger for auto-updating last_modified_at
+    - Updates existing rows with device_id based on tags
+
+    Created: Jan 12, 2026 (PC-Laptop Sync Implementation - Option A)
+    Reason: Enable bidirectional sync between PC and Cloud
+    """
+    try:
+        conn = psycopg.connect(DB_CONN_STRING, autocommit=True)
+
+        sync_statements = [
+            # Add sync columns
+            "ALTER TABLE nexus_memory.zep_episodic_memory ADD COLUMN IF NOT EXISTS device_id VARCHAR(50) DEFAULT 'nexus-pc';",
+            "ALTER TABLE nexus_memory.zep_episodic_memory ADD COLUMN IF NOT EXISTS sync_status VARCHAR(20) DEFAULT 'synced';",
+            "ALTER TABLE nexus_memory.zep_episodic_memory ADD COLUMN IF NOT EXISTS last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;",
+
+            # Create indexes for sync queries
+            "CREATE INDEX IF NOT EXISTS idx_last_modified ON nexus_memory.zep_episodic_memory(last_modified_at);",
+            "CREATE INDEX IF NOT EXISTS idx_device_id ON nexus_memory.zep_episodic_memory(device_id);",
+            "CREATE INDEX IF NOT EXISTS idx_sync_status ON nexus_memory.zep_episodic_memory(sync_status);",
+
+            # Create function for auto-update trigger
+            """CREATE OR REPLACE FUNCTION update_modified_timestamp()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.last_modified_at = CURRENT_TIMESTAMP;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;""",
+
+            # Drop existing trigger if exists
+            "DROP TRIGGER IF EXISTS update_episodic_memory_modtime ON nexus_memory.zep_episodic_memory;",
+
+            # Create trigger
+            """CREATE TRIGGER update_episodic_memory_modtime
+            BEFORE UPDATE ON nexus_memory.zep_episodic_memory
+            FOR EACH ROW
+            EXECUTE FUNCTION update_modified_timestamp();""",
+
+            # Update existing rows: set device_id based on tags
+            """UPDATE nexus_memory.zep_episodic_memory
+            SET device_id = CASE
+                WHEN 'laptop' = ANY(tags) THEN 'nexus-laptop'
+                WHEN 'mobile' = ANY(tags) THEN 'nexus-mobile'
+                ELSE 'nexus-pc'
+            END
+            WHERE device_id = 'nexus-pc';""",
+
+            # Set all existing episodes as synced (already in Cloud)
+            """UPDATE nexus_memory.zep_episodic_memory
+            SET sync_status = 'synced'
+            WHERE sync_status IS NULL;""",
+        ]
+
+        executed_count = 0
+        failed_statements = []
+
+        with conn.cursor() as cur:
+            for stmt in sync_statements:
+                try:
+                    cur.execute(stmt)
+                    executed_count += 1
+                except Exception as e:
+                    failed_statements.append({"statement": stmt[:100], "error": str(e)[:200]})
+
+        conn.close()
+
+        # Get device_id stats
+        conn = psycopg.connect(DB_CONN_STRING, autocommit=True)
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT device_id, COUNT(*) as count
+                FROM nexus_memory.zep_episodic_memory
+                GROUP BY device_id
+                ORDER BY count DESC;
+            """)
+            device_stats = {row[0]: row[1] for row in cur.fetchall()}
+        conn.close()
+
+        return {
+            "success": True,
+            "message": "✅ Sync columns added successfully",
+            "details": {
+                "columns_added": [
+                    "device_id (varchar(50), default 'nexus-pc')",
+                    "sync_status (varchar(20), default 'synced')",
+                    "last_modified_at (timestamp, auto-updated)"
+                ],
+                "indexes_created": [
+                    "idx_last_modified",
+                    "idx_device_id",
+                    "idx_sync_status"
+                ],
+                "trigger_created": "update_episodic_memory_modtime",
+                "statements_executed": executed_count,
+                "statements_failed": len(failed_statements),
+                "failures": failed_statements,
+                "device_stats": device_stats,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to add sync columns: {str(e)}"
         )
 
 
