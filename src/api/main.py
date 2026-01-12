@@ -4,7 +4,7 @@ FastAPI Application - Core Endpoints
 54 LABs Cognitive Architecture
 """
 
-from fastapi import FastAPI, HTTPException, status, Body
+from fastapi import FastAPI, HTTPException, status, Body, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
