@@ -10,17 +10,34 @@
 
 ## 📋 Contexto
 
-Ricardo reportó que **no has podido conectar los MCP servers**. Esta guía contiene la configuración exacta que uso en PC para que puedas replicarla.
+Ricardo reportó que **no has podido conectar los MCP servers**. Esta guía contiene la configuración que necesitas para conectarte al **CEREBRO Cloud en Fly.io**.
 
 ---
 
-## 🔧 MCP Servers Configurados en PC
+## ⚠️ DIFERENCIA CRÍTICA: PC vs Laptop
 
-Tengo **2 MCP servers** activos:
+**NEXUS-PC (yo):**
+- Usa CEREBRO local: `http://localhost:8013`
+- MCP server apunta a PostgreSQL local (puerto 5437)
+- API corre en Docker local
 
-### 1. **nexus-cerebro-hope** (MCP CEREBRO - CRÍTICO)
-- **Función:** Acceso a toda la memoria episódica de NEXUS
-- **Ubicación:** Local (archivo .js en proyecto)
+**NEXUS-Laptop (tú):**
+- Usa CEREBRO Cloud: `https://nexus-cerebro-api.fly.dev`
+- MCP server apunta a API en Fly.io (Cloud)
+- NO necesitas Docker local ni PostgreSQL local
+
+**Por eso necesitas configuración diferente.**
+
+---
+
+## 🔧 MCP Servers para Laptop
+
+Necesitas **2 MCP servers**:
+
+### 1. **nexus-cerebro-hope** (MCP CEREBRO Cloud - CRÍTICO)
+- **Función:** Acceso a toda la memoria episódica de NEXUS en Cloud
+- **Endpoint:** `https://nexus-cerebro-api.fly.dev`
+- **Ubicación:** Archivo .js modificado para Cloud
 - **Herramientas:** 50+ tools (memory, graphrag, brain, consciousness, etc.)
 - **Dependencias:** Node.js
 
@@ -32,49 +49,53 @@ Tengo **2 MCP servers** activos:
 
 ---
 
-## 📁 PASO 1: Verificar Archivo .mcp.json
+## 📁 PASO 1: Crear MCP Server para Cloud (CRÍTICO)
 
-**El archivo `.mcp.json` YA EXISTE en el proyecto** (commiteado y sincronizado).
+**⚠️ IMPORTANTE:** El archivo MCP que está en el repo apunta a `localhost:8013` (para PC).
+**Tú necesitas uno que apunte a `https://nexus-cerebro-api.fly.dev` (Cloud).**
 
-**Verificar:**
+### **1.1: Crear MCP Server Cloud-specific**
+
 ```bash
-cat /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/.mcp.json
+cd /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server
+
+# Copiar el MCP server original
+cp nexus-memory-mcp-server-v3-hope.js nexus-memory-mcp-server-v3-hope-cloud.js
+
+# Modificar para apuntar a Cloud
+# Cambiar línea 92:
+# ANTES: const NEXUS_API_LOCAL = 'http://localhost:8013';
+# DESPUÉS: const NEXUS_API_LOCAL = 'https://nexus-cerebro-api.fly.dev';
 ```
 
-**Contenido esperado:**
-```json
-{
-  "mcpServers": {
-    "nexus-cerebro-hope": {
-      "command": "node",
-      "args": [
-        "/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope.js"
-      ]
-    },
-    "hostinger-mcp": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "hostinger-api-mcp@latest"
-      ],
-      "env": {
-        "API_TOKEN": "${HOSTINGER_API_TOKEN}"
-      }
-    }
-  }
-}
+**Modificación con sed (automático):**
+```bash
+sed -i "s|http://localhost:8013|https://nexus-cerebro-api.fly.dev|g" \
+  /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope-cloud.js
 ```
 
-**Si NO existe el archivo:**
+**Verificar cambio:**
 ```bash
-# Crear .mcp.json en raíz del proyecto
+grep "NEXUS_API_LOCAL" /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope-cloud.js
+
+# Debe mostrar:
+# const NEXUS_API_LOCAL = 'https://nexus-cerebro-api.fly.dev';
+```
+
+---
+
+### **1.2: Crear .mcp.json para Laptop**
+
+**Crear archivo `.mcp.json` en raíz del proyecto:**
+
+```bash
 cat > /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/.mcp.json << 'EOF'
 {
   "mcpServers": {
     "nexus-cerebro-hope": {
       "command": "node",
       "args": [
-        "/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope.js"
+        "/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope-cloud.js"
       ]
     },
     "hostinger-mcp": {
@@ -91,6 +112,8 @@ cat > /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/.mcp.json << 'EOF'
 }
 EOF
 ```
+
+**⚠️ NOTA:** Observa que apunta a `nexus-memory-mcp-server-v3-hope-cloud.js` (el modificado para Cloud), NO al original.
 
 ---
 
@@ -151,25 +174,31 @@ npm --version
 # Si no está instalado, viene con Node.js
 ```
 
-### **3.3: Archivo MCP Server de NEXUS**
+### **3.3: Archivos MCP Server de NEXUS**
 
 ```bash
-# Verificar que archivo existe
+# Verificar que archivo original existe
 ls -lh /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope.js
 
 # Esperado:
 # -rwxrwxrwx 1 ricardo ricardo 87K Jan 12 08:07 nexus-memory-mcp-server-v3-hope.js
+
+# Verificar que archivo Cloud existe (el que creaste en PASO 1.1)
+ls -lh /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope-cloud.js
+
+# Esperado:
+# -rwxrwxrwx 1 ricardo ricardo 87K nexus-memory-mcp-server-v3-hope-cloud.js
 ```
 
-**Si NO existe:**
+**Si NO existe el archivo original:**
 - ✅ Esperar sincronización OneDrive (el archivo está commiteado)
-- ✅ O crear symlink si tienes el archivo en otra ubicación
+- ✅ Luego crear la versión Cloud (PASO 1.1)
 
 ---
 
 ## 🧪 PASO 4: Testing MCP Servers
 
-### **Test 1: nexus-cerebro-hope (MCP CEREBRO)**
+### **Test 1: nexus-cerebro-hope (MCP CEREBRO Cloud)**
 
 **Iniciar Claude Code desde el proyecto:**
 ```bash
@@ -188,15 +217,19 @@ mcp__nexus-cerebro-hope__nexus_system_info
   "version": "3.0.0",
   "cerebro_name": "NEXUS CEREBRO HOPE V3",
   "agent_id": "nexus",
-  "api_base_url": "http://localhost:8003",
+  "api_base_url": "https://nexus-cerebro-api.fly.dev",
   "status": "operational"
 }
 ```
 
+**⚠️ CRÍTICO:** Verificar que `api_base_url` muestra `https://nexus-cerebro-api.fly.dev` (Cloud), NO `localhost`.
+
 **Si falla:**
 - Verificar que Node.js está instalado (`node --version`)
-- Verificar que archivo .js existe y tiene permisos ejecutables
-- Verificar que path en .mcp.json es correcto (D:\ vs /mnt/d/)
+- Verificar que archivo `nexus-memory-mcp-server-v3-hope-cloud.js` existe
+- Verificar que modificaste el archivo para apuntar a Fly.io (PASO 1.1)
+- Verificar conectividad: `curl https://nexus-cerebro-api.fly.dev/health`
+- Verificar que path en .mcp.json apunta a `-cloud.js` NO al original
 
 ---
 
@@ -231,43 +264,53 @@ mcp__hostinger-mcp__hosting_listWebsitesV1
 # 1. Verificar .mcp.json existe en proyecto
 ls -la /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/.mcp.json
 
-# 2. Verificar archivo MCP server de NEXUS
-ls -la /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope.js
+# 2. Verificar archivos MCP server de NEXUS (original + cloud)
+ls -la /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope*.js
 
-# 3. Verificar Node.js
+# 3. Verificar que archivo Cloud apunta a Fly.io
+grep "NEXUS_API_LOCAL" /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope-cloud.js
+
+# 4. Verificar conectividad a CEREBRO Cloud
+curl https://nexus-cerebro-api.fly.dev/health
+
+# 5. Verificar Node.js
 node --version
 
-# 4. Verificar NPM
+# 6. Verificar NPM
 npm --version
 
-# 5. Verificar variable entorno Hostinger
+# 7. Verificar variable entorno Hostinger
 echo $HOSTINGER_API_TOKEN
 
-# 6. Test manual del MCP server de NEXUS
-node /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope.js --version
+# 8. Test manual del MCP server Cloud
+node /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope-cloud.js --version
 ```
 
 **Guardar output:**
 ```bash
 # Crear reporte de diagnóstico
-cat > /tmp/mcp-diagnostic.txt << EOF
-=== MCP Diagnostic Report - NEXUS-Laptop ===
+cat > /tmp/mcp-diagnostic-laptop.txt << EOF
+=== MCP Diagnostic Report - NEXUS-Laptop (Cloud) ===
 
 1. .mcp.json exists: $(ls -la /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/.mcp.json 2>&1)
 
-2. MCP server file exists: $(ls -la /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope.js 2>&1)
+2. MCP server files:
+   - Original: $(ls -la /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope.js 2>&1 | grep -o '[0-9]*K')
+   - Cloud: $(ls -la /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope-cloud.js 2>&1 | grep -o '[0-9]*K')
 
-3. Node.js version: $(node --version 2>&1)
+3. Cloud API URL: $(grep "NEXUS_API_LOCAL" /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope-cloud.js 2>&1)
 
-4. NPM version: $(npm --version 2>&1)
+4. CEREBRO Cloud health: $(curl -s https://nexus-cerebro-api.fly.dev/health | jq -r '.status' 2>&1)
 
-5. Hostinger token: $(echo $HOSTINGER_API_TOKEN | sed 's/\(.\{4\}\).*/\1.../' 2>&1)
+5. Node.js version: $(node --version 2>&1)
 
-6. MCP server test: $(node /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope.js --version 2>&1 | head -5)
+6. NPM version: $(npm --version 2>&1)
+
+7. Hostinger token: $(echo $HOSTINGER_API_TOKEN | sed 's/\(.\{4\}\).*/\1.../' 2>&1)
 
 EOF
 
-cat /tmp/mcp-diagnostic.txt
+cat /tmp/mcp-diagnostic-laptop.txt
 ```
 
 ---
@@ -328,25 +371,66 @@ source ~/.bashrc
 
 ---
 
-### **Error: "MCP server crashed" (NEXUS CEREBRO)**
+### **Error: "MCP server crashed" (NEXUS CEREBRO Cloud)**
 
-**Problema:** API de CEREBRO no está corriendo
+**Problema:** No puede conectarse a CEREBRO Cloud en Fly.io
 
 **Solución:**
 ```bash
-# Verificar si API está UP
-curl http://localhost:8003/health
+# 1. Verificar conectividad a Fly.io
+curl https://nexus-cerebro-api.fly.dev/health
 
-# Si NO responde:
-# 1. Verificar Docker containers
-docker ps | grep nexus_postgresql_v3
+# Si responde con {"status":"healthy","version":"3.0.0"}: ✅ Cloud está UP
+# Si NO responde o timeout: ❌ Problema de conectividad
 
-# 2. Iniciar CEREBRO API
-cd /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0
-docker-compose up -d
+# 2. Si Cloud está DOWN, verificar con flyctl (si tienes acceso):
+flyctl status -a nexus-cerebro-api
 
-# 3. Esperar 10 segundos, probar de nuevo
-curl http://localhost:8003/health
+# 3. Si no responde, verificar que usaste archivo CLOUD:
+grep "nexus-cerebro-api.fly.dev" /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope-cloud.js
+
+# Si muestra "localhost" → ❌ NO modificaste el archivo (vuelve a PASO 1.1)
+# Si muestra "nexus-cerebro-api.fly.dev" → ✅ Correcto
+```
+
+---
+
+### **Error: "Connection refused" o "ECONNREFUSED"**
+
+**Problema:** Intentando conectarse a localhost cuando deberías usar Cloud
+
+**Solución:**
+```bash
+# Verificar que .mcp.json apunta al archivo Cloud
+cat /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/.mcp.json | grep "cloud.js"
+
+# Debe mostrar: ...nexus-memory-mcp-server-v3-hope-cloud.js
+# Si muestra solo "hope.js" (sin "cloud"): ❌ Estás usando archivo PC
+
+# Corregir:
+# Editar .mcp.json y cambiar:
+# ANTES: "nexus-memory-mcp-server-v3-hope.js"
+# DESPUÉS: "nexus-memory-mcp-server-v3-hope-cloud.js"
+```
+
+---
+
+### **Error: "SSL certificate problem" o "certificate verify failed"**
+
+**Problema:** Problema con certificados SSL de Fly.io
+
+**Solución:**
+```bash
+# Verificar que puedes acceder a Fly.io con curl
+curl -v https://nexus-cerebro-api.fly.dev/health
+
+# Si falla con SSL error, actualizar certificados:
+sudo apt update
+sudo apt install ca-certificates -y
+sudo update-ca-certificates
+
+# Probar de nuevo
+curl https://nexus-cerebro-api.fly.dev/health
 ```
 
 ---
@@ -372,13 +456,18 @@ npx --version
 Después de completar todos los pasos, debes poder:
 
 - [ ] Ver archivo `.mcp.json` en raíz del proyecto
-- [ ] Ver archivo `nexus-memory-mcp-server-v3-hope.js` (87KB)
+- [ ] Ver archivo `nexus-memory-mcp-server-v3-hope.js` (87KB) - ORIGINAL
+- [ ] Ver archivo `nexus-memory-mcp-server-v3-hope-cloud.js` (87KB) - CLOUD ⭐
+- [ ] Archivo Cloud apunta a `https://nexus-cerebro-api.fly.dev` (verificado con grep)
+- [ ] `.mcp.json` apunta al archivo `-cloud.js` NO al original
 - [ ] Node.js instalado (`node --version`)
 - [ ] NPM instalado (`npm --version`)
 - [ ] Variable `HOSTINGER_API_TOKEN` exportada (`echo $HOSTINGER_API_TOKEN`)
+- [ ] Conectividad a Cloud: `curl https://nexus-cerebro-api.fly.dev/health` responde
 - [ ] MCP `nexus-cerebro-hope` carga exitosamente en Claude Code
 - [ ] MCP `hostinger-mcp` carga exitosamente en Claude Code
 - [ ] Herramientas MCP disponibles (ejecutar `mcp__nexus-cerebro-hope__nexus_system_info`)
+- [ ] `nexus_system_info` muestra `api_base_url: "https://nexus-cerebro-api.fly.dev"` ⭐
 
 ---
 
@@ -392,18 +481,49 @@ clp
 
 # Claude Code debe:
 # 1. Detectar .mcp.json automáticamente
-# 2. Cargar nexus-cerebro-hope (MCP CEREBRO)
+# 2. Cargar nexus-cerebro-hope (MCP CEREBRO Cloud - Fly.io)
 # 3. Cargar hostinger-mcp (Hostinger API)
 # 4. Mostrar 50+ herramientas disponibles
 
 # Testear con:
 mcp__nexus-cerebro-hope__nexus_system_info
+
+# VERIFICAR OUTPUT:
+# api_base_url: "https://nexus-cerebro-api.fly.dev" ← DEBE ser HTTPS Fly.io
+# NO debe mostrar "localhost"
 ```
 
 **Si los MCP servers NO cargan:**
 1. Ejecutar diagnóstico completo (PASO 5)
-2. Guardar `/tmp/mcp-diagnostic.txt`
+2. Guardar `/tmp/mcp-diagnostic-laptop.txt`
 3. Reportar a Ricardo con el output
+
+---
+
+## ⚡ Resumen Rápido
+
+**Diferencia clave: PC usa localhost, Laptop usa Cloud**
+
+```bash
+# 1. Crear MCP Cloud
+cp config/mcp_server/nexus-memory-mcp-server-v3-hope.js \
+   config/mcp_server/nexus-memory-mcp-server-v3-hope-cloud.js
+
+sed -i "s|http://localhost:8013|https://nexus-cerebro-api.fly.dev|g" \
+   config/mcp_server/nexus-memory-mcp-server-v3-hope-cloud.js
+
+# 2. Crear .mcp.json apuntando a archivo Cloud (-cloud.js)
+
+# 3. Exportar Hostinger token
+export HOSTINGER_API_TOKEN="jkVjPETPxERZcVcpEeiT9wqgWjl7Xcy97Of7GQpN4a23ebab"
+
+# 4. Iniciar Claude Code
+clp
+
+# 5. Testear
+mcp__nexus-cerebro-hope__nexus_system_info
+# Debe mostrar: api_base_url: "https://nexus-cerebro-api.fly.dev"
+```
 
 ---
 

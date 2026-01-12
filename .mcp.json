@@ -3,7 +3,7 @@
     "nexus-cerebro-hope": {
       "command": "node",
       "args": [
-        "/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope.js"
+        "/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope-cloud.js"
       ]
     },
     "hostinger-mcp": {
