@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "nexus-cerebro-hope": {
+      "command": "node",
+      "args": [
+        "/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/config/mcp_server/nexus-memory-mcp-server-v3-hope.js"
+      ]
+    },
+    "hostinger-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "hostinger-api-mcp@latest"
+      ],
+      "env": {
+        "API_TOKEN": "${HOSTINGER_API_TOKEN}"
+      }
+    }
+  }
+}
