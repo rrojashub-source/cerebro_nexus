@@ -5350,9 +5350,9 @@ async def sync_upload(request: SyncUploadRequest):
             for episode in request.episodes:
                 # Check if episode exists
                 cur.execute("""
-                    SELECT uuid, last_modified_at
+                    SELECT episode_id, last_modified_at
                     FROM nexus_memory.zep_episodic_memory
-                    WHERE uuid = %s;
+                    WHERE episode_id = %s;
                 """, (episode.episode_id,))
 
                 existing = cur.fetchone()
@@ -5361,7 +5361,7 @@ async def sync_upload(request: SyncUploadRequest):
                     # Insert new episode
                     cur.execute("""
                         INSERT INTO nexus_memory.zep_episodic_memory (
-                            uuid, content, importance, tags, created_at,
+                            episode_id, content, importance_score, tags, created_at,
                             device_id, sync_status, last_modified_at
                         )
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
@@ -5386,11 +5386,11 @@ async def sync_upload(request: SyncUploadRequest):
                         cur.execute("""
                             UPDATE nexus_memory.zep_episodic_memory
                             SET content = %s,
-                                importance = %s,
+                                importance_score = %s,
                                 tags = %s,
                                 last_modified_at = %s,
                                 sync_status = 'synced'
-                            WHERE uuid = %s;
+                            WHERE episode_id = %s;
                         """, (
                             episode.content,
                             episode.importance,
@@ -5448,7 +5448,7 @@ async def sync_download(
                 # Exclude episodes from specified device
                 cur.execute("""
                     SELECT
-                        uuid, content, importance, tags, created_at,
+                        episode_id, content, importance_score, tags, created_at,
                         device_id, sync_status, last_modified_at
                     FROM nexus_memory.zep_episodic_memory
                     WHERE (created_at > %s OR last_modified_at > %s)
@@ -5460,7 +5460,7 @@ async def sync_download(
                 # Get all new episodes
                 cur.execute("""
                     SELECT
-                        uuid, content, importance, tags, created_at,
+                        episode_id, content, importance_score, tags, created_at,
                         device_id, sync_status, last_modified_at
                     FROM nexus_memory.zep_episodic_memory
                     WHERE (created_at > %s OR last_modified_at > %s)
