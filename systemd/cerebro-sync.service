@@ -1,0 +1,42 @@
+[Unit]
+Description=CEREBRO Sync Daemon - Bidirectional PC <-> Cloud Sync
+Documentation=file:///mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/README.md
+After=network.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ricardo
+Group=ricardo
+WorkingDirectory=/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0
+
+# Main process
+ExecStart=/usr/bin/python3 /mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/cerebro_sync_daemon.py
+
+# Restart policy
+Restart=always
+RestartSec=10
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=50%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cerebro-sync
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/logs
+ReadWritePaths=/mnt/d/01_PROYECTOS_ACTIVOS/CEREBRO_NEXUS_V3.0.0/memory/shared
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+Environment="PATH=/usr/bin:/usr/local/bin"
+
+[Install]
+WantedBy=multi-user.target
