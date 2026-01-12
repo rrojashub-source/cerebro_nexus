@@ -4923,6 +4923,42 @@ Usa este contexto para dar respuestas informadas y coherentes."""
 class MigrationRequest(BaseModel):
     token: str = Field(..., description="Admin token")
 
+# ============================================
+# SYNC MODELS (PC <-> Cloud Bidirectional Sync)
+# ============================================
+
+class SyncEpisode(BaseModel):
+    """Episode model for sync operations"""
+    episode_id: str
+    content: str
+    importance: float
+    tags: List[str]
+    created_at: datetime
+    device_id: Optional[str] = "nexus-pc"
+    sync_status: Optional[str] = "pending"
+    last_modified_at: Optional[datetime] = None
+
+class SyncUploadRequest(BaseModel):
+    """Request to upload episodes from PC to Cloud"""
+    episodes: List[SyncEpisode] = Field(..., description="Batch of episodes to upload")
+    device_id: str = Field("nexus-pc", description="Origin device identifier")
+
+class SyncUploadResponse(BaseModel):
+    """Response from sync upload"""
+    success: bool
+    inserted: int
+    updated: int
+    episode_ids: List[str]
+    timestamp: datetime
+
+class SyncDownloadResponse(BaseModel):
+    """Response from sync download"""
+    success: bool
+    count: int
+    episodes: List[Dict[str, Any]]
+    latest_timestamp: datetime
+    timestamp: datetime
+
 @app.post("/admin/import-episodes", tags=["admin"])
 async def import_episodes(request: dict):
     """
@@ -5281,6 +5317,194 @@ async def add_sync_columns(request: MigrationRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Failed to add sync columns: {str(e)}"
+        )
+
+
+# ============================================
+# SYNC ENDPOINTS (PC <-> Cloud Bidirectional)
+# ============================================
+
+@app.post("/sync/upload", response_model=SyncUploadResponse, tags=["sync"])
+async def sync_upload(request: SyncUploadRequest):
+    """
+    Upload batch of episodes from PC to Cloud.
+
+    Logic:
+    - Check if episode_id exists (skip duplicates)
+    - Insert new episodes
+    - Update modified episodes (if timestamp > current)
+    - Return IDs inserted/updated
+
+    Usage:
+    - PC daemon sends batch every 5 min
+    - Batch size: up to 100 episodes
+
+    Created: Jan 12, 2026 (PC-Laptop Sync - Option A)
+    """
+    try:
+        conn = psycopg.connect(DB_CONN_STRING, autocommit=True)
+        inserted_ids = []
+        updated_ids = []
+
+        with conn.cursor() as cur:
+            for episode in request.episodes:
+                # Check if episode exists
+                cur.execute("""
+                    SELECT uuid, last_modified_at
+                    FROM nexus_memory.zep_episodic_memory
+                    WHERE uuid = %s;
+                """, (episode.episode_id,))
+
+                existing = cur.fetchone()
+
+                if not existing:
+                    # Insert new episode
+                    cur.execute("""
+                        INSERT INTO nexus_memory.zep_episodic_memory (
+                            uuid, content, importance, tags, created_at,
+                            device_id, sync_status, last_modified_at
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+                    """, (
+                        episode.episode_id,
+                        episode.content,
+                        episode.importance,
+                        episode.tags,
+                        episode.created_at,
+                        episode.device_id,
+                        'synced',  # Mark as synced (already in Cloud)
+                        episode.last_modified_at or episode.created_at
+                    ))
+                    inserted_ids.append(episode.episode_id)
+
+                else:
+                    existing_uuid, existing_timestamp = existing
+                    episode_timestamp = episode.last_modified_at or episode.created_at
+
+                    # Update if episode is newer
+                    if episode_timestamp > existing_timestamp:
+                        cur.execute("""
+                            UPDATE nexus_memory.zep_episodic_memory
+                            SET content = %s,
+                                importance = %s,
+                                tags = %s,
+                                last_modified_at = %s,
+                                sync_status = 'synced'
+                            WHERE uuid = %s;
+                        """, (
+                            episode.content,
+                            episode.importance,
+                            episode.tags,
+                            episode_timestamp,
+                            episode.episode_id
+                        ))
+                        updated_ids.append(episode.episode_id)
+
+        conn.close()
+
+        return SyncUploadResponse(
+            success=True,
+            inserted=len(inserted_ids),
+            updated=len(updated_ids),
+            episode_ids=inserted_ids + updated_ids,
+            timestamp=datetime.now(timezone.utc)
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Sync upload failed: {str(e)}"
+        )
+
+
+@app.get("/sync/download", response_model=SyncDownloadResponse, tags=["sync"])
+async def sync_download(
+    since: str = Query(..., description="Timestamp to sync from (ISO 8601)"),
+    device_id: Optional[str] = Query(None, description="Exclude episodes from this device"),
+    limit: int = Query(1000, ge=1, le=5000, description="Max episodes to download")
+):
+    """
+    Download new/modified episodes from Cloud since timestamp.
+
+    Filters:
+    - since: Only episodes with created_at > since OR last_modified_at > since
+    - device_id: Exclude episodes created by this device (optional)
+    - limit: Max episodes (default 1000)
+
+    Usage:
+    - PC daemon requests new episodes since last_sync_timestamp
+    - Downloads episodes from Laptop or other devices
+
+    Created: Jan 12, 2026 (PC-Laptop Sync - Option A)
+    """
+    try:
+        # Parse timestamp
+        since_timestamp = datetime.fromisoformat(since.replace('Z', '+00:00'))
+
+        conn = psycopg.connect(DB_CONN_STRING, autocommit=True)
+
+        with conn.cursor() as cur:
+            if device_id:
+                # Exclude episodes from specified device
+                cur.execute("""
+                    SELECT
+                        uuid, content, importance, tags, created_at,
+                        device_id, sync_status, last_modified_at
+                    FROM nexus_memory.zep_episodic_memory
+                    WHERE (created_at > %s OR last_modified_at > %s)
+                      AND device_id != %s
+                    ORDER BY COALESCE(last_modified_at, created_at) ASC
+                    LIMIT %s;
+                """, (since_timestamp, since_timestamp, device_id, limit))
+            else:
+                # Get all new episodes
+                cur.execute("""
+                    SELECT
+                        uuid, content, importance, tags, created_at,
+                        device_id, sync_status, last_modified_at
+                    FROM nexus_memory.zep_episodic_memory
+                    WHERE (created_at > %s OR last_modified_at > %s)
+                    ORDER BY COALESCE(last_modified_at, created_at) ASC
+                    LIMIT %s;
+                """, (since_timestamp, since_timestamp, limit))
+
+            rows = cur.fetchall()
+
+            episodes = []
+            latest_timestamp = since_timestamp
+
+            for row in rows:
+                episode = {
+                    "episode_id": str(row[0]),
+                    "content": row[1],
+                    "importance": row[2],
+                    "tags": row[3],
+                    "created_at": row[4].isoformat(),
+                    "device_id": row[5],
+                    "sync_status": row[6],
+                    "last_modified_at": row[7].isoformat() if row[7] else row[4].isoformat()
+                }
+                episodes.append(episode)
+
+                # Track latest timestamp
+                episode_timestamp = row[7] if row[7] else row[4]
+                if episode_timestamp > latest_timestamp:
+                    latest_timestamp = episode_timestamp
+
+        conn.close()
+
+        return SyncDownloadResponse(
+            success=True,
+            count=len(episodes),
+            episodes=episodes,
+            latest_timestamp=latest_timestamp,
+            timestamp=datetime.now(timezone.utc)
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Sync download failed: {str(e)}"
         )
 
 
