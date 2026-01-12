@@ -5380,6 +5380,9 @@ async def sync_upload(request: SyncUploadRequest):
                 else:
                     existing_uuid, existing_timestamp = existing
                     episode_timestamp = episode.last_modified_at or episode.created_at
+                    # Convert to naive datetime if aware (to match PostgreSQL)
+                    if episode_timestamp.tzinfo is not None:
+                        episode_timestamp = episode_timestamp.replace(tzinfo=None)
 
                     # Update if episode is newer
                     if episode_timestamp > existing_timestamp:
@@ -5438,8 +5441,8 @@ async def sync_download(
     Created: Jan 12, 2026 (PC-Laptop Sync - Option A)
     """
     try:
-        # Parse timestamp
-        since_timestamp = datetime.fromisoformat(since.replace('Z', '+00:00'))
+        # Parse timestamp (convert to naive datetime to match PostgreSQL)
+        since_timestamp = datetime.fromisoformat(since.replace('Z', '+00:00')).replace(tzinfo=None)
 
         conn = psycopg.connect(DB_CONN_STRING, autocommit=True)
 
